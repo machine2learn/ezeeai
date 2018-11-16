@@ -1,0 +1,35 @@
+{% extends "base_tf3.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block styles %}
+    {{ super() }}
+    {#    <link rel="stylesheet" href="{{ url_for('.static', filename='jquery.dataTables.css') }}">#}
+    {#    <link rel="stylesheet" href="{{ url_for('.static', filename='select.dataTables.css') }}">#}
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.css"/>
+{% endblock %}
+
+{% block app_content %}
+     <div align="center">
+    <th1> {{ name }}</th1>
+    </div>
+
+    {{ data.to_html(classes="table table-striped display", table_id="amir") | safe }}
+
+    {{ wtf.quick_form(form, button_map={'submit': 'primary btn-next'}) }}
+
+    <meta id="category-data" data-name='{{ cat | tojson }}'>
+
+
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+
+    {#    <script src="{{ url_for('.static', filename='jquery.dataTables.js') }}"></script>#}
+    {#    <script src="{{ url_for('.static', filename='dataTables.select.js') }}"></script>#}
+    <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.js"></script>
+    <script src="{{ url_for('.static', filename='table.js') }}"></script>
+    <script>CATEGORIES.init({{ cat | tojson | safe }})</script>
+
+{% endblock %}

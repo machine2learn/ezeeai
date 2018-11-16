@@ -1,0 +1,34 @@
+{% extends "base_tf3.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.css"/>
+{% endblock %}
+
+{% block app_content %}
+    <div align="center">
+        <th1> {{ title }}</th1>
+    <h5>Select target feature(s) in the table</h5>
+    </div>
+
+    {{ data.to_html(classes="table table-striped display", table_id="target") | safe }}
+    {{ wtf.quick_form(form, button_map={'submit': 'primary btn-next'}) }}
+
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.js"></script>
+    <script src="{{ url_for('.static', filename='target.js') }}"></script>
+    <script type="text/javascript">
+        var err = {{error | tojson | safe}};
+        var target_selected = {{ target_selected | tojson | safe}};
+        window.appConfig = {
+            err: err,
+            target_selected: target_selected
+        }
+    </script>
+
+{% endblock %}

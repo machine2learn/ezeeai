@@ -1,0 +1,16 @@
+size = 1000
+seed = 42
+
+
+x[1..3] ~ stack(MULTI([-1, -1, -1], 0.2),
+                MULTI([5, 5, 5], 0.2),
+                MULTI([10, 10, 10], 0.2))
+
+y ~ stack(CONST("first_cluster"),
+          CONST("second_cluster"),
+          CONST("third_cluster"))
+
+output *
+
+
+

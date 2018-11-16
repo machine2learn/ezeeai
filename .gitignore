@@ -1,0 +1,14 @@
+mnist
+.python-version
+.idea
+**/*.csv
+checkpoint
+test/.pytest_cache/*
+.pytest_cache
+checkpoints
+**/*pyc
+**/*log
+.DS_Store
+__pycache__
+playground
+tmp

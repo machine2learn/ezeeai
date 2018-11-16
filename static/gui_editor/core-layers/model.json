@@ -1,0 +1,65 @@
+{
+    "keras_version": "2.2.0",
+    "backend": "tensorflow",
+    "class_name": "Model",
+    "config": {
+        "name": "model_1",
+        "layers": [
+            {
+                "class_name": "InputLayer",
+                "name": "99a49e53-b8f5-49ed-891a-76623569ca11",
+                "inbound_nodes": [
+                    []
+                ],
+                "config": {
+                    "input_shape": [
+                        1,
+                        100
+                    ],
+                    "dtype": "float32",
+                    "sparse": false
+                }
+            },
+            {
+                "class_name": "Dense",
+                "name": "569a74b6-5385-4fd8-bd0e-95622832468c",
+                "inbound_nodes": [
+                    [
+                        [
+                            "99a49e53-b8f5-49ed-891a-76623569ca11",
+                            0,
+                            0,
+                            {}
+                        ]
+                    ]
+                ],
+                "config": {
+                    "units": 100,
+                    "activation": "relu",
+                    "use_bias": true,
+                    "trainable": true,
+                    "kernel_initializer": "random_uniform",
+                    "bias_initializer": "zeros",
+                    "kernel_constraint": null,
+                    "bias_constraint": null,
+                    "kernel_regularizer": null,
+                    "bias_regularizer": null
+                }
+            }
+        ],
+        "input_layers": [
+            [
+                "99a49e53-b8f5-49ed-891a-76623569ca11",
+                0,
+                0
+            ]
+        ],
+        "output_layers": [
+            [
+                "569a74b6-5385-4fd8-bd0e-95622832468c",
+                0,
+                0
+            ]
+        ]
+    }
+}

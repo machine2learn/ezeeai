@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+
+
+{% block content %}
+
+    <div class="container">
+        <div id="wizard" ALIGN="center">
+            <button type="button" id="0" class="btn btn-default btn-arrow-right" onclick="location.href='/upload';">
+                1. Upload Data
+            </button>
+            <button type="button" id="1" class="btn btn-default btn-arrow-right" onclick="location.href='/gui';">
+                2. Create Model
+            </button>
+            <button type="button" id="2" class="btn btn-default btn-arrow-right" onclick="location.href='/parameters';">
+                3. Parameters
+            </button>
+            <button type="button" id="3" class="btn btn-default btn-arrow-right" onclick="location.href='/run';">
+                4. Run and predict
+            </button>
+            <button type="button" id="4" class="btn btn-default btn-arrow-right" onclick="location.href='/deploy';">
+                5. Deploy
+            </button>
+        </div>
+    </div>
+    <div class="container-fluid">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                {% block app_content %}
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('.static', filename='base_tf3.js') }}"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var token = {{ token | tojson | safe}};
+            var page_num = {{ page | tojson | safe}};
+            define_steps(page_num, 5);
+            token_session(token);
+        });
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
+    </script>
+{% endblock %}

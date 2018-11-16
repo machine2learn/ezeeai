@@ -1,0 +1,163 @@
+{
+    "keras_version": "2.2.0",
+    "backend": "tensorflow",
+    "class_name": "Model",
+    "config": {
+        "name": "model_1",
+        "layers": [
+            {
+                "class_name": "InputLayer",
+                "name": "879727c7-7a70-48e5-b96b-a090f9939568",
+                "inbound_nodes": [
+                    []
+                ],
+                "config": {
+                    "dtype": "float32",
+                    "sparse": false,
+                    "name": "layer_name",
+                    "batch_input_shape": [
+                        1,
+                        100
+                    ]
+                }
+            },
+            {
+                "class_name": "InputLayer",
+                "name": "27ee338d-093b-4ed4-a03a-defe71c8766d",
+                "inbound_nodes": [
+                    []
+                ],
+                "config": {
+                    "dtype": "float32",
+                    "sparse": false,
+                    "name": "layer_name",
+                    "batch_input_shape": [
+                        1,
+                        100
+                    ]
+                }
+            },
+            {
+                "class_name": "Dense",
+                "name": "5076946a-d750-49ef-a1cc-0fa3ab3e41b0",
+                "inbound_nodes": [
+                    [
+                        [
+                            "879727c7-7a70-48e5-b96b-a090f9939568",
+                            0,
+                            0,
+                            {}
+                        ]
+                    ]
+                ],
+                "config": {
+                    "units": 100,
+                    "activation": "relu",
+                    "use_bias": true,
+                    "trainable": true,
+                    "kernel_initializer": "glorot_uniform",
+                    "bias_initializer": "Zeros",
+                    "kernel_regularizer": null,
+                    "bias_regularizer": null,
+                    "activity_regularizer": null,
+                    "kernel_constraint": null,
+                    "bias_constraint": null
+                }
+            },
+            {
+                "class_name": "Dense",
+                "name": "1f8261f7-79d2-4a6e-9720-025f709c739c",
+                "inbound_nodes": [
+                    [
+                        [
+                            "27ee338d-093b-4ed4-a03a-defe71c8766d",
+                            0,
+                            0,
+                            {}
+                        ]
+                    ]
+                ],
+                "config": {
+                    "units": 100,
+                    "activation": "relu",
+                    "use_bias": true,
+                    "trainable": true,
+                    "kernel_initializer": "glorot_uniform",
+                    "bias_initializer": "Zeros",
+                    "kernel_regularizer": null,
+                    "bias_regularizer": null,
+                    "activity_regularizer": null,
+                    "kernel_constraint": null,
+                    "bias_constraint": null
+                }
+            },
+            {
+                "class_name": "Dense",
+                "name": "79f4f521-57de-41de-9371-584db8bbd29f",
+                "inbound_nodes": [
+                    [
+                        [
+                            "62a65d33-dd98-4e17-9ad9-4331d3859e88",
+                            0,
+                            0,
+                            {}
+                        ]
+                    ]
+                ],
+                "config": {
+                    "units": 100,
+                    "activation": "relu",
+                    "use_bias": true,
+                    "trainable": true,
+                    "kernel_initializer": "glorot_uniform",
+                    "bias_initializer": "Zeros",
+                    "kernel_regularizer": null,
+                    "bias_regularizer": null,
+                    "activity_regularizer": null,
+                    "kernel_constraint": null,
+                    "bias_constraint": null
+                }
+            },
+            {
+                "class_name": "Add",
+                "name": "62a65d33-dd98-4e17-9ad9-4331d3859e88",
+                "inbound_nodes": [
+                    [
+                        [
+                            "5076946a-d750-49ef-a1cc-0fa3ab3e41b0",
+                            0,
+                            0,
+                            {}
+                        ],
+                        [
+                            "1f8261f7-79d2-4a6e-9720-025f709c739c",
+                            0,
+                            0,
+                            {}
+                        ]
+                    ]
+                ],
+                "config": {}
+            }
+        ],
+        "input_layers": [
+            [
+                "879727c7-7a70-48e5-b96b-a090f9939568",
+                0,
+                0
+            ],
+            [
+                "27ee338d-093b-4ed4-a03a-defe71c8766d",
+                0,
+                0
+            ]
+        ],
+        "output_layers": [
+            [
+                "79f4f521-57de-41de-9371-584db8bbd29f",
+                0,
+                0
+            ]
+        ]
+    }
+}

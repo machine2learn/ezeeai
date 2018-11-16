@@ -1,0 +1,249 @@
+{% extends "base_tf3.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+{% from '_render_field.html' import render_field_two_col, render_single_field %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.css"/>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css"
+          integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
+
+{% endblock %}
+
+{% block app_content %}
+    {#    <meta http-equiv="refresh" content="60"/>#}
+    {#    <div class="bs-callout bs-callout-default">#}
+
+    <div id="top-controls" class="l--page">
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-8">
+                    <div class="timeline-controls icon-bar">
+                        <a data-id=all onclick="ConfirmDelete(this, true)">
+                            <i class="fas fa-undo-alt"></i>
+                        </a>
+                        <form id="run_form" method="post">
+                            <a role="button" formmethod="post" id="run_button" name="run_button">
+                                <svg id="play" class="button-play">
+                                    <circle cx="36" cy="36" r="33" style="fill:#617586;stroke:#ddd"></circle>
+                                    <polygon id="shape" points="28,21 51,36 28,51" style="fill:#fcfcfc;">
+                                        <animate id="animate_to_stop"
+                                                 begin="indefinite"
+                                                 fill="freeze"
+                                                 attributeName="points"
+                                                 dur="500ms"
+                                                 to="23,23 48,23 48,48, 23,48"
+                                                 keySplines="0.1 0.8 0.2 1; 0.1 0.8 0.2 1;0.1 0.8 0.2 1; 0.1 0.8 0.2 1; 0.1 0.8 0.2 1;0.1 0.8 0.2 1"
+                                                 keyTimes="0;0.22;0.33;0.55;0.66;0.88;1"
+                                                 calcMode="spline"></animate>
+
+                                        <animate
+                                                id="animate_to_play"
+                                                begin="indefinite"
+                                                fill="freeze"
+                                                attributeName="points"
+                                                dur="500ms"
+                                                to="28,21 51,36 28,51"
+                                                keySplines="0.1 0.8 0.2 1; 0.1 0.8 0.2 1; 0.1 0.8 0.2 1; 0.1 0.8 0.2 1; 0.1 0.8 0.2 1;0.1 0.8 0.2 1"
+                                                keyTimes="0;0.22;0.33;0.55;0.66;0.88;1"
+                                                calcMode="spline"></animate>
+                                    </polygon>
+                                </svg>
+                            </a>
+                        </form>
+                        <div class="control">
+                            <span class="label">Epoch</span>
+                            <span class="value" id="iter-number">000,000</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-1 right_buttons">
+                    <a role="button" name="tensor" class="btn tensorb" onclick="hide_show()"><span
+                            class="fas fa-desktop"></span> Log</a>
+                </div>
+                <div class="col-sm-2 offset-1 right_buttons">
+                    <a role="button" name="tensor" class="btn  tensorb" target="_blank" href="/"
+                       onclick="javascript:event.target.port={{ port }}"><span class="fas fa-chart-area "></span>
+                        TensorBoard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <div class="bs-callout bs-callout-warning" align="center">
+        <form action="/predict" method="post" id="predict_form">
+            <div class="container container-run">
+                <div class="row">
+                    <div class="col-sm-5">
+                        <div class="bs-callout bs-callout-chk">
+                            <h4><span class="glyphicon glyphicon-tasks"></span></h4>
+                            <h4> CHECKPOINTS</h4>
+                            Select trained model
+                            <br>
+                            <div class="pre-scrollable">
+                                <table id="checkp_table" class="display stripe" style="width:100%">
+                                    <tfoot align="right">
+                                    <tr>
+                                        <td colspan="4">Clear all configs <a data-id=all
+                                                                             onclick="ConfirmDelete(this, true)">
+                                            <span class="glyphicon glyphicon-trash" style="color:#ff0000"></span></a>
+                                        </td>
+                                    </tr>
+                                    </tfoot>
+                                </table>
+
+
+                            </div>
+                            <div align="left">
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" value="" id="resume_training" disabled> Resume training from
+                                    selected model
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4">
+                        <div class="bs-callout bs-callout-primary feat-div pre-trained" id="col-features">
+                            <div id="container-test">
+                                <h4><span class="glyphicon glyphicon-pencil"></span></h4>
+                                <h4>TEST </h4>
+                                <br>
+                                <div class="center">
+                                    <select name="sources" id="options" class="custom-select sources"
+                                            placeholder="Options" onchange="selectOption()">
+                                        <option value="feature-div">Feature Values</option>
+                                        <option value="upload-div">Upload File</option>
+                                        <option id="opt3" value="test-split-div">Test From Split</option>
+                                    </select>
+                                </div>
+                                <br>
+                                <div id="feature-div" class="hidden">
+                                    Add new feature values
+                                    <br> <br>
+                                    <div class="pre-scrollable">
+                                        <table id="table_features" align="center">
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="hidden" id="upload-div">
+                                    Test a model with your own file
+                                    <br> <br>
+                                    <div>
+                                        <label for="upload-file">Select file:</label>
+                                        <input class="test-file" type="file"
+                                               id="upload-file" name="upload-file"
+                                               accept=".csv" disabled/>
+                                    </div>
+                                    <br>
+                                    <button type="button" id="test_from_file" class="btn btn-primary" disabled>
+                                        TEST
+                                    </button>
+
+                                </div>
+                                <div class="hidden" id="test-split-div">
+                                    Test a model with the test split
+                                    <br> <br>
+                                    <button type="button" id="test_from_split" class="btn btn-primary" disabled>
+                                        TEST
+                                    </button>
+                                </div>
+                                <br>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <div class="bs-callout bs-callout-success pre-trained" id="col-predict">
+                            <div>
+                                <h4><span class="glyphicon glyphicon-ok"></span></h4>
+                                <h4> PREDICT</h4>
+                                Get a prediction for your selected feature values
+                                <br><br>
+                                <h4><b>
+                                    <div id="predict_val"></div>
+                                </b></h4>
+                                <button type="button" id="predict_button" class="btn btn-primary" disabled>
+                                    PREDICT
+                                </button>
+                            </div>
+                        </div>
+
+
+                        <div class="bs-callout bs-callout-info pre-trained" id="col-explain">
+                            <div>
+                                <h4><span class="glyphicon glyphicon-eye-open"></span></h4>
+                                <h4> EXPLAIN</h4>
+                                Explain the prediction for your selected feature values
+                                <br>
+                                {#                                <a href="explain" target="_blank" style="display: none;" id="explain_tab" name="explain_tab"></a>#}
+                                {#                                <input type="button" style="display: none;"  id="explainb">#}
+
+                                <div class="pre-scrollable-explain" id="explain_form">
+                                    <label class="cust_label" for="top_labels">
+                                        Top labels:
+                                        <input type="number" name="top_labels" id="top_labels" value="1"
+                                               step="1"
+                                               min="1">
+                                    </label>
+                                    <label class="cust_label" for="num_feat">
+                                        #Features:
+                                        <input type="number" name="num_feat" id="num_feat" value="3" step="1"
+                                               min="2">
+                                    </label>
+                                    <div id="expdiv" class="block">
+                                        <label id="exp_label" class="cust_label" for="exp_target">
+                                            Target:
+                                        </label>
+                                    </div>
+                                    <br>
+                                    <button type="button" id="explain_button" class="btn btn-primary" disabled>
+                                        EXPLAIN
+                                    </button>
+                                </div>
+                                <div id="error_exp" class="bottom-left"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div id="log" class="log"></div>
+    <form id='deploy' action="/deploy" method="post">
+        <input id='next_button' type="button" formmethod="post" onclick='submitDeployForm()'
+               class="btn btn-primary btn-next" value="Next" disabled/>
+    </form>
+
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js"></script>
+    <script type=text/javascript>
+        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+        var handle_key = {};
+        handle_key.features = {{ features | tojson | safe }};
+        handle_key.types = {{ types | tojson | safe }};
+        handle_key.categoricals = {{ categoricals | tojson | safe }};
+        handle_key.checkpoints = {{ checkpoints | tojson | safe }};
+        window.appConfig = {
+            handle_key: handle_key,
+            hh: {{explain_disabled | tojson | safe}},
+            running: {{ running | tojson | safe}},
+            targets: {{ targets | tojson | safe }},
+            metric: {{ metric | tojson | safe }},
+            has_test: {{ has_test | tojson | safe }}
+        }
+    </script>
+    <script type="text/javascript" src="{{ url_for('.static', filename='run.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('.static', filename='run_ajax.js') }}"></script>
+{% endblock %}

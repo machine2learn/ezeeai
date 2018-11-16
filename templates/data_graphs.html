@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.css"/>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/roundslider.min.css') }}">
+{% endblock %}
+
+
+
+{% block content %}
+    <div align="center">
+        <th1>Generated data</th1>
+
+        <div align="center" id="selector_graphs" class="panel-body"> Select Graph :
+        </div>
+
+        <div class="row" id="div_graph1">
+            <div class="col-sm-3" id="selectors">
+                <div id="selector1"> x :</div>
+                <div id="selector2"> y :</div>
+            </div>
+            <div class="col-sm-6">
+                <div id="graph1" style="width: 580px; height: 400px;"></div>
+            </div>
+            <br>
+        </div>
+
+        <div class="row" id="div_graph2">
+            <div class="col-sm-3" id="selectors2">
+                <div id="selector3"> Feature:</div>
+            </div>
+            <div class="col-sm-6">
+                <div id="graph2" style="width: 580px; height: 400px;"></div>
+            </div>
+            <br>
+        </div>
+
+        <div class="row" id="div_graph3">
+                <div id="graph3" style="width: 480px; height: 480px;"></div>
+            <br>
+        </div>
+
+
+        <table id="table_data" class="display stripe" style="width:100%">
+        </table>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('.static', filename='data_graphs.js') }}"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.js"></script>
+    <script type="text/javascript">
+        var handle_key = {};
+        handle_key.data = {{  data | tojson | safe }};
+        handle_key.norm = {{  norm | tojson | safe }};
+        handle_key.corr = {{  corr | tojson | safe }};
+        window.appConfig = {
+            handle_key: handle_key
+        }
+    </script>
+{% endblock %}

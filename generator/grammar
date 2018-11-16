@@ -1,0 +1,99 @@
+definition: samplenumber seed? random_variables_list output
+
+samplenumber: "size" "=" int
+
+seed: "seed" "=" int
+output: "output" ("*" | id_array)
+
+random_variables_list: (random_variables)+
+random_variables: identifier_list "~" sum
+
+?identifier_list: id -> single
+                | id range -> multi
+range: "[" int ".." int "]"
+
+id: CNAME
+string: ESCAPED_STRING
+?value : number
+        | array
+array: "[" [value ("," value)*] "]"
+id_array: "[" [identifier_list  ("," identifier_list)*] "]"
+string_array: "[" [string ("," string)*] "]"
+
+number: SIGNED_NUMBER
+int: INT
+
+distribution: normal | pois | uniform | constant | range_dist | multivariate | choice
+?multidimentional_distribution: "ndim" "(" distribution "," int ")" -> multi_dist
+                                | distribution
+
+normal: "NORM" "(" number "," number  ")"
+pois :  "POIS" "(" int ")"
+uniform: "UNIF" "(" number "," number ")"
+constant: "CONST" "(" (number | string) ")"
+multivariate: "MULTI" "(" array "," (array | number) ")"
+range_dist: "RANGE" "(" int ")"
+choice: "CHOICE" "(" [string_array | array | range] ")"
+
+
+bool_compound: bool_values otherwise
+
+?bool_values: bool_if
+            | bool_values  bool_if  -> combine
+
+?bool_if: "case" bool_composer "->" (number | string)
+?otherwise: "otherwise" "->" (number | string)
+
+
+?bool_composer:  bool_statement  -> bool_array
+               | bool_composer "and" bool_statement -> bool_and
+               | bool_composer "or" bool_statement -> bool_or
+
+
+?bool_statement: sum "==" sum -> equal
+               | sum ">=" sum -> larger_equal
+               | sum "<=" sum -> smaller_equal
+               | sum ">" sum -> larger
+               | sum "<" sum -> smaller
+               | sum "!=" sum -> not_equal
+               | "not" bool_statement -> inverse
+               | "(" bool_composer ")"
+
+
+?sum: product
+     | sum "+" product   -> add
+     | sum "-" product   -> sub
+
+?product: item
+     | product "*" item  -> mul
+     | product "/" item  -> div
+
+?item: identifier_list    -> rv
+     | number            -> scalar
+     | "-" item          -> neg
+     | "(" sum ")"
+     | item "^"  int -> power
+     | "stack" "(" item ("," item)+ ")" -> stack
+     | "stackall" "(" item ("," item)+ ")" -> stackall
+     | "rep" "(" item ","  int ")" -> tile
+     | multidimentional_distribution -> create
+     | bool_compound
+     | function
+
+?function: "log" "(" sum ")" -> log
+         |  "sqrt" "(" sum ")" -> sqrt
+         |  "sum"  "(" id "[" int ".." int "]" ")" -> addlist
+         |  "prod" "(" id "[" int ".." int "]" ")" -> mullist
+
+COMMENT: "#" /(.)+/ NEWLINE
+
+%import common.ESCAPED_STRING
+%import common.SIGNED_NUMBER
+%import common.WS
+%import common.CNAME
+%import common.NEWLINE
+%import common.INT
+%import common.SIGNED_FLOAT
+%ignore WS
+%ignore COMMENT
+

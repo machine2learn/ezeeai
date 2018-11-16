@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.css"/>
+{% endblock %}
+
+
+
+{% block content %}
+
+    <div align="center">
+        <th1>Prediction test file</th1>
+        <div id="expdiv" class="container">
+            <div class="panel-body">
+                <label id="exp_label" class="cust_label" for="exp_target">
+                    Target:
+                </label>
+                <div id="metric_acc"></div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-6">
+                <div id="pred_act_response" style="width: 680px; height: 400px;"></div>
+            </div>
+            <div class="col-sm-6">
+                <div id="myDiv2" style="width: 680px; height: 400px;"></div>
+            </div>
+            <br>
+
+        </div>
+
+        <br>
+        <table id="test_table_features" class="display stripe" style="width:100%">
+        </table>
+        <a href="download" class="btn btn-info" id="down-csv" download> <span id="span_run"
+                                                                              class="glyphicon glyphicon-download-alt"></span>
+            Download file</a>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.js"></script>
+    <script src="{{ url_for('.static', filename='predict_test.js') }}"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script type="text/javascript">
+        var handle_key = {};
+        handle_key.predict_table = {{  predict_table | tojson | safe }};
+        handle_key.metrics = {{  metrics | tojson | safe }};
+        handle_key.targets = {{  targets | tojson | safe }};
+        window.appConfig = {
+            handle_key: handle_key
+        }
+    </script>
+{% endblock %}

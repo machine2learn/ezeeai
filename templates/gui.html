@@ -1,0 +1,289 @@
+{% extends "base_tf3.html" %}
+
+{% import 'bootstrap/wtf.html' as wtf %}
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('.static', filename='css/cytocreator.css') }}"/>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('.static', filename='css/cytoscape-context-menus.css') }}"/>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/ion.rangeSlider.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/ion.rangeSlider.skinFlat.css') }}">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css"
+          integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.css"/>
+{% endblock %}
+
+{% block app_content %}
+
+    <div class="gui_container">
+        <div id="accordion" class="buttonbar"></div>
+        <div class="editor">
+            <div id="cy_buttons0" class="cy-buttons">
+                <label for="inp" class="inp">
+                    <input type="text" id="inp" placeholder="&nbsp;">
+                    <span class="label">Model name</span>
+                    <span class="border"></span>
+                </label>
+            </div>
+            <div id="cy_buttons" class="cy-buttons">
+                <button id="zoom_handler" class="right-align"><i class="fas fa-compress "></i></button>
+                <button id="zoom_plus" class="right-align"><i class="fas fa-search-plus"></i></button>
+                <button id="zoom_minus" class="right-align"><i class="fas fa-search-minus"></i></button>
+                <button id="load" class="right-align" onclick="$('#loadmodal').show();">
+                    <i class="fas fa-download"></i>Load Model
+                </button>
+            </div>
+            <div id="cy"></div>
+        </div>
+        <div id="properties" class="properties"></div>
+    </div>
+    <div class="validation">
+
+    </div>
+    <br>
+
+    <form action="/save_model" id="submitform" method="post" align="right">
+        <input class="hidden" id="modelname" name="modelname">
+        <input class="hidden" id="mode" name="mode">
+        <button type="button" id="validate_model" class="btn btn-primary">
+            <i class="fas fa-check fa-sm" id="i_validate_model"></i> Validate
+        </button>
+        <button type="submit" formmethod="get" id="submit" class="btn btn-primary hidden">Next</button>
+    </form>
+
+
+
+    <!-- Modal INPUT -->
+
+    <div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modal" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="wizard-title"><i class="fas fa-arrow-right" aria-hidden="true"></i>
+                        Input Layer
+                        <button type="button" id="close" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span>
+                        </button>
+                    </h5>
+                </div>
+                <!-- Modal Wizard-->
+                <div class="modal-body">
+                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link" id="wizard1" href="#select_data" data-toggle="tab" role="tab">
+                                1. Select data</a>
+                        <li>
+                        <li class="nav-item">
+                            <a class="nav-link disabled" id="wizard2" data-toggle="tab" href="#split_tab"
+                               role="tab"> 2. Split</a>
+                        <li>
+                        <li class="nav-item">
+                            <a class="nav-link disabled" id="wizard3" data-toggle="tab" href="#features"
+                               role="tab"> 3. Features</a>
+                        <li>
+                        <li class="nav-item">
+                            <a class="nav-link disabled" id="wizard4" data-toggle="tab" href="#targets"
+                               role="tab"> 4. Targets</a>
+                        <li>
+                    </ul>
+
+                    {#                    <ul class="nav nav-tabs process-model more-icon-preocess" id="myTab" role="tablist">#}
+                    {#                        <li role="presentation" class="active">#}
+                    {#                            <a id="wizard1" href="#select_data" aria-controls="discover" role="tab" data-toggle="tab">#}
+                    {#                                <i class="fas fa-database" aria-hidden="true"></i>#}
+                    {#                                <p> 1. Select data </p>#}
+                    {#                            </a></li>#}
+                    {##}
+                    {#                        <li role="presentation" class="active">#}
+                    {#                            <a id="wizard2" href="#split_tab" aria-controls="discover" role="tab" data-toggle="tab">#}
+                    {#                            <i class="fas fa-cut" aria-hidden="true"></i>#}
+                    {#                            <p> 2. Split</p>#}
+                    {#                        </a></li>#}
+                    {##}
+                    {#                        <li role="presentation" class="active"><a id="wizard3" href="#features"#}
+                    {#                                                                  aria-controls="discover" role="tab" data-toggle="tab">#}
+                    {#                            <i class="fas fa-bars" aria-hidden="true"></i>#}
+                    {#                            <p> 3. Features</p>#}
+                    {#                        </a></li>#}
+                    {##}
+                    {#                        <li role="presentation" class="active"><a id="wizard4" href="#targets"#}
+                    {#                                                                  aria-controls="discover" role="tab" data-toggle="tab">#}
+                    {#                            <i class="fas fa-bullseye" aria-hidden="true"></i>#}
+                    {#                            <p> 4. Targets</p>#}
+                    {#                        </a></li>#}
+                    {##}
+                    {#                    </ul>#}
+
+
+                    <div class="tab-content">
+                        <!-- 1 Modal Wizard-->
+                        <div class="tab-pane fade" id="select_data" role="tabpanel">
+                            <h4 align="center">Select dataset</h4>
+                            <div class="form-group" id="select_dataset">
+                                <label for="venueSelect">1. Select dataset</label>
+                                <div id="selectDataset"></div>
+                            </div>
+                            <button href="#split_tab" class="btn btn-primary" id="select_continue">Save and continue
+                            </button>
+                        </div>
+
+                        <!-- 2 Modal Split-->
+                        <div class="tab-pane fade" id="split_tab" role="tabpanel">
+                            <h4 align="center">Split</h4>
+                            <div class="row" id="slider-div">
+                                <div class="range-slider">
+                                    <label for="range1"
+                                           title="Training Dataset: The sample of data used to fit the model.">Train</label>
+                                    <input type="text" id="range1" class="js-range-slider-1" value="20"/>
+                                </div>
+                                <br>
+                                <div class="range-slider">
+                                    <label for="range3"
+                                           title="Validation Dataset: The sample of data used to provide an unbiased  evaluation of a model fit on the training dataset.">Validation</label>
+                                    <input type="text" id="range2" class="js-range-slider-2" value="30"/>
+                                </div>
+                                <br>
+                                <div class="range-slider">
+                                    <label for="range3"
+                                           title="Test Dataset: The sample of data used to provide an unbiased  evaluation of a final model fit on the training dataset.">Test</label>
+                                    <input type="text" id="range3" class="js-range-slider-3" value="0"/>
+                                </div>
+                                <br>
+                                <div class="extra-controls js-result">
+                                </div>
+                                <br>
+                            </div>
+                            <button class="btn btn-primary" id="splitTabContinue">Save and continue</button>
+                        </div>
+
+
+                        <div class="tab-pane fade" id="features" role="tabpanel">
+                            <h4 align="center">Features</h4>
+                            <table id="table_features" class="display stripe" style="width:100%"></table>
+                            <div>
+                                <input type="checkbox" id="normalize" name="normalize" checked>
+                                <label for="scales">Normalize</label>
+                            </div>
+
+                            <button class="btn btn-primary" id="featuresContinue">Save and continue</button>
+                        </div>
+
+                        <div class="tab-pane fade" id="targets" role="tabpanel">
+                            <h4 align="center">Select target(s)</h4>
+                            <table id="table_targets" class="display stripe" style="width:50%"></table>
+                            <button class="btn btn-primary btn-block" id="targetContinue">Finish</button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal LOAD -->
+
+    <div id="loadmodal" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-download"></i>Load Model</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                            onclick="$('#loadmodal').hide();">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table id="table_models" class="display stripe" style="width:100%"></table>
+                </div>
+                <div class="modal-footer">
+                    <form action="/gui_load" id="form_load" method="post">
+                        <button type="submit" id="submit_load" class="btn btn-primary"> Load</button>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script type="application/javascript"
+            src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.10/lodash.js"></script>
+    <script type="application/javascript" src="{{ url_for('.static', filename='gui_editor/cytocreator.js') }}"></script>
+    <script type="application/javascript"
+            src="{{ url_for('.static', filename='gui_editor/cytoscape.min.js') }}"></script>
+    <script type="application/javascript"
+            src="{{ url_for('.static', filename='gui_editor/cytoscape-edgehandles.js') }}"></script>
+    <script type="application/javascript"
+            src="{{ url_for('.static', filename='gui_editor/cytoscape-context-menus.js') }}"></script>
+    <script type="application/javascript"
+            src="{{ url_for('.static', filename='gui_editor/cytoscape-handler.js') }}"></script>
+    <script type="application/javascript"
+            src="{{ url_for('.static', filename='gui_editor/cytoscape-edge-bend-editing.js') }}"></script>
+    <script type="application/javascript"
+            src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script type="application/javascript"
+            src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+    <script src="https://cdn.rawgit.com/cpettitt/dagre/v0.7.4/dist/dagre.min.js"></script>
+    <script src="https://cdn.rawgit.com/cytoscape/cytoscape.js-dagre/1.5.0/cytoscape-dagre.js"></script>
+    <script type="application/javascript"
+            src="{{ url_for('.static', filename='gui_editor/cytoscape-undo-redo.js') }}"></script>
+    <script type="application/javascript"
+            src="{{ url_for('.static', filename='gui_editor/cytoscape-clipboard.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.12.5"></script>
+    <script type="application/javascript"
+            src="{{ url_for('.static', filename='gui_editor/core-layers/jslayers.js') }}"></script>
+    <script type="application/javascript"
+            src="{{ url_for('.static', filename='gui_editor/core-layers/cytoscape-styles.js') }}"></script>
+    <script src="https://unpkg.com/popper.js"></script>
+    <script src="{{ url_for('.static', filename='gui_editor/cytoscape-popper.js') }}"></script>
+    <script src="{{ url_for('.static', filename='gui_editor/cytoscape-node-html-label.js') }}"></script>
+    <script src="{{ url_for('.static', filename='gui_editor/modal-window.js') }}"></script>
+
+
+    <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/select/1.2.7/js/dataTables.select.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdn.datatables.net/fixedheader/3.1.5/js/dataTables.fixedHeader.min.js"></script>
+    <script src="{{ url_for('.static', filename='table.js') }}"></script>
+    <script src="{{ url_for('.static', filename='ion.rangeSlider.js') }}"></script>
+    <script src="{{ url_for('.static', filename='slider.js') }}"></script>
+
+    <script type="text/javascript">
+        const dict_wizard = {1: 'select_data', 2: 'split_tab', 3: 'features', 4: 'targets'};
+        var user_dataset = {{ user_dataset | tojson | safe}};
+        var parameters = {{ parameters | tojson | safe}};
+        var cy_model = {{ cy_model | tojson | safe}};
+        var m_name = {{ model_name | tojson | safe}};
+        var num_outputs = {{ num_outputs | tojson | safe  }};
+        var dataset_params = {{ dataset_params | tojson | safe  }};
+        var data_df = {{ data | tojson | safe  }};
+        window.appConfig = {
+            user_dataset: user_dataset,
+            parameters: parameters,
+            cy_model: cy_model,
+            m_name: m_name,
+            num_outputs: num_outputs,
+            dataset_params: dataset_params,
+            data_df: data_df
+        };
+    </script>
+
+{% endblock %}
+
+
+
+
+
+

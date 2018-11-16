@@ -1,0 +1,139 @@
+{% macro render_single_field(field) %}
+    <div class="form-group">
+        <label for="{{ field.name }}" class="control-label">{{ field.label.text }}</label>
+        <div class="col-lg-3">
+            {{ field(class_='form-control', **kwargs)|safe }}
+            <ul>
+                {% for error in field.errors %}
+                    <li style="color:red;">{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="clearfix"></div>
+{% endmacro %}
+
+{% macro render_checkbox(field) %}
+    <div class="form-group">
+        <label for="{{ field.name }}" class="control-label">{{ field.label.text }}</label>
+        {{ field(class_='form-control', **kwargs)|safe }}
+        <ul>
+            {% for error in field.errors %}
+                <li style="color:red;">{{ error }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="clearfix"></div>
+{% endmacro %}
+
+
+{% macro render_field_two_col(field) %}
+    <div id="{{ field.name }}">
+
+        {% set vars = {'count': 0} %} {# A bit strange, but this is how you change variable value inside loop #}
+
+        {%- for subfield in field %}
+            {% if not bootstrap_is_hidden_field(subfield) %}
+                {% if loop.index0 is divisibleby 2 %}
+                    <div class="form-row" id="{{ subfield.name }}_row">
+                {% endif %}
+            <div class="form-group col-md-6">
+                <label for="{{ subfield.name }}" class="control-label" data-toggle="tooltip"
+                       title="{{ subfield.description }}">{{ subfield.label.text }}</label>
+                {{ subfield(class_='form-control', **kwargs)|safe }}
+                <ul>
+                    {% for error in subfield.errors %}
+                        <li style="color:red;">{{ error }}</li>
+                    {% endfor %}
+                </ul>
+
+            </div>
+            {% if loop.index0 is not divisibleby 2 %}
+                </div>
+            {% endif %}
+            {% else %}
+            {% endif %}
+            {% if vars.update({'count': loop.length}) %} {% endif %}
+        {%- endfor %}
+        {% if vars.count is divisibleby 2 %} {# one extra is for csrf, hence even #}
+            <div class="clearfix"></div>
+            </div>
+        {% endif %}
+    {{ field.hidden_tag() }}
+    </div>
+{% endmacro %}
+
+{% macro render_field_two_col_labels(field) %}
+    <div id="{{ field.name }}">
+        <div id="{{ field.name }}_title">
+            <h4><label> {{ field.label.text }} </label></h4>
+        </div>
+        {% set vars = {'count': 0} %} {# A bit strange, but this is how you change variable value inside loop #}
+
+        {%- for subfield in field %}
+            {% if not bootstrap_is_hidden_field(subfield) %}
+                {% if loop.index0 is divisibleby 2 %}
+                    <div class="form-row" id="{{ subfield.name }}_row">
+                {% endif %}
+            <div class="form-group col-md-6">
+                <label for="{{ subfield.name }}" class="control-label" data-toggle="tooltip"
+                       title="{{ subfield.description }}">{{ subfield.label.text }}</label>
+                {{ subfield(class_='form-control', **kwargs)|safe }}
+                <ul>
+                    {% for error in subfield.errors %}
+                        <li style="color:red;">{{ error }}</li>
+                    {% endfor %}
+                </ul>
+
+            </div>
+            {% if loop.index0 is not divisibleby 2 %}
+                </div>
+            {% endif %}
+            {% else %}
+            {% endif %}
+            {% if vars.update({'count': loop.length}) %} {% endif %}
+        {%- endfor %}
+        {% if vars.count is divisibleby 2 %} {# one extra is for csrf, hence even #}
+            <div class="clearfix"></div>
+            </div>
+        {% endif %}
+    {{ field.hidden_tag() }}
+    </div>
+{% endmacro %}
+
+
+{% macro render_radio_fields(field) %}
+    <div class="form-group">
+        <label class="col-lg-2 control-label">{{ field.label.text }}</label>
+        <div class="col-lg-10">
+            {% for subfield in field %}
+                <div class="radio">
+                    <label>
+                        {{ subfield.label.text }} {{ subfield }}
+                    </label>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro render_field(field) %}
+{#    <h4><label> {{ field.label.text }} </label></h4>#}
+    {%- for subfield in field %}
+        {% if not bootstrap_is_hidden_field(subfield) %}
+            <div class="form-row">
+                <label for="{{ subfield.name }}" class="control-label"
+                       title="{{ subfield.description }}">{{ subfield.label.text }}</label>
+                {{ subfield(class_='form-control', **kwargs)|safe }}
+                <ul>
+                    {% for error in subfield.errors %}
+                        <li style="color:red;">{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+    {%- endfor %}
+
+    {{ field.hidden_tag() }}
+{% endmacro %}
+

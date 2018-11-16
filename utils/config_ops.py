@@ -1,0 +1,101 @@
+import os
+import configparser
+from tensorflow.python.platform import gfile
+from utils import upload_util, sys_ops, preprocessing
+
+import json
+
+
+def get_datasets(app_root, username):
+    return [x for x in os.listdir(os.path.join(app_root, 'user_data', username, 'datasets')) if x[0] != '.']
+
+
+def generate_config_name(app_root, username, dataset_name):
+    user_configs = []
+    if os.path.isdir(os.path.join(app_root, 'user_data', username, 'datasets', dataset_name)):
+        user_configs = [a for a in os.listdir(os.path.join(app_root, 'user_data', username, 'datasets', dataset_name))
+                        if os.path.isdir(os.path.join(app_root, 'user_data', username, 'datasets', dataset_name, a))]
+    new_name = 'config_'
+    cont = 1
+    while new_name + str(cont) in user_configs:
+        cont += 1
+    return new_name + str(cont)
+
+
+def create_config(username, APP_ROOT, dataset, config_name):
+    # TODO default_config not exists, not useful
+    path = APP_ROOT + '/user_data/' + username + '/' + dataset + '/' + config_name
+    os.makedirs(path, exist_ok=True)
+    sys_ops.copyfile('config/default_config.ini', path + '/config.ini')
+    return path + '/config.ini'
+
+
+def update_config_dir(config_writer, target):
+    config_writer.add_item('PATHS', 'checkpoint_dir', os.path.join(target, 'checkpoints/'))
+    config_writer.add_item('PATHS', 'custom_model', os.path.join(target, 'custom'))
+    config_writer.add_item('PATHS', 'export_dir', os.path.join(target, 'checkpoints/export/best_exporter'))
+    config_writer.add_item('PATHS', 'log_dir', os.path.join(target, 'log/'))
+    config_writer.add_item('PATHS', 'tmp_dir', os.path.join(target, 'tmp'))
+
+
+def create_model(username, APP_ROOT, config_name):
+    # TODO default_config not exists, not useful
+    path = APP_ROOT + '/user_data/' + username + '/models/' + config_name
+    os.makedirs(path, exist_ok=True)
+    sys_ops.copyfile('config/default_config.ini', path + '/config.ini')
+    return path + '/config.ini'
+
+
+def define_new_model(APP_ROOT, username, config_writer, model_name):
+    # config_name = generate_config_name(APP_ROOT, username, dataset_name)
+    target = os.path.join(APP_ROOT, 'user_data', username, 'models', model_name)
+    update_config_dir(config_writer, target)
+    os.makedirs(target, exist_ok=True)
+    os.makedirs(os.path.join(target, 'log/'), exist_ok=True)
+    os.makedirs(os.path.join(target, 'tmp'), exist_ok=True)
+    create_model(username, APP_ROOT, model_name)
+    return model_name
+
+
+def get_configs_files(app_root, username):
+    parameters_configs = {}
+    path_models = os.path.join(app_root, 'user_data', username, 'models')
+    models = [a for a in os.listdir(path_models) if os.path.isdir(os.path.join(path_models, a))]
+    for model in models:
+        config = configparser.ConfigParser()
+        config.read(os.path.join(path_models, model, 'config.ini'))
+        parameters_configs[model] = {}
+        if 'BEST_MODEL' in config.sections():
+            parameters_configs[model]['perf'] = config.get('BEST_MODEL', 'max_perf')
+            parameters_configs[model]['loss'] = config.get('BEST_MODEL', 'min_loss')
+        if 'PATHS' in config.sections():
+            parameters_configs[model]['dataset'] = config.get('PATHS', 'train_file').split('/')[-3]
+    return models, parameters_configs
+
+
+def new_config(train_form_file, test_form_file, APP_ROOT, username, sess):
+    ext = train_form_file.filename.split('.')[-1]
+    dataset_name = train_form_file.filename.split('.' + ext)[0]
+    path = os.path.join(APP_ROOT, 'user_data', username, 'datasets', dataset_name)
+    if os.path.isdir(path):
+        dataset_name = upload_util.generate_dataset_name(APP_ROOT, username, dataset_name)
+        path = os.path.join(APP_ROOT, 'user_data', username, 'datasets', dataset_name)
+    else:
+        os.makedirs(path, exist_ok=True)
+
+    sys_ops.save_filename(os.path.join(path, 'train'), train_form_file, 'train_file', dataset_name, sess)
+    if not isinstance(test_form_file, str):
+        ext = test_form_file.filename.split('.')[-1]
+        test_file = test_form_file.filename.split('.' + ext)[0]
+        sys_ops.save_filename(os.path.join(path, 'test'), test_form_file, 'validation_file', test_file, sess)
+    else:
+        os.makedirs(os.path.join(path, 'test'), exist_ok=True)
+    os.makedirs(os.path.join(path, 'valid'), exist_ok=True)
+    return dataset_name
+
+
+def check_generated(dataset_name, APP_ROOT, username):
+    path = os.path.join(APP_ROOT, 'user_data', username, 'datasets', dataset_name)
+    if not os.path.isdir(path):
+        return False
+    return dataset_name

@@ -1,0 +1,97 @@
+{% extends "base_tf3.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+{% from '_render_field.html' import render_checkbox, render_field_two_col, render_single_field, render_field %}
+
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css"
+          integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.css"/>
+{% endblock %}
+
+{% block app_content %}
+    <div id="result"></div>
+    {% with errors = get_flashed_messages(category_filter=["error"]) %}
+        {% if errors %}
+            {%- for msg in errors %}
+                <div class="alert alert-danger alert-dismissible" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                            aria-hidden="true">×</span></button>
+                    {{ msg }}
+                </div>
+            {% endfor -%}
+        {% endif %}
+    {% endwith %}
+    <div class="bs-callout bs-callout-pprimary" align="center">
+        <div align="center" class="container" id="upload_title">
+            <th1><i class="fas fa-database"></i> Data Upload</th1>
+
+        <div class="row">
+            <!--{{ wtf.quick_form(form, id='new_dataset', enctype="multipart/form-data", button_map={'submit': 'primary'}) }}-->
+            <form action="/upload" id="upload_form" method="post" enctype="multipart/form-data">
+                {{ form.csrf_token }}
+                <div id="check">
+                    {{ render_field_two_col(form.options) }}
+                </div>
+                <div id="newfiles">
+                    {{ render_field_two_col(form.new_files) }}
+                </div>
+                <div id="generate_dataset">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div id="error-confirm" style="color: red;"></div>
+                            {{ render_field(form.generate_dataset) }}
+                            <p align="right">
+                                <button id='confirm' align="left" class="btn btn-primary"> Confirm</button>
+
+                                <button type="button" id='data_graphs_button' align="left" class="btn btn-primary"> View
+                                </button>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-left" type="submit" id="upload_form" formmethod="post">
+                    <span class="glyphicon glyphicon-save"></span> Save
+                </button>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <form action="/gui" id="open_gui" method="post" enctype="multipart/form-data">
+        <p align="right">
+            <button type="submit" id="create_model" formmethod="post" class="btn btn-primary">
+                Create Model
+            </button>
+        </p>
+    </form>
+
+{% endblock %}
+
+
+{% block scripts %}
+    {{ super() }}
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/select/1.2.7/js/dataTables.select.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdn.datatables.net/fixedheader/3.1.5/js/dataTables.fixedHeader.min.js"></script>
+    <script src="{{ url_for('.static', filename='choose.js') }}"></script>
+    <script src="{{ url_for('.static', filename='notify.js') }}"></script>
+    <script type="text/javascript">
+        var handle_key = {};
+        handle_key.configs = {{  user_configs | tojson | safe }};
+        handle_key.parameters = {{  parameters | tojson | safe }};
+        handle_key.examples = {{  examples | tojson | safe }};
+        handle_key.mess = {{ mess  | tojson | safe  }}
+            window.appConfig = {
+                handle_key: handle_key
+            }
+    </script>
+    <script src="{{ url_for('.static', filename='upload.js') }}"></script>
+
+{% endblock %}
