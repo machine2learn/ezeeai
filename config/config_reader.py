@@ -180,7 +180,10 @@ class CustomConfigParser(configparser.ConfigParser):
             result['dropout'] = float(self.canned_data['dropout']['value'])
             result['l1_regularization'] = float(self.canned_data['l1_regularization']['value'])
             result['l2_regularization'] = float(self.canned_data['l2_regularization']['value'])
-            # result['kernel_initializer'] = self.canned_data['kernel_initializer']['value']
+            result['kernel_initializer'] = {'name': self.canned_data['kernel_initializer']['value']}
+            if 'config' in self.canned_data['kernel_initializer'].keys():
+                result['kernel_initializer']['params'] = self.canned_data['kernel_initializer']['config']
+
             result['loss_function_canned'] = self.canned_data['loss_function']
         return result
 
@@ -189,6 +192,10 @@ class CustomConfigParser(configparser.ConfigParser):
 
     def get_canned_data(self):
         return self.canned_data
+
+    def set_email(self, mail):
+        self.set('PATHS', 'email', mail)
+
 
 
 def read_config(path):

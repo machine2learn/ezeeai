@@ -35,7 +35,7 @@ var initializers = {
     },
     "varianceScaling": {
         "scale": {"type": "float", "value": 1},
-        "mode": {"type": "select", "value": 'fanIn', "options": ['fanIn', 'fanOut', 'fanAvg']},
+        "mode": {"type": "select", "value": 'fanIn', "options": ["fan_in", "fan_out", "fan_avg"]},
         "distribution": {"type": "select", "value": 'normal', "options": ['normal', 'uniform']}
     },
 

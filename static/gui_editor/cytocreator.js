@@ -185,11 +185,10 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!cy_element.content.hasOwnProperty(new_value_id)) {
                 let param = new_value_id.split('-')[0];
                 cy_element.content[param]['config'] = {};
-                $.map($('#properties input[id^=' + param + '-]'), function (i) {
+                $.map($('#properties :input[id^=' + param + '-]'), function (i) {
                     let field = i.id.split('-')[1];
                     cy_element.content[param]['config'][field] = i.value;
                 });
-
             } else {
                 cy_element.content[new_value_id]['value'] = e.target.value;
                 if (cy_element.content[new_value_id].hasOwnProperty('config'))
@@ -204,7 +203,23 @@ document.addEventListener('DOMContentLoaded', function () {
         } else
             e.target.classList.add('invalid');
         disable_submit_button();
-    });
+    })
+        .on('change', 'select', function (e) {
+            let prop = this.name;
+            let param = $(e.target).val();
+            show_params_config(prop, param, null)
+        })
+        .on('click', 'select', function (e) {
+            let prop = this.name;
+            let param = $(e.target).val();
+            let node = cy.nodes().filter((node) => (node.selected()));
+            let config = null;
+            if (node.data()['content'][prop].hasOwnProperty('config')) {
+                config = node.data()['content'][prop]['config']
+            }
+            show_params_config(prop, param, config)
+        });
+
 
     function add_new_node(event) {
         let radio_checked = document.querySelector('input[name="radio"]:checked');
@@ -234,10 +249,8 @@ document.addEventListener('DOMContentLoaded', function () {
                             weight: 75,
                             content: content
                         },
-
                         position: event.position
                     });
-
                     disable_submit_button();
                 }
                 add_icons_nodes();
@@ -270,17 +283,29 @@ document.addEventListener('DOMContentLoaded', function () {
                     return true;
             return false;
         });
+
+        if (input_nodes.length !== 1)
+            return 'Input layer not exists or  dataset not correctly added';
+
         if (input_nodes.length !== 1 || output_nodes.length !== 1)
-            return false;
+            return 'Just one input layer and one loss layer are allowed';
+
+        let dnn_nodes = cy.nodes().filter((node) => ('DNN' === node.data().class_name));
+        let all = cy.nodes().filter((node) => ('class_name' in node.data()));
+
+        if (dnn_nodes.length === 1 && all.length > 3)
+            return 'If you use DNN layer is not posible use another layer (except input and loss)';
         return true;
     }
 
     $('#validate_model').on('click', async function (event) {
         cy.remove(cy.nodes().filter((node) => (!('name' in node.data()))));
-        if (!check_input_output()) {
-            alert("Just one Input and one Loss layers required");
+        let mess = check_input_output();
+        if (mess !== true) {
+            alert(mess);
             disable_submit_button();
             return false;
+
         } else {
             let dnn = cy.nodes().filter((node) => ('DNN' === node.data().class_name));
             let dnn_layers = dnn.length;
@@ -310,6 +335,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
     });
+    $('#inp').on('change', function () {
+        disable_submit_button();
+    });
 
     $('#zoom_handler').on('click', function () {
         center_layout(cy);
@@ -319,22 +347,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     $('#zoom_minus').on('click', function () {
         zoom(cy, -0.1);
-    });
-
-    $('#properties').on('change', 'select', function (e) {
-        var prop = this.name;
-        var param = $(e.target).val();
-        show_params_config(prop, param, null)
-    });
-    $('#properties').on('click', 'select', function (e) {
-        var prop = this.name;
-        var param = $(e.target).val();
-        var node = cy.nodes().filter((node) => (node.selected()));
-        var config = null;
-        if (node.data()['content'][prop].hasOwnProperty('config')) {
-            config = node.data()['content'][prop]['config']
-        }
-        show_params_config(prop, param, config)
     });
 
 });
@@ -347,7 +359,6 @@ function show_params_config(prop, param, saved_config) {
     if (prop.includes('initializer')) {
         if (initializers.hasOwnProperty(param))
             config = initializers[param];
-
     } else if (prop.includes('regularizer')) {
         if (regularizers.hasOwnProperty(param))
             config = regularizers[param];
@@ -362,7 +373,6 @@ function show_params_config(prop, param, saved_config) {
         if (saved_config !== null) {
             Object.keys(config).forEach(function (key) {
                 config[key]['value'] = saved_config[key]
-
             });
         }
         Object.keys(config).forEach(function (key) {
@@ -595,7 +605,7 @@ function send_canned(dnn_nodes, cy_json, loss) {
             'data': dnn_nodes.data().content,
             'cy_model': cy_json,
             'model_name': $('#inp').val(),
-            'loss':loss
+            'loss': loss
         }),
         success: function (result) {
         }
@@ -611,8 +621,8 @@ async function tf_load_model(nodes, models, loss_function, cy_json, cy, loss_nod
 
     try {
         const model = await tf.loadModel(url);
-        var topology = model.toJSON(null, false);
-        var model_json = {"modelTopology": topology};
+        let topology = model.toJSON(null, false);
+        let model_json = {"modelTopology": topology};
         create_poppers(model.layers, nodes, cy, loss_node);
 
         $.ajax({
@@ -739,33 +749,23 @@ function append_after(label_name, config, id_item_before) {
         return;
     }
 
-    let x = $('<input>');
-    x
+    let x = $('<input>')
         .attr("id", id_item_before.concat('-').concat(label_name))
         .attr("name", label_name)
         .attr("value", config['value']);
     x.appendTo($label);
+
     if (config['type'] === "float") {
-        x
-            .attr("type", "number")
+        x.attr("type", "number")
             .attr("step", "0.001");
-        if ('min' in config) {
+        if ('min' in config)
             x.attr("min", config['min']);
-        }
-        if ('max' in config) {
+        if ('max' in config)
             x.attr("max", config['max']);
-        }
-
-
     } else if (config['type'] === "integer") {
-        x
-            .attr("type", "number")
+        x.attr("type", "number")
             .attr("step", "1");
-    } else {
-        return;
-
     }
-
 
     $('#' + id_item_before).after(x)
         .after($label);

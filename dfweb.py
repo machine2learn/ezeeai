@@ -115,7 +115,7 @@ def upload():
     if form.validate_on_submit() or form.options.data['is_existing'] == 'generate_data':
         if form.options.data['is_existing'] == 'new_files' and not form.new_files.train_file.data == '':
             mess = config_ops.new_config(form.new_files.train_file.data, form.new_files.test_file.data, APP_ROOT,
-                                         session['user'], sess)
+                                         username, sess)
         elif form.options.data['is_existing'] == 'generate_data':
             dataset_name = form.generate_dataset.data['dataset_name']
             mess = config_ops.check_generated(dataset_name, APP_ROOT, username)
@@ -135,16 +135,16 @@ def gui():
     username = session['user']
     _, param_configs = config_ops.get_configs_files(APP_ROOT, username)
     user_dataset = config_ops.get_datasets(APP_ROOT, username)
-    if not sess.check_key('dataset_name'):
+    if not sess.check_key('dataset_name') or not sess.check_key('config_file'):
         return render_template('gui.html', user=username, token=session['token'], page=1, user_dataset=user_dataset,
                                dataset_params={}, data=None, parameters=param_configs, cy_model=[],
                                model_name='new_model', num_outputs=None)
     dataset_params = sess.get_dataset_params()
     sess.set_targets(sess.get_targets(), sess.get_normalize(), sess.get_train_file())
-    return render_template('gui.html', token=session['token'], page=1, user=session['user'],
+    return render_template('gui.html', token=session['token'], page=1, user=username,
                            user_dataset=user_dataset,
                            parameters=param_configs,
-                           cy_model=sys_ops.load_cy_model(sess.get_model_name(), session['user']),
+                           cy_model=sys_ops.load_cy_model(sess.get_model_name(), username),
                            model_name=sess.get_model_name(),
                            num_outputs=feature_util.calc_num_outputs(sess.get_df(), sess.get_targets()),
                            dataset_params=dataset_params, data=sess.get_data().to_json())
@@ -154,21 +154,20 @@ def gui():
 @login_required
 @check_config
 def gui_load():
+    username = session['user']
     model = request.form['model']
-    sess.set('dataset_name', request.form['dataset'])
-    sess.set('config_file', os.path.join(APP_ROOT, 'user_data', session['user'], 'models', model, 'config.ini'))
+    sess.set_dataset_name(request.form['dataset'])
+    sess.set_config_file(os.path.join(APP_ROOT, 'user_data', username, 'models', model, 'config.ini'))
     sess.load_config()
 
-    _, param_configs = config_ops.get_configs_files(APP_ROOT, session['user'])
-    user_dataset = config_ops.get_datasets(APP_ROOT, session['user'])
+    _, param_configs = config_ops.get_configs_files(APP_ROOT, username)
+    user_dataset = config_ops.get_datasets(APP_ROOT, username)
     dataset_params = sess.get_dataset_params()
-
     sess.set_targets(sess.get_targets(), sess.get_normalize(), sess.get_train_file())
-    return render_template('gui.html', token=session['token'], page=1, user=session['user'], user_dataset=user_dataset,
-                           parameters=param_configs, cy_model=sys_ops.load_cy_model(model, session['user']),
-                           model_name=model,
+    return render_template('gui.html', token=session['token'], page=1, user=username, user_dataset=user_dataset,
+                           parameters=param_configs, cy_model=sys_ops.load_cy_model(model, username),
                            num_outputs=feature_util.calc_num_outputs(sess.get_df(), sess.get_targets()),
-                           dataset_params=dataset_params, data=sess.get_data().to_json())
+                           dataset_params=dataset_params, data=sess.get_data().to_json(), model_name=model)
 
 
 @app.route('/gui_select_data', methods=['POST'])
@@ -201,7 +200,7 @@ def gui_features():
     cat_columns, default_values = feature_util.reorder_request(default_feature(request), get_cat_columns(request),
                                                                default_columns(request), sess.get_keys())
     sess.update_new_features(cat_columns, default_values)
-    sess.set('column_categories', feature_util.write_features(old_cats, sess.get_data()))
+    sess.set_column_categories(feature_util.write_features(old_cats, sess.get_data()))
     data = sess.get_data()[(sess.get_cat() != 'hash') & (sess.get_cat() != 'none')]
     return jsonify(data=data.to_json(), old_targets=sess.get('old_targets') if sess.check_key('old_targets') else [])
 
@@ -232,9 +231,7 @@ def gui_targets():
 @login_required
 @check_config
 def gui_editor():
-    sess.set('loss', request.get_json()['loss_function'])
-    sess.set('model', request.get_json()['model'])
-    sess.set('cy_model', request.get_json()['cy_model'])
+    sess.set_custom(request.get_json())
     return jsonify(explanation='ok')
 
 
@@ -242,14 +239,14 @@ def gui_editor():
 @login_required
 @check_config
 def save_canned():
-    custom_path = os.path.join(APP_ROOT, 'user_data', session['user'], 'models', request.get_json()['model_name'],
-                               'custom')
-    custom.save_cy_model(custom_path, request.get_json()['cy_model'])
+    custom_path = os.path.join(APP_ROOT, 'user_data', session['user'], 'models',
+                               request.get_json()['model_name'], 'custom')
+    cy_model = request.get_json()['cy_model']
     data = request.get_json()['data']
+    custom.save_cy_model(custom_path, cy_model)
     data['loss_function'] = request.get_json()['loss']
-    sess.set('canned_data', data)
-    sess.set('cy_model', request.get_json()['cy_model'])
-
+    sess.set_canned_data(data)
+    sess.set_cy_model(cy_model)
     return jsonify(explanation='ok')
 
 
@@ -258,16 +255,16 @@ def save_canned():
 @check_config
 def save_model():
     model_name = request.values['modelname']
-    sess.set('model_name', model_name)
-    sess.set('mode', 'canned')
+    sess.set_model_name(model_name)
+    sess.set_mode('canned')
     if request.values['mode'] == '0':
-        sess.set('mode', 'custom')
+        sess.set_mode('custom')
         path = os.path.join(APP_ROOT, 'user_data', session['user'], 'models')
         os.makedirs(path, exist_ok=True)
-        c_path, t_path = custom.save_model_config(sess.get_df(), sess.get_targets(), sess.get('model'), path,
-                                                  sess.get('cy_model'), sess.get('category_list'), model_name)
-        sess.set('custom_path', c_path)
-        sess.set('transform_path', t_path)
+        c_path, t_path = custom.save_model_config(sess.get_df(), sess.get_targets(), sess.get_model(), path,
+                                                  sess.get_cy_model(), sess.get_cat_list(), model_name)
+        sess.set_custom_path(c_path)
+        sess.set_transform_path(t_path)
     return redirect(url_for('parameters'))
 
 
@@ -298,12 +295,10 @@ def run():
     username = session['user']
     config_ops.define_new_model(APP_ROOT, username, sess.get_writer(), sess.get_model_name())
     sess.write_custom_params()
-
     all_params_config = config_reader.read_config(sess.get_config_file())
-    if sess.get('mode') =='canned':
-        all_params_config.set_canned_data(sess.get('canned_data'))
-    all_params_config.set('PATHS', 'email', db_ops.get_email(session['user']))
-
+    if sess.mode_is_canned():
+        all_params_config.set_canned_data(sess.get_canned_data())
+    all_params_config.set_email(db_ops.get_email(username))
     labels = feature_util.get_target_labels(sess.get_targets(), sess.get_cat(), sess.get_fs())
     export_dir = all_params_config.export_dir()
 
@@ -318,7 +313,6 @@ def run():
         sess.check_log_fp(all_params_config)
         th.handle_request(get_action(request), all_params_config, sess.get_features(), sess.get_targets(),
                           labels, sess.get_defaults(), dtypes, username, get_resume_from(request))
-
         return jsonify(True)
     dict_types, categoricals = run_utils.get_dictionaries(sess.get_defaults(), sess.get_cat_list(), sess.get_fs(),
                                                           sess.get_targets())
@@ -337,11 +331,10 @@ def run():
 @check_config
 def predict():
     new_features, all_params_config, labels, dtypes = run_utils.create_result_parameters(request, sess)
-    if sess.get('mode') == 'canned':
-        all_params_config.set_canned_data(sess.get('canned_data'))
+    if sess.mode_is_canned():
+        all_params_config.set_canned_data(sess.get_canned_data())
     final_pred = th.predict_estimator(all_params_config, sess.get_features(), sess.get_targets(), labels,
                                       sess.get_defaults(), dtypes, new_features, sess.get_df())
-
     return jsonify(error=True) if final_pred is None else jsonify(
         run_utils.get_predictions(sess.get_targets(), final_pred))
 
@@ -356,18 +349,18 @@ def explain():
                                                1 if labels is None else len(labels))
         if input_check is not None:
             return jsonify(explanation=input_check)
-        if sess.get('mode') == 'canned':
-            all_params_config.set_canned_data(sess.get('canned_data'))
+        if sess.mode_is_canned():
+            all_params_config.set_canned_data(sess.get_canned_data())
         result = th.explain_estimator(all_params_config, sess.get_features(), sess.get_targets(), labels,
                                       sess.get_defaults(), dtypes, new_features, sess.get_df(),
                                       sess.get_cat(), int(request.form['num_feat']),
                                       int(request.form['top_labels']), request.form['exp_target'])
         return jsonify(explanation=explain_util.explain_return(sess, new_features, result))
     else:
-        return render_template('explain.html', title="Explain", page=5, graphs=sess.get('dict_graphs'),
-                               predict_table=sess.get('dict_table'), features=sess.get('new_features'),
-                               model=sess.get('model'), exp_target=sess.get('exp_target'),
-                               type=sess.get('type'), user=session['user'], token=session['token'])
+        return render_template('explain.html', title="Explain", page=5, graphs=sess.get_dict_graps(),
+                               predict_table=sess.get_dict_table(), features=sess.get_new_features(),
+                               model=sess.get_model(), exp_target=sess.get_exp_target(), type=sess.get_type(),
+                               user=session['user'], token=session['token'])
 
 
 @app.route('/test', methods=['POST', 'GET'])
@@ -383,23 +376,21 @@ def test():
         except ValueError:
             return jsonify(result="The file contents are not valid.")
     else:
-        test_file = sess.get_dataset_name()
-        test_filename = sess.get('test_file')
+        test_filename = sess.get_test_file()
         has_targets = True
         df = pd.read_csv(test_filename)
-
     all_params_config, labels, dtypes = run_utils.create_result_test_parameters(request.get_json()['model'], sess)
-    if sess.get('mode') == 'canned':
-        all_params_config.set_canned_data(sess.get('canned_data'))
+    if sess.mode_is_canned():
+        all_params_config.set_canned_data(sess.get_canned_data())
     final_pred = th.predict_test_estimator(all_params_config, sess.get_features(), sess.get_targets(), labels,
                                            sess.get_defaults(), dtypes, test_filename, sess.get_df())
-
     if final_pred is None:
         return jsonify(result='Model\'s structure does not match the new parameter configuration')
 
     predict_file = sys_ops.save_results(df, final_pred['preds'], sess.get_targets(), test_filename)
-    sess.set('has_targets', has_targets)
-    sess.set('predict_file', predict_file)
+    sess.set_has_targets(has_targets)
+    sess.set_predict_file(predict_file)
+
     store_predictions(has_targets, sess, final_pred, df)
     return jsonify(result="ok")
 
@@ -420,14 +411,13 @@ def data_graphs():
 @login_required
 @check_config
 def delete():
-    CONFIG_FILE = sess.get_config_file()
-    all_params_config = config_reader.read_config(CONFIG_FILE)
+    all_params_config = config_reader.read_config(sess.get_config_file())
     export_dir = all_params_config.export_dir()
     del_id = request.get_json()['deleteID']
     paths = [del_id] if del_id != 'all' else [d for d in os.listdir(export_dir) if
                                               os.path.isdir(os.path.join(export_dir, d))]
     sys_ops.delete_recursive(paths, export_dir)
-    checkpoints = run_utils.get_eval_results(export_dir, sess.get_writer(), CONFIG_FILE)
+    checkpoints = run_utils.get_eval_results(export_dir, sess.get_writer(), sess.get_config_file())
     return jsonify(checkpoints=checkpoints)
 
 
@@ -435,9 +425,10 @@ def delete():
 @login_required
 @check_config
 def delete_model():
-    sys_ops.delete_models(request.get_json()['all'], [request.get_json()['model']], session['user'])
-    _, models = config_ops.get_configs_files(APP_ROOT, session['user'])
-    datasets = config_ops.get_datasets(APP_ROOT, session['user'])
+    username = session['user']
+    sys_ops.delete_models(request.get_json()['all'], [request.get_json()['model']], username)
+    _, models = config_ops.get_configs_files(APP_ROOT, username)
+    datasets = config_ops.get_datasets(APP_ROOT, username)
     return jsonify(datasets=datasets, models=models)
 
 
@@ -445,11 +436,11 @@ def delete_model():
 @login_required
 @check_config
 def delete_dataset():
+    username = session['user']
     sys_ops.delete_dataset(request.get_json()['all'], request.get_json()['dataset'], request.get_json()['models'],
-                           session['user'])
-
-    _, models = config_ops.get_configs_files(APP_ROOT, session['user'])
-    datasets = config_ops.get_datasets(APP_ROOT, session['user'])
+                           username)
+    _, models = config_ops.get_configs_files(APP_ROOT, username)
+    datasets = config_ops.get_datasets(APP_ROOT, username)
     return jsonify(datasets=datasets, models=models)
 
 
@@ -463,9 +454,9 @@ def refresh():
     epochs = run_utils.get_step(all_params_config.train_size(), all_params_config.train_batch_size(),
                                 all_params_config.checkpoint_dir())
     try:
-        CONFIG_FILE = sess.get_config_file()
-        export_dir = config_reader.read_config(CONFIG_FILE).export_dir()
-        checkpoints = run_utils.get_eval_results(export_dir, sess.get_writer(), CONFIG_FILE)
+        config_file = sess.get_config_file()
+        export_dir = config_reader.read_config(config_file).export_dir()
+        checkpoints = run_utils.get_eval_results(export_dir, sess.get_writer(), config_file)
         return jsonify(checkpoints=checkpoints, data=sess.get('log_fp').read(), running=running, epochs=epochs)
     except (KeyError, NoSectionError):
         return jsonify(checkpoints='', data='', running=running, epochs=epochs)
@@ -480,7 +471,7 @@ def confirm():
     main_path = os.path.join(APP_ROOT, 'user_data', session['user'], 'datasets', dataset_name)
     path = os.path.join(main_path, 'train')
     e = parse(script, path, dataset_name)
-    if e != True:
+    if e is not True:
         e = str(e).split("Expecting: ")[0]
     os.makedirs(os.path.join(main_path, 'valid'), exist_ok=True)
     os.makedirs(os.path.join(main_path, 'test'), exist_ok=True)
@@ -489,24 +480,24 @@ def confirm():
 
 @app.route("/download", methods=['GET', 'POST'])
 def download():
-    file_path = sess.get('predict_file')
+    file_path = sess.get_predict_file()
     filename = file_path.split('/')[-1]
     return send_file(file_path, mimetype='text/csv', attachment_filename=filename, as_attachment=True)
 
 
 @app.route("/show_test", methods=['GET', 'POST'])
 def show_test():
-    file_path = sess.get('predict_file')
+    file_path = sess.get_predict_file()
     df = pd.read_csv(file_path)
     predict_table = {'data': df.as_matrix().tolist(),
                      'columns': [{'title': v} for v in df.columns.values.tolist()]}
     labels = feature_util.get_target_labels(sess.get_targets(), sess.get_cat(), sess.get_fs())
     metrics = None
 
-    if sess.get('has_targets'):
-        metrics = get_metrics('classification', sess.get('y_true'), sess.get('y_pred'), labels,
-                              logits=sess.get('logits')) if sess.check_key('logits') \
-            else get_metrics('regression', sess.get('y_true'), sess.get('y_pred'), labels,
+    if sess.get_has_targets():
+        metrics = get_metrics('classification', sess.get_y_true(), sess.get_y_pred(), labels,
+                              logits=sess.get_logits()) if sess.check_key('logits') \
+            else get_metrics('regression', sess.get_y_true(), sess.get_y_pred(), labels,
                              target_len=len(sess.get_targets()))
 
     return render_template('test_prediction.html', token=session['token'], predict_table=predict_table, metrics=metrics,
@@ -526,11 +517,11 @@ def deploy():
                                                                                          checkpoint=
                                                                                          checkpoints['Model'].values[
                                                                                              -1])
-    if sess.get('mode') == 'canned':
-        all_params_config.set_canned_data(sess.get('canned_data'))
+    if sess.mode_is_canned():
+        all_params_config.set_canned_data(sess.get_canned_data())
     pred = th.predict_estimator(all_params_config, sess.get_features(), sess.get_targets(), labels,
                                 sess.get_defaults(), dtypes, new_features, sess.get_df(), all=True)
-    if pred == None:
+    if pred is None:
         return redirect(url_for('run'))  # flash('Deploy error.', 'error')
 
     call, d, epred = sys_ops.gen_example(sess.get_targets(), sess.get_data(), sess.get_df(), 'model_name', pred)
@@ -551,10 +542,10 @@ def explain_feature():
     exp_target = request.get_json()['exp_target']
     exp_feature = request.get_json()['explain_feature']
     all_params_config, labels, dtypes = run_utils.create_result_test_parameters(request.get_json()['model'], sess)
-    file_path, unique_val_column = explain_util.generate_ice_df(request, sess.get('df'), sess.get_file(),
+    file_path, unique_val_column = explain_util.generate_ice_df(request, sess.get_df(), sess.get_file(),
                                                                 sess.get_targets(), dtypes)
-    if sess.get('mode') == 'canned':
-        all_params_config.set_canned_data(sess.get('canned_data'))
+    if sess.mode_is_canned():
+        all_params_config.set_canned_data(sess.get_canned_data())
     final_pred = th.predict_test_estimator(all_params_config, sess.get_features(), sess.get_targets(), labels,
                                            sess.get_defaults(), dtypes, file_path, sess.get_df())
     if final_pred is None:

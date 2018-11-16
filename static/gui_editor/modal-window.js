@@ -105,9 +105,13 @@ function create_target_table(data, category_list, targets, dict_wizard) {
 }
 
 function clear_input_modal(dict_wizard) {
-    $('#table_features').DataTable().clear().rows();
-    $('#table_targets').DataTable().clear().rows();
+    if (table_feat_created)
+        $('#table_features').DataTable().clear().rows();
+    if (table_target_created)
+        $('#table_targets').DataTable().clear().rows();
+
     update_split([70, 30, 0]);
+
     $('#wizard4').removeClass('active show')
         .parent().removeClass('active');
     $('#targets').removeClass('active in show');
@@ -227,11 +231,12 @@ function get_rows(configs, parameters) {
 function get_load_rows(parameters) {
     let models = [];
     jQuery.map(Object.keys(parameters), function (f) {
-        if ('perf' in parameters[f])
-            models.push([f, parameters[f]['dataset'], parameters[f]['perf'], parameters[f]['loss']]);
-        else
-            models.push([f, parameters[f]['dataset'], 'Not evaluated yet', 'Not evaluated yet']);
-
+        if ('dataset' in parameters[f]) {
+            if ('perf' in parameters[f])
+                models.push([f, parameters[f]['dataset'], parameters[f]['perf'], parameters[f]['loss']]);
+            else
+                models.push([f, parameters[f]['dataset'], 'Not evaluated yet', 'Not evaluated yet']);
+        }
     });
     return models;
 }

@@ -12,6 +12,36 @@ optimizer_map = {'Adagrad': tf.train.AdagradOptimizer,
                  'RMSProp': tf.train.RMSPropOptimizer,
                  'SGD': tf.train.GradientDescentOptimizer}
 
+initializers = {
+    'constant': {"value": {"type": "float", "value": 0}},
+    "identity": {"gain": {"type": "float", "value": 1}},
+    "orthogonal": {"gain": {"type": "float", "value": 1}},
+    "randomNormal": {"mean": {"type": "float", "value": 0}, "stddev": {"type": "float", "value": 1}},
+    "randomUniform": {"minval": {"type": "float", "value": 0}, "maxval": {"type": "float", "value": 1}},
+    "truncatedNormal": {"mean": {"type": "float", "value": 0}, "stddev": {"type": "float", "value": 1}},
+    "varianceScaling": {"scale": {"type": "float", "value": 1},
+                        "mode": {"type": "select", "value": 'fanIn', "options": ['fanIn', 'fanOut', 'fanAvg']},
+                        "distribution": {"type": "select", "value": 'normal', "options": ['normal', 'uniform']}}}
+initializers_opts = {
+    "glorotNormal": "glorot_normal",
+    "glorotUniform": "glorot_uniform",
+    "heNormal": "he_normal",
+    "identity": "identity",
+    "leCunNormal": "lecun_normal",
+    "ones": "ones",
+    "orthogonal": "orthogonal",
+    "randomNormal": "random_normal",
+    "randomUniform": "random_uniform",
+    "truncatedNormal": "truncated_normal",
+    "varianceScaling": "variance_scaling",
+    "zeros": "Zeros"}
+
+
+def dic_initializer_param(initializer, params):
+    for key, value in params.items():
+        params[key] = float(value) if initializers[initializer][key]['type'] == 'float' else value
+    return params
+
 
 def get_label_ids(labels, label_vocabulary):
     if label_vocabulary is None:
@@ -206,8 +236,19 @@ def dnn(net, params, mode):
         'scale_l1': params['l1_regularization'],
         'scale_l2': params['l2_regularization']
     }
-    model = _DNNModel(get_num_outputs(params), params['hidden_units'], params['activation_fn'], dropout,
-                      params['batch_norm'], kernel_regularizer_params=regularizer_params)
+    initializer_name = params['kernel_initializer']['name']
+
+    if 'params' in params['kernel_initializer']:
+        dict_param_initializer = dic_initializer_param(initializer_name, params['kernel_initializer']['params'])
+
+        kernel_initializer = getattr(tf.initializers, initializers_opts[initializer_name])(**dict_param_initializer)
+
+        model = _DNNModel(get_num_outputs(params), params['hidden_units'], params['activation_fn'], dropout,
+                          params['batch_norm'], kernel_regularizer_params=regularizer_params,
+                          kernel_initializer=kernel_initializer)
+    else:
+        model = _DNNModel(get_num_outputs(params), params['hidden_units'], params['activation_fn'], dropout,
+                          params['batch_norm'], kernel_regularizer_params=regularizer_params)
 
     return model(net, mode)
 

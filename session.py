@@ -33,6 +33,70 @@ class Session:
                 return redirect(url_for('login'))
             return session['user'], session['_id']
 
+    def get(self, key):
+        return self.get_config()[key]
+
+    def remove(self, key):
+        if key in self.get_config():
+            del self.get_config()[key]
+
+    def set_dict_graps(self, dict_graps):
+        self.set('dict_graps', dict_graps)
+
+    def set_dict_table(self, dict_table):
+        self.set('dict_table', dict_table)
+
+    def set_new_features(self, new_features):
+        self.set('new_features', new_features)
+
+    def set_exp_target(self, exp_target):
+        self.set('exp_target', exp_target)
+
+    def set_exp_target(self, exp_target):
+        self.set('exp_target', exp_target)
+
+    def set_type(self, type):
+        self.set('type', type)
+
+    def get_type(self):
+        return self.get('type')
+
+    def get_dict_graps(self):
+        return self.get('dict_graps')
+
+    def get_dict_table(self):
+        return self.get('dict_table')
+
+    def get_new_features(self):
+        return self.get('new_features')
+
+    def get_exp_target(self):
+        return self.get('exp_target')
+
+    def set_logits(self, logits):
+        self.set('logits', logits)
+
+    def get_logits(self):
+        return self.get('logits')
+
+    def set_test_file(self, test_file):
+        self.set('test_file', test_file)
+
+    def get_test_file(self):
+        return self.get('test_file')
+
+    def get_has_targets(self):
+        return self.get('has_targets')
+
+    def set_has_targets(self, has_t):
+        self.set('has_targets', has_t)
+
+    def get_predict_file(self):
+        return self.get('predict_file')
+
+    def set_predict_file(self, predict_file):
+        self.set('predict_file', predict_file)
+
     def get_config(self):
         user = self.get_session()
         return self._config[user]
@@ -41,12 +105,23 @@ class Session:
         user = self.get_session()
         return self._config_writer[user]
 
-    def get(self, key):
-        return self.get_config()[key]
+    def set_dataset_name(self, dataset_name):
+        self.set('dataset_name', dataset_name)
 
-    def remove(self, key):
-        if key in self.get_config():
-            del self.get_config()[key]
+    def get_dataset_name(self):
+        return self.get('dataset_name')
+
+    def get_custom_path(self):
+        return self.get('custom_path')
+
+    def set_custom_path(self, c_path):
+        self.set('custom_path', c_path)
+
+    def get_transform_path(self):
+        return self.get('transform_path')
+
+    def set_transform_path(self, c_path):
+        self.set('transform_path', c_path)
 
     def get_features(self):
         return self.get('features')
@@ -120,6 +195,57 @@ class Session:
         user = self.get_session()
         self._config[user][key] = value
 
+    def set_model_name(self, model_name):
+        self.set('model_name', model_name)
+
+    def get_model_name(self):
+        return self.get('model_name')
+
+    def set_mode(self, mode):
+        self.set('mode', mode)
+
+    def get_mode(self):
+        return self.get('mode')
+
+    def set_model(self, model):
+        self.set('model', model)
+
+    def get_model(self):
+        return self.get('model')
+
+    def set_canned_data(self, data):
+        self.set('canned_data', data)
+
+    def get_canned_data(self):
+        return self.get('canned_data')
+
+    def get_column_categories(self):
+        return self.get('column_categories')
+
+    def set_column_categories(self, column_categories):
+        return self.set('column_categories', column_categories)
+
+    def set_cy_model(self, cy_model):
+        self.set('cy_model', cy_model)
+
+    def get_cy_model(self):
+        return self.get('cy_model')
+
+    def get_y_true(self):
+        return self.get('y_true')
+
+    def get_y_pred(self):
+        return self.get('y_pred')
+
+    def set_y_true(self, y_true):
+        return self.set('y_true', y_true)
+
+    def set_y_pred(self, y_pred):
+        return self.set('y_pred', y_pred)
+
+    def fet_mdoe(self):
+        return self.get('mode')
+
     def set_running(self):
         self.set('status', 'running')
 
@@ -146,6 +272,9 @@ class Session:
                             dataset_name + '.csv')
         df = pd.read_csv(path)
         self.set('generated_df', df)
+
+    def set_category_list(self, category_list):
+        self.set('category_list', category_list)
 
     def set_targets(self, targets, normalize, training_path):
         self.get_writer().add_item('TARGETS', 'targets', ",".join(targets))
@@ -203,7 +332,7 @@ class Session:
             if 'test_file' in conf['PATHS']:
                 self.set('test_file', conf['PATHS']['test_file'])
             self.set('df', pd.read_csv(conf['PATHS']['file']))
-            self.set('normalize', bool(conf['FEAT_ENG']['normalize']== 'True'))
+            self.set('normalize', bool(conf['FEAT_ENG']['normalize'] == 'True'))
             self.load_features()
             # target select
             targets = conf.targets()
@@ -259,11 +388,14 @@ class Session:
     def check_key(self, key):
         return key in self.get_config()
 
+    def set_custom(self, request):
+        self.set('loss', request['loss_function'])
+        self.set('model', request['model'])
+        self.set('cy_model', request['cy_model'])
 
     def add_cat_columns(self):
         for x, y in self.get_config()['column_categories'].items():
             self.get_writer().add_item('COLUMN_CATEGORIES', x, y)
-
 
     def write_custom_params(self):
         self.get_writer().add_item('PATHS', 'file', self.get_file())
@@ -281,9 +413,13 @@ class Session:
         category_list = {}
         for key in self.get_df().columns:
             category_list[key] = conf['COLUMN_CATEGORIES'][key]
-        self.set('column_categories', category_list)
-        self.set('category_list', list(category_list.values()))
+        self.set_column_categories(category_list)
+        self.set_category_list(list(category_list.values()))
         return {'split': split, 'targets': targets, 'category_list': category_list, 'normalize': self.get_normalize()}
 
     def write_config(self):
-        self.get_writer().write_config(self.get('config_file'))
+        self.get_writer().write_config(self.get_config_file())
+
+    def mode_is_canned(self):
+        return self.get_mode() == 'canned'
+

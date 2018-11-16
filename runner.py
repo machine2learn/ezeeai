@@ -65,6 +65,7 @@ class Runner(AbstractRunner):
         }
         config_params = self.config.all()
         config_params.update(params)
+
         config_params['canned_data'] = self.config.get_canned_data()
 
         self.estimator = Estimator(config_params, self.train_csv_reader, self.validation_csv_reader,

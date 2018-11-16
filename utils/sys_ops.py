@@ -204,15 +204,3 @@ def load_cy_model(model, user):
         cy_model = json.load(open(custom_path), object_pairs_hook=OrderedDict)
     return cy_model
 
-# def load_default_model(input_shape, units, activation1, output_shape, activation2, loss_f):
-#     default_model_path = 'static/gui_editor/core-layers/model_cy_default.json'
-#     if os.path.isfile(default_model_path):
-#         cy_model = json.load(open(default_model_path), object_pairs_hook=OrderedDict)
-#         cy_model['elements']['nodes'][0]['data']['content']['input_shape']['value'] = input_shape
-#         cy_model['elements']['nodes'][1]['data']['content']['units']['value'] = units
-#         cy_model['elements']['nodes'][1]['data']['content']['activation']['value'] = activation1
-#         cy_model['elements']['nodes'][2]['data']['content']['units']['value'] = output_shape
-#         cy_model['elements']['nodes'][2]['data']['content']['activation']['value'] = activation2
-#         cy_model['elements']['nodes'][3]['data']['content']['function']['value'] = loss_f
-#         return cy_model
-#     return {}

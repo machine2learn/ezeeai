@@ -1,4 +1,3 @@
-from forms.parameters_form import GeneralParamForm
 import pandas as pd
 from config import config_reader
 import os

@@ -33,6 +33,7 @@ optimizer_map = {'Adagrad': tf.train.AdagradOptimizer,
                  'SGD': tf.train.GradientDescentOptimizer}
 
 
+
 class AbstractEstimator(metaclass=ABCMeta):
     def __init__(self, params, train_csv_reader, validation_csv_reader, feature_columns):
         self.params = params
@@ -80,7 +81,7 @@ class AbstractEstimator(metaclass=ABCMeta):
         mb = ModelBuilder()
         self.params['config'] = self.runConfig
 
-        #TODO CANNED
+        # TODO CANNED
         # self.params['hidden_units'] = self.params[HIDDEN_LAYERS]
         # self.params['activation_fn'] = getattr(tf.nn, self.params['activation_fn'])
         # self.params['batch_norm'] = self.params['batch_norm'] == 'True'
@@ -100,7 +101,7 @@ class AbstractEstimator(metaclass=ABCMeta):
             self.params['model_path'] = os.path.join(self.params['custom_path'], 'model_tfjs.json')
             self.model = mb.create_from_keras(self.feature_columns, self.params)
         # else:
-            #
+        #
 
     def _serving_input_receiver_fn(self, feature_columns):
         feature_spec = tf.feature_column.make_parse_example_spec(feature_columns)
@@ -111,7 +112,6 @@ class AbstractEstimator(metaclass=ABCMeta):
     def _create_specs(self):
         self.train_spec = tf.estimator.TrainSpec(
             input_fn=self._train_input_fn, max_steps=self.max_steps)
-
 
         def serving_input_receiver_fn():
             feature_spec = tf.feature_column.make_parse_example_spec(self.feature_columns)
