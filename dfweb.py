@@ -220,11 +220,13 @@ def gui_targets():
     sess.set_targets(selected_rows, sess.get_normalize(), sess.get_train_file())
     if not preprocessing.check_train(sess.get_train_file(), sess.get_targets()):
         return jsonify(error='Number of classes for the target should be greater than 1.')
-
     num_outputs = feature_util.calc_num_outputs(sess.get_df(), sess.get_targets())
     input_shape = feature_util.calc_num_inputs(sess.get_features(), sess.get_fs().group_by(sess.get_cat_list())[
         'none'])
-    return jsonify(error=False, num_outputs=num_outputs, input_shape='[' + str(input_shape) + ']')
+    sess.set_train_size_from_pd()
+    hidden_layers = param_utils.get_hidden_layers(input_shape, num_outputs, sess.get_train_size())
+    return jsonify(error=False, num_outputs=num_outputs, input_shape='[' + str(input_shape) + ']',
+                   hidden_layers=hidden_layers)
 
 
 @app.route('/gui_editor', methods=['GET', 'POST'])
@@ -357,7 +359,7 @@ def explain():
                                       int(request.form['top_labels']), request.form['exp_target'])
         return jsonify(explanation=explain_util.explain_return(sess, new_features, result))
     else:
-        return render_template('explain.html', title="Explain", page=5, graphs=sess.get_dict_graps(),
+        return render_template('explain.html', title="Explain", page=5, graphs=sess.get_dict_graphs(),
                                predict_table=sess.get_dict_table(), features=sess.get_new_features(),
                                model=sess.get_model(), exp_target=sess.get_exp_target(), type=sess.get_type(),
                                user=session['user'], token=session['token'])

@@ -237,18 +237,15 @@ def dnn(net, params, mode):
         'scale_l2': params['l2_regularization']
     }
     initializer_name = params['kernel_initializer']['name']
+    kernel_initializer = None
 
     if 'params' in params['kernel_initializer']:
         dict_param_initializer = dic_initializer_param(initializer_name, params['kernel_initializer']['params'])
 
         kernel_initializer = getattr(tf.initializers, initializers_opts[initializer_name])(**dict_param_initializer)
-
-        model = _DNNModel(get_num_outputs(params), params['hidden_units'], params['activation_fn'], dropout,
-                          params['batch_norm'], kernel_regularizer_params=regularizer_params,
-                          kernel_initializer=kernel_initializer)
-    else:
-        model = _DNNModel(get_num_outputs(params), params['hidden_units'], params['activation_fn'], dropout,
-                          params['batch_norm'], kernel_regularizer_params=regularizer_params)
+    model = _DNNModel(get_num_outputs(params), params['hidden_units'], params['activation_fn'], dropout,
+                      params['batch_norm'], kernel_regularizer_params=regularizer_params,
+                      kernel_initializer=kernel_initializer)
 
     return model(net, mode)
 

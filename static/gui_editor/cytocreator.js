@@ -229,9 +229,13 @@ document.addEventListener('DOMContentLoaded', function () {
             Object.keys(corelayers).forEach(function (key) {
                 let content = $.extend(true, {}, corelayers[key][id_checked]);
 
+
                 if (id_checked in corelayers[key]) {
                     if (id_checked === 'InputLayer' && 'input_shape' in content) {
                         content['input_shape']['value'] = appConfig.input_shape;
+                    }
+                    if (id_checked === 'DNN' && appConfig.hasOwnProperty('hidden_layers')) {
+                        content['hidden_layers']['value'] = '[' + appConfig.hidden_layers + ']';
                     }
                     if (id_checked in counters) {
                         counters[id_checked] += 1;
@@ -512,6 +516,7 @@ $(document).ready(function () {
                 success: function (data) {
                     if (data.error === false) {
                         appConfig.num_outputs = data.num_outputs;
+                        appConfig.hidden_layers = data.hidden_layers;
                         let input_shape = data.input_shape;
                         $('#input_shape').val(input_shape);
                         cy.$(':selected').data()['content']['input_shape']['value'] = input_shape;

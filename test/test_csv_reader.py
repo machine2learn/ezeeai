@@ -12,6 +12,7 @@ tf.enable_eager_execution()
 # CONFIG_FILE = "../config/default.ini"
 CONFIG_FILE = "data_test/iris_config.ini"
 
+
 @pytest.fixture
 def config():
     # return config_reader.read_config(sys_ops.abs_path_of(CONFIG_FILE))
@@ -20,7 +21,8 @@ def config():
 
 @pytest.fixture
 def train_reader(config):
-    defaults = {'sepal_length': '5.8', 'sepal_width': '3', 'petal_length': '4.35', 'petal_width': '1.3', 'class': 'Iris-setosa'}
+    defaults = {'sepal_length': '5.8', 'sepal_width': '3', 'petal_length': '4.35', 'petal_width': '1.3',
+                'class': 'Iris-setosa'}
     dtypes = {'numerical': ['sepal_length', 'sepal_width', 'petal_length', 'petal_width'], 'categorical': ['class']}
     return TrainCSVReader(config, defaults, dtypes, 'class')
 
@@ -52,6 +54,7 @@ def test_feature_columns(train_reader):
     print(a, type(a), a.shape)
     np.testing.assert_array_equal(train_reader._feature_names(),
                                   ['sepal_length', 'sepal_width', 'petal_length', 'petal_width'])
+
 
 def test_unique_values(train_reader):
     np.testing.assert_array_equal(train_reader.label_unique_values(), ['setosa', 'versicolor', 'virginica'])

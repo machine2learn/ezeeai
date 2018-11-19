@@ -65,8 +65,8 @@ class Runner(AbstractRunner):
         }
         config_params = self.config.all()
         config_params.update(params)
-
-        config_params['canned_data'] = self.config.get_canned_data()
+        if hasattr(self.config, 'canned_data'):
+            config_params['canned_data'] = self.config.get_canned_data()
 
         self.estimator = Estimator(config_params, self.train_csv_reader, self.validation_csv_reader,
                                    self.feature_columns, self.label_unique_values)
@@ -85,7 +85,8 @@ class MultRegrRunner(AbstractRunner):
         }
         config_params = self.config.all()
         config_params.update(params)
-        config_params['canned_data'] = self.config.get_canned_data()
+        if hasattr(self.config, 'canned_data'):
+            config_params['canned_data'] = self.config.get_canned_data()
         self.estimator = MultOutEstimator(config_params, self.train_csv_reader, self.validation_csv_reader,
                                           self.feature_columns, self.sel_target)
 

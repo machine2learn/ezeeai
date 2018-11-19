@@ -40,8 +40,8 @@ class Session:
         if key in self.get_config():
             del self.get_config()[key]
 
-    def set_dict_graps(self, dict_graps):
-        self.set('dict_graps', dict_graps)
+    def set_dict_graphs(self, dict_graphs):
+        self.set('dict_graphs', dict_graphs)
 
     def set_dict_table(self, dict_table):
         self.set('dict_table', dict_table)
@@ -61,8 +61,8 @@ class Session:
     def get_type(self):
         return self.get('type')
 
-    def get_dict_graps(self):
-        return self.get('dict_graps')
+    def get_dict_graphs(self):
+        return self.get('dict_graphs')
 
     def get_dict_table(self):
         return self.get('dict_table')
@@ -107,6 +107,9 @@ class Session:
 
     def set_dataset_name(self, dataset_name):
         self.set('dataset_name', dataset_name)
+
+    def set_file(self, path):
+        self.set('file', path)
 
     def get_dataset_name(self):
         return self.get('dataset_name')
@@ -267,6 +270,9 @@ class Session:
     def set_train_size_from_pd(self):
         self.set("train_size", len(pd.read_csv(self.get("train_file"))))
 
+    def get_train_size(self):
+        return self.get('train_size')
+
     def set_generate_df(self, dataset_name, APP_ROOT):
         path = os.path.join(APP_ROOT, 'user_data', session['user'], 'datasets', dataset_name, 'train',
                             dataset_name + '.csv')
@@ -317,6 +323,7 @@ class Session:
             if 'none' in cat_columns[i]:
                 cat_columns[i] = 'none'
         self.get('data').Category = self.get('category_list')
+        default_values = [str(v) for v in default_values]
         self.get('data').Defaults = default_values
         self.set('defaults', dict(zip(self.get('data').index.tolist(), default_values)))
         self.get('fs').update(self.get('category_list'), dict(zip(self.get('data').index.tolist(), default_values)))
@@ -336,13 +343,15 @@ class Session:
             self.load_features()
             # target select
             targets = conf.targets()
+            category_list = [conf.get('COLUMN_CATEGORIES', key) for key in self.get_df().columns]
+            self.update_new_features(category_list, list(self.get('defaults').values()))
             self.set_targets(targets, self.get('normalize'), self.get('train_file'))
-            self.update_new_features(self.get('category_list'), list(self.get('defaults').values()))
+
             self.update_writer_conf(conf)
             return True
         return False
 
-    # def assign_category(self, df):
+    # def assign_category(self, df, from_config=False):
     #     fs = FeatureSelection(df)
     #     self.set('fs', fs)
     #     category_list, unique_values, default_list, frequent_values2frequency = fs.assign_category(self.get('config_file'), df)
@@ -422,4 +431,3 @@ class Session:
 
     def mode_is_canned(self):
         return self.get_mode() == 'canned'
-

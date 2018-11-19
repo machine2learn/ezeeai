@@ -14,8 +14,9 @@ def get_number_outputs(targets, data):
     return 1 if target_type == 'numerical' else data['#Unique Values'][targets[0]]
 
 
-def get_number_samples(file):
-    return len(pd.read_csv(file).index)
+def get_hidden_layers(INPUT_DIM, OUTUPUT_DIM, num_samples, alpha=2):
+    size = num_samples / (alpha * (INPUT_DIM + OUTUPUT_DIM))
+    return str(int(round(size)))
 
 
 def set_form(form, CONFIG_FILE):
@@ -34,5 +35,3 @@ def set_form(form, CONFIG_FILE):
             form.training.form.learning_rate.default = reader['TRAINING']['learning_rate']
     form.experiment.form.process()
     form.training.form.process()
-
-

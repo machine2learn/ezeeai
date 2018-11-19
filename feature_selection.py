@@ -74,7 +74,6 @@ class FeatureSelection:
                 self.categorical_columns.append(col)
                 self.int_columns.remove(col)
 
-
     def group_by(self, datatypes):
         columns_types_dict = dict(zip(self.df.columns, datatypes))
         v = defaultdict(list)
@@ -105,8 +104,7 @@ class FeatureSelection:
                 norm_fn = lambda x: (x - mean) / stdv
             numerical_features.append(tf.feature_column.numeric_column(key, normalizer_fn=norm_fn))
 
-
-        #numerical_features = [tf.feature_column.numeric_column(key, normalizer_fn=norm_fn) for key in feature_types['numerical']]
+        # numerical_features = [tf.feature_column.numeric_column(key, normalizer_fn=norm_fn) for key in feature_types['numerical']]
 
         range_features = [tf.feature_column.indicator_column(
             tf.feature_column.categorical_column_with_identity(key, self.df[key].max() + 1)) for key in
