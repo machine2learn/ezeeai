@@ -294,11 +294,11 @@ document.addEventListener('DOMContentLoaded', function () {
         if (input_nodes.length !== 1 || output_nodes.length !== 1)
             return 'Just one input layer and one loss layer are allowed';
 
-        let dnn_nodes = cy.nodes().filter((node) => ('DNN' === node.data().class_name));
+        let canned_nodes = cy.nodes().filter((node) => (node.data().class_name in corelayers["Canned Models"]));
         let all = cy.nodes().filter((node) => ('class_name' in node.data()));
 
-        if (dnn_nodes.length === 1 && all.length > 3)
-            return 'If you use DNN layer is not posible use another layer (except input and loss)';
+        if (canned_nodes.length === 1 && all.length > 3)
+            return 'If you use a canned model it is not posible use another layer (besides input and loss)';
         return true;
     }
 
@@ -311,17 +311,17 @@ document.addEventListener('DOMContentLoaded', function () {
             return false;
 
         } else {
-            let dnn = cy.nodes().filter((node) => ('DNN' === node.data().class_name));
-            let dnn_layers = dnn.length;
-            if (dnn_layers === 1) {
-                var loss = dnn.successors().filter((node) => (node.data().hasOwnProperty('class_name') && node.data()['class_name'] === 'Loss')).data().content.function.value;
+            let canned_nodes = cy.nodes().filter((node) => (node.data().class_name in corelayers["Canned Models"]));
+            let canned_length = canned_nodes.length;
+            if (canned_length === 1) {
+                var loss = canned_nodes.successors().filter((node) => (node.data().hasOwnProperty('class_name') && node.data()['class_name'] === 'Loss')).data().content.function.value;
                 $('#submit').removeClass('hidden')
                     .prop('disabled', false);
                 $('#validate_model').addClass('hidden');
-                send_canned(dnn, cy.json(), loss);
+                send_canned(canned_nodes, cy.json(), loss);
 
 
-            } else if (dnn_layers === 0) {
+            } else if (canned_length === 0) {
                 let loss_node = cy.nodes().filter((node) => (node.data('name').includes('Loss')));
                 let edges = loss_node.connectedEdges();
                 let loss_function = loss_node.data('content')['function'].value;
@@ -550,8 +550,8 @@ $(document).ready(function () {
         }
         $('#modelname').val(model_name);
 
-        let dnn = cy.nodes().filter((node) => ('DNN' === node.data().class_name)).length;
-        $('#mode').val(dnn);
+         let canned_nodes = cy.nodes().filter((node) => (node.data().class_name in corelayers["Canned Models"]));
+        $('#mode').val(canned_nodes);
     });
 
 });

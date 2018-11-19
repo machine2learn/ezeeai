@@ -999,7 +999,16 @@ var corelayers = {
                 "value": false,
             },
             "class_name": "DNN"
+        },
+        "Linear": {
+            "sparse_combiner": {
+                "type": "select",
+                "value": "sum",
+                "options": ["sum", "mean", "sqrtn"],
+            },
+            "class_name": "Linear"
         }
+
     },
 
 };

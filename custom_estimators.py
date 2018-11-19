@@ -1,5 +1,6 @@
 import tensorflow as tf
 import tensorflow.losses
+from tensorflow.python.feature_column import feature_column
 from tensorflow.python.ops import lookup_ops
 from tensorflowjs.converters import keras_tfjs_loader
 from tensorflow.python.framework import ops
@@ -84,15 +85,20 @@ def create_output(features, params, mode):
         raise ValueError('missing mode in params')
 
     label_vocabulary = params['label_vocabulary'] if 'label_vocabulary' in params else None
-    net = tf.feature_column.input_layer(features, params['feature_columns'])
 
     if params['mode'] == 'custom':
+        net = tf.feature_column.input_layer(features, params['feature_columns'])
         model = keras_tfjs_loader.load_keras_model(params['model_path'],
                                                    load_weights=False,
                                                    use_unique_name_scope=False)
         return run_internal_graph(model, net, mode), label_vocabulary
-    if params['mode'] == 'canned':
+    if params['mode'] == 'canned_dnn':
+        net = tf.feature_column.input_layer(features, params['feature_columns'])
         return dnn(net, params, mode), label_vocabulary
+
+    if params['mode'] == 'canned_linear':
+        return linear(features, params['feature_columns'], params), label_vocabulary
+
     raise ValueError('invalid mode ' + params['mode'] + ', should be custom or canned')
 
 
@@ -230,6 +236,10 @@ def get_num_outputs(params):
     return params['n_classes']
 
 
+def linear(features, feature_columns, params):
+    return _linear(get_num_outputs(params), features, feature_columns, params['sparse_combiner'])
+
+
 def dnn(net, params, mode):
     dropout = None if 'dropout' not in params else params['dropout']
     regularizer_params = {
@@ -337,6 +347,16 @@ class _DNNModel(tf.keras.Model):
 
             pred = self._prediction_layer(net)
             return pred
+
+
+def _linear(units, features, feature_columns, sparse_combiner='sum'):
+    linear_model = feature_column._LinearModel(  # pylint: disable=protected-access
+        feature_columns=feature_columns,
+        units=units,
+        sparse_combiner=sparse_combiner,
+        name='linear_model')
+    output = linear_model(features)
+    return output
 
 
 def run_internal_graph(model, inputs, mode, mask=None):

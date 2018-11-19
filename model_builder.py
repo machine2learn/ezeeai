@@ -1,5 +1,3 @@
-import json
-
 import tensorflow as tf
 
 from custom_estimators import regressor, classifier, binary_classifier
@@ -16,7 +14,7 @@ class ModelBuilder:
 
     def create_from_canned(self, feature_columns, params):
         params['feature_columns'] = feature_columns
-        params['mode'] = 'canned'
+        params['mode'] = 'canned_dnn' if 'hidden_units' in params else 'canned_linear'
         params['loss_function'] = params['loss_function_canned']
         model_fn = self.get_model(params)
         return tf.estimator.Estimator(model_fn=model_fn, params=params, config=params['config'],

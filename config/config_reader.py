@@ -173,16 +173,19 @@ class CustomConfigParser(configparser.ConfigParser):
         result.update({'targets': self.targets()})
 
         if hasattr(self, 'canned_data'):
-            result.update({'hidden_units': self.hidden_canned_layers()})
+            if 'hidden_layers' in self.canned_data:
+                result.update({'hidden_units': self.hidden_canned_layers()})
 
-            result['activation_fn'] = self.canned_data['activation_fn']['value']
-            result['batch_norm'] = self.canned_data['batch_norm']['value']
-            result['dropout'] = float(self.canned_data['dropout']['value'])
-            result['l1_regularization'] = float(self.canned_data['l1_regularization']['value'])
-            result['l2_regularization'] = float(self.canned_data['l2_regularization']['value'])
-            result['kernel_initializer'] = {'name': self.canned_data['kernel_initializer']['value']}
-            if 'config' in self.canned_data['kernel_initializer'].keys():
-                result['kernel_initializer']['params'] = self.canned_data['kernel_initializer']['config']
+                result['activation_fn'] = self.canned_data['activation_fn']['value']
+                result['batch_norm'] = self.canned_data['batch_norm']['value']
+                result['dropout'] = float(self.canned_data['dropout']['value'])
+                result['l1_regularization'] = float(self.canned_data['l1_regularization']['value'])
+                result['l2_regularization'] = float(self.canned_data['l2_regularization']['value'])
+                result['kernel_initializer'] = {'name': self.canned_data['kernel_initializer']['value']}
+                if 'config' in self.canned_data['kernel_initializer'].keys():
+                    result['kernel_initializer']['params'] = self.canned_data['kernel_initializer']['config']
+            else:
+                result['sparse_combiner'] = self.canned_data['sparse_combiner']['value']
 
             result['loss_function_canned'] = self.canned_data['loss_function']
         return result

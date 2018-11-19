@@ -82,20 +82,9 @@ class AbstractEstimator(metaclass=ABCMeta):
         self.params['config'] = self.runConfig
 
         # TODO CANNED
-        # self.params['hidden_units'] = self.params[HIDDEN_LAYERS]
-        # self.params['activation_fn'] = getattr(tf.nn, self.params['activation_fn'])
-        # self.params['batch_norm'] = self.params['batch_norm'] == 'True'
 
-        # if self.params['gui_editor'] == 'True':
         if 'canned_data' in self.params:
-            # self.params['hidden_units'] = self.params['canned_data']['hidden_layers']
-            # self.params['activation_fn'] = self.params['canned_data']['activation_fn']
-            # self.params['batch_norm'] = self.params['canned_data']['batch_norm']
-            # self.params['dropout'] = self.params['canned_data']['dropout']
-            # self.params['l1_regularization'] = self.params['canned_data']['l1_regularization']
-            # self.params['l2_regularization'] = self.params['canned_data']['l2_regularization']
-            # # self.params['kernel_initializer'] = self.params['canned_data']['kernel_initializer']
-            # self.params['loss_function_canned'] = self.params['canned_data']['loss_function']
+
             self.model = mb.create_from_canned(self.feature_columns, self.params)
         else:
             self.params['model_path'] = os.path.join(self.params['custom_path'], 'model_tfjs.json')
@@ -175,7 +164,7 @@ class AbstractEstimator(metaclass=ABCMeta):
                     features[c] = float(mapp[features[c]])
                 else:
                     features[c] = float(features[c])
-        feats = df[self.feature_names].append(pd.DataFrame(pd.Series(features)).transpose()).tail(1)
+        feats = df[self.feature_names].append(pd.DataFrame(pd.Series(features)).transpose()[self.feature_names]).tail(1)
         input_predict = feats.values.reshape(-1)
         return input_predict
 
@@ -227,6 +216,7 @@ class Estimator(AbstractEstimator):
     def explain(self, features, df, feature_types, num_features, top_labels):
         del features[self.targets[0]]
         features = {k: features[k] for k in self.feature_names}
+        df = df[self.feature_names]
         target = self.targets[0]
 
         feat_array = self._to_array(features, feature_types, df.copy())
@@ -293,7 +283,7 @@ class MultOutEstimator(AbstractEstimator):
     def explain(self, features, df, feature_types, num_features, top_labels):
         self._del_target_columns(features)
         features = {k: features[k] for k in self.feature_names}
-
+        df = df[self.feature_names]
         feat_array = self._to_array(features, feature_types, df.copy())
 
         explainer = self._create_explainer(features, df)
