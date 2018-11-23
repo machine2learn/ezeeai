@@ -1,6 +1,6 @@
 from utils import feature_util
 import pytest
-from feature_selection import FeatureSelection
+from data.feature_selection import FeatureSelection
 import pandas as pd
 from config.config_writer import ConfigWriter
 from config import config_reader

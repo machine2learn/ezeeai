@@ -46,26 +46,6 @@ def get_target_labels(targets, feature_types, fs):
     return None
 
 
-def write_features(old_categories, data):
-    column_categories = {}
-    for label, old_cat in zip(data.index, old_categories):
-        new_cat = data.Category[label]  # if data.Category[label] != 'range' else 'int-range'
-        cat = new_cat + '-' + old_cat.replace('none-', '') if 'none' in new_cat else new_cat
-        # writer.add_item('COLUMN_CATEGORIES', label, cat)
-        column_categories[label] = cat
-    # writer.write_config(config_file)
-    return column_categories
-
-#
-#
-# def write_features(old_categories, data, writer, config_file):
-#     for label, old_cat in zip(data.index, old_categories):
-#         new_cat = data.Category[label]  # if data.Category[label] != 'range' else 'int-range'
-#         cat = new_cat + '-' + old_cat.replace('none-', '') if 'none' in new_cat else new_cat
-#         writer.add_item('COLUMN_CATEGORIES', label, cat)
-#     writer.write_config(config_file)
-#
-
 def get_new_features(form, feat_defaults, targets, fs_list):
     new_features = {}
     for k, v in feat_defaults.items():
@@ -92,83 +72,6 @@ def get_default_features(feat_defaults, targets, fs_list, df):
     # input_predict.pop(target, None)
 
     return input_predict
-
-
-def check_targets(feature_types, targets):
-    if len(targets) > 1:
-        for t in targets:
-            if feature_types[t] != 'numerical':
-                return False
-    return True
-
-
-def calc_num_outputs(df, targets):
-    if len(targets) > 1:
-        return len(targets)
-    else:
-        if df[targets[0]].dtype == "object":
-            if len(df[targets[0]].unique()) <= 2:
-                return 1
-            else:
-                return len(df[targets[0]].unique())
-        else:
-            return 1
-
-
-def get_categorical_features(df, feature_columns):
-    categorical_features = []
-    for c in df.columns:
-        if df[c].dtype == "object":
-            categorical_features.append(c)
-        else:
-            for x in feature_columns:
-                if type(x) == _IndicatorColumn:
-                    if x[0].key == c:
-                        categorical_features.append(c)
-    return categorical_features
-
-
-def to_one_hot(df, feature_columns):
-    df = df.copy()
-    for c in df.columns:
-        is_categorical = False
-        for x in feature_columns:
-            if type(x) == _IndicatorColumn:
-                if x[0].key == c:
-                    is_categorical = True
-        unique = len(df[c].unique())
-        if df[c].dtype == "object" or is_categorical or (
-                df[c].dtype in [np.dtype('int64'), np.dtype('int32')] and unique < MAX_RANGE_SIZE):
-            if unique <= 2 or unique > MAX_CATEGORICAL_SIZE:
-                df[c] = df[c].astype('category')
-                mapp = {y: x for x, y in dict(enumerate(df[c].cat.categories)).items()}
-                df[c] = df[c].map(mapp)
-            else:
-                oh = pd.get_dummies(df[c])
-                names = {v: c + "_" + str(v) for v in oh.columns.values}
-                oh = oh.rename(names, axis="columns")
-                df[oh.columns.values] = oh
-                del df[c]
-    return df
-
-
-def get_label_names(df, targets, fc):
-    is_categorical = False
-    for x in fc:
-        if type(x) == _IndicatorColumn:
-            if x[0].key == targets[0]:
-                is_categorical = True
-    if len(targets) == 1:
-        unique = len(df[targets[0]].unique())
-        c = targets[0]
-        if df[c].dtype == "object" or is_categorical or (
-                df[c].dtype in [np.dtype('int64'), np.dtype('int32')] and unique < MAX_RANGE_SIZE):
-            if unique > 2 and unique < MAX_CATEGORICAL_SIZE:
-                oh = pd.get_dummies(df[targets[0]])
-                names = {v: targets[0] + "_" + str(v) for v in oh.columns.values}
-                oh = oh.rename(names, axis="columns")
-                return oh.columns
-    return targets
 
 
 def save_scalers(df, targets, datatypes):
@@ -239,10 +142,3 @@ def get_feature_key(feature):
     if type(feature) == _IndicatorColumn:
         return feature[0].key
     return feature.key
-
-
-def calc_num_inputs(feature_columns, fs_list):
-    filtered = [f for f in feature_columns if get_feature_key(f) not in fs_list]
-    # filter feature_columns
-    shapes = [x._variable_shape.num_elements() for x in filtered]
-    return reduce(lambda x, y: x + y, shapes)

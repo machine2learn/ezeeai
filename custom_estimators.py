@@ -7,6 +7,8 @@ from tensorflow.python.framework import ops
 import tensorflow.keras.backend as K
 from keras.utils.generic_utils import has_arg, to_list, object_list_uid, unpack_singleton
 
+import dill as pickle
+
 optimizer_map = {'Adagrad': tf.train.AdagradOptimizer,
                  'Adam': tf.train.AdamOptimizer,
                  'Ftrl': tf.train.FtrlOptimizer,
@@ -85,16 +87,19 @@ def create_output(features, params, mode):
         raise ValueError('missing mode in params')
 
     label_vocabulary = params['label_vocabulary'] if 'label_vocabulary' in params else None
+    dataset = pickle.load(open(params['data_path'], 'rb'))
 
     if params['mode'] == 'custom':
-        net = tf.feature_column.input_layer(features, params['feature_columns'])
+        if hasattr(dataset, 'get_feature_columns'):
+            features = tf.feature_column.input_layer(features, dataset.get_feature_columns())
         model = keras_tfjs_loader.load_keras_model(params['model_path'],
                                                    load_weights=False,
                                                    use_unique_name_scope=False)
-        return run_internal_graph(model, net, mode), label_vocabulary
+        return run_internal_graph(model, features, mode), label_vocabulary
     if params['mode'] == 'canned_dnn':
-        net = tf.feature_column.input_layer(features, params['feature_columns'])
-        return dnn(net, params, mode), label_vocabulary
+        if hasattr(dataset, 'get_feature_columns'):
+            features = tf.feature_column.input_layer(features, dataset.get_feature_columns())
+        return dnn(features, params, mode), label_vocabulary
 
     if params['mode'] == 'canned_linear':
         return linear(features, params['feature_columns'], params), label_vocabulary
@@ -136,8 +141,9 @@ def classifier(features, labels, mode, params):
 
     label_ids = get_label_ids(labels, label_vocabulary)
     reshaped_labels = tf.reshape(label_ids, [-1, 1])
-    reshaped_labels = reshaped_labels if 'sparse' in params['loss_function'] else tf.one_hot(label_ids,
-                                                                                             params['n_classes'])
+    reshaped_labels = reshaped_labels if 'sparse' in params['loss_function'] else tf.one_hot(
+        tf.reshape(label_ids, [-1]),
+        params['n_classes'])
     loss = getattr(tensorflow.losses, params['loss_function'])(reshaped_labels, output)
 
     if mode == tf.estimator.ModeKeys.EVAL:

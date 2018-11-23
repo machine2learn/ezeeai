@@ -4,27 +4,13 @@ from utils import sys_ops
 
 NETWORK = "NETWORK"
 
-TASK0 = 'TASK0'
-
-FEATURES = 'FEATURES'
-
 EXPERIMENT = 'EXPERIMENT'
 
 CUSTOM_MODEL = 'CUSTOM_MODEL'
 
 TRAINING = 'TRAINING'
 
-TRAINING_ADVANCED = 'TRAINING_ADVANCED'
-
 PATHS = 'PATHS'
-
-COLUMN_CHANGES = 'COLUMN_CHANGES'
-
-TARGETS = 'TARGETS'
-
-SPLIT_DF = 'SPLIT_DF'
-
-FEAT_ENG = "FEAT_ENG"
 
 
 class CustomConfigParser(configparser.ConfigParser):
@@ -49,9 +35,6 @@ class CustomConfigParser(configparser.ConfigParser):
     def _from_training(self, param):
         return self.get(TRAINING, param)
 
-    def _from_training_advanced(self, param):
-        return self.get(TRAINING_ADVANCED, param)
-
     def _from_network(self, param):
         return self.get(NETWORK, param)
 
@@ -71,10 +54,6 @@ class CustomConfigParser(configparser.ConfigParser):
         print(self.items(TRAINING))
         return dict(self.items(TRAINING))
 
-    def training_advanced(self) -> Dict[str, str]:
-        print(self.items(TRAINING_ADVANCED))
-        return dict(self.items(TRAINING_ADVANCED))
-
     def experiment(self) -> Dict[str, str]:
         return dict(self.items(EXPERIMENT))
 
@@ -87,17 +66,8 @@ class CustomConfigParser(configparser.ConfigParser):
     def learning_rate(self) -> float:
         return float(self._from_training('learning_rate'))
 
-    def validation_batch_size(self) -> int:
-        return int(self._from_training_advanced('validation_batch_size'))
-
     def optimizer(self) -> str:
         return self._from_training('optimizer')
-
-    def l1_reqularization(self) -> float:
-        return float(self._from_training_advanced('l1_regularization'))
-
-    def l2_reqularization(self) -> float:
-        return float(self._from_training_advanced('l2_regularization'))
 
     def num_epochs(self) -> int:
         return int(self._from_training('num_epochs'))
@@ -107,12 +77,6 @@ class CustomConfigParser(configparser.ConfigParser):
 
     def hidden_canned_layers(self):
         return [int(x) for x in self.canned_data['hidden_layers']['value'].strip('[').strip(']').split(',')]
-
-    def features(self):
-        return dict(self.items(FEATURES))
-
-    def feature_slice(self):
-        return self.get_as_slice(FEATURES, 'columns')
 
     def checkpoint_dir(self):
         return self.get_rel_path(PATHS, 'checkpoint_dir')
@@ -126,33 +90,16 @@ class CustomConfigParser(configparser.ConfigParser):
     def batch_size(self):
         return int(self.get(TRAINING, 'batch_size'))
 
-    def train_size(self):
-        return int(self.get(TRAINING, 'train_size'))
-
-    # def gui_editor(self):
-    #     return self.get(CUSTOM_MODEL, 'gui_editor') == 'True'
-
     def export_dir(self):
         return self.get_rel_path(PATHS, 'export_dir')
 
-    def training_path(self):
-        return sys_ops.abs_path_of(self._from_paths('train_file'))
-
-    def validation_path(self):
-        return sys_ops.abs_path_of(self._from_paths('validation_file'))
-
-    def targets(self):
-        return [x for x in self.get('TARGETS', 'targets').split(',')]
-
-    # TODO TASK0?
-    def label_slice(self):
-        return self.get_as_slice(TASK0, 'ground_truth_column')
+    def data_path(self):
+        return self.get_rel_path(PATHS, 'data_path')
 
     def all(self):
         result = dict(self.items(TRAINING))
         # result.update(dict(self.items(TRAINING_ADVANCED)))
         result.update(self.items(EXPERIMENT))
-        result.update(self.items(FEAT_ENG))
         # result.update(self.items(NETWORK))
         result.update(self.items(PATHS))
         if self.has_section(CUSTOM_MODEL):
@@ -170,7 +117,6 @@ class CustomConfigParser(configparser.ConfigParser):
         for key in float_columns:
             if key in result:
                 result[key] = float(result[key])
-        result.update({'targets': self.targets()})
 
         if hasattr(self, 'canned_data'):
             if 'hidden_layers' in self.canned_data:
@@ -198,7 +144,6 @@ class CustomConfigParser(configparser.ConfigParser):
 
     def set_email(self, mail):
         self.set('PATHS', 'email', mail)
-
 
 
 def read_config(path):

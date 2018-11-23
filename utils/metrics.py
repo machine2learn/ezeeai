@@ -4,9 +4,9 @@ from scipy import interp
 from sklearn.preprocessing import label_binarize
 
 
-def store_predictions(has_targets, sess, final_pred, df):
+def store_predictions(has_targets, sess, final_pred, output):
     if has_targets:
-        sess.set('y_true', df[sess.get_targets()].values)
+        sess.set('y_true', output)
         sess.set('y_pred', np.array(final_pred['preds']))
         if 'logits' in final_pred:
             sess.set('logits', np.array(final_pred['logits']))

@@ -99,28 +99,16 @@ def get_predictions(targets, final_pred):
     return dict(zip(targets, final_pred.astype(str))) if len(targets) > 1 else {targets[0]: str(final_pred)}
 
 
-def create_result_parameters(request, sess, default_features=False, checkpoint=None):
+def create_result_parameters(request, sess, dataset, default_features=False, checkpoint=None):
     if 'radiob' in request.form:
         sess.set('model', request_util.get_radiob(request))
         sess.set('exp_target', request.form['exp_target'])
-    new_features = feature_util.get_new_features(request.form, sess.get_defaults(), sess.get_targets(),
-                                                 sess.get_fs().group_by(sess.get_cat_list())[
-                                                     'none']) if not default_features else sess.get_defaults()
+    new_features = dataset.get_new_features(request.form) if not default_features else dataset.get_defaults()
     all_params_config = config_reader.read_config(sess.get_config_file())
     all_params_config.set('PATHS', 'checkpoint_dir', os.path.join(all_params_config.export_dir(),
                                                                   request_util.get_radiob(
                                                                       request) if checkpoint is None else checkpoint))
-    labels = feature_util.get_target_labels(sess.get_targets(), sess.get_cat(), sess.get_fs())
-    dtypes = sess.get_fs_by_cat()
-    return new_features, all_params_config, labels, dtypes
-
-
-def create_result_test_parameters(model, sess):
-    all_params_config = config_reader.read_config(sess.get_config_file())
-    all_params_config.set('PATHS', 'checkpoint_dir', os.path.join(all_params_config.export_dir(), model))
-    labels = feature_util.get_target_labels(sess.get_targets(), sess.get_cat(), sess.get_fs())
-    dtypes = sess.get_fs_by_cat()
-    return all_params_config, labels, dtypes
+    return new_features, all_params_config
 
 
 def get_explain_disabled(cat_list):

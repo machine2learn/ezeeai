@@ -1,8 +1,7 @@
 import pandas as pd
-from pprint import pprint
 import pytest
 
-from feature_selection import FeatureSelection
+from data.feature_selection import FeatureSelection
 
 numerical_col = ['sepal_length', 'sepal_width', 'petal_length', 'petal_width']
 categorical_col = ['class']

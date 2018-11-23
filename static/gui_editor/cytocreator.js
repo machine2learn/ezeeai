@@ -551,7 +551,7 @@ $(document).ready(function () {
         $('#modelname').val(model_name);
 
          let canned_nodes = cy.nodes().filter((node) => (node.data().class_name in corelayers["Canned Models"]));
-        $('#mode').val(canned_nodes);
+        $('#mode').val(canned_nodes.length);
     });
 
 });

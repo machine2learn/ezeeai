@@ -105,7 +105,7 @@ function en_disable_objs(bool_opt) {
     $('#resume_training').prop('disabled', bool_opt);
     $("#col-features :input").attr("disabled", bool_opt);
     $("#explain_form :input").attr("disabled", bool_opt);
-    $("#next_button").attr("disabled", bool_opt);
+
     if (bool_opt) {
         $("#col-predict").addClass('pre-trained');
         $("#col-features").addClass('pre-trained');
@@ -186,7 +186,11 @@ function show_error_has_hash(hh) {
 }
 
 function submitDeployForm() {
-    $('form#deploy').append('<input name="radiob" id="radiob" value="' + get_checkpoint_selected() + '" class="hidden"/>')
-        .append('<input name="exp_target" id="exp_target" value="' + $('#exp_target').val() + '" class="hidden"/>')
-        .submit();
+    var checkp_table = $('#checkp_table').DataTable();
+    var n_ckpt = checkp_table.data().rows()[0].length;
+    if (n_ckpt > 0){
+         $('form#deploy').submit();
+         return
+    }
+    alert('Please train the model before deployment.')
 };

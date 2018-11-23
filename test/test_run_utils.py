@@ -1,4 +1,4 @@
-from feature_selection import FeatureSelection
+from data.feature_selection import FeatureSelection
 import pandas as pd
 from config.config_writer import ConfigWriter
 from utils import run_utils
