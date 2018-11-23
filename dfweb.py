@@ -113,9 +113,10 @@ def upload():
     form = UploadForm()
     mess = False
     if form.validate_on_submit() or form.options.data['is_existing'] == 'generate_data':
-        if form.options.data['is_existing'] == 'new_files' and not form.new_files.train_file.data == '':
-            mess = config_ops.new_config(form.new_files.train_file.data, form.new_files.test_file.data, APP_ROOT,
-                                         username)
+        if form.validate_on_submit() or form.options.data['is_existing'] == 'generate_data':
+            if form.options.data['is_existing'] == 'new_files' and not form.new_files.train_file.data == '':
+                mess = config_ops.new_config(form.new_files.train_file.data, form.new_files.test_file.data, APP_ROOT,
+                                             username)
         elif form.options.data['is_existing'] == 'generate_data':
             dataset_name = form.generate_dataset.data['dataset_name']
             mess = config_ops.check_generated(dataset_name, APP_ROOT, username)
