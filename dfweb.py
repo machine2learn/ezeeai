@@ -112,11 +112,11 @@ def upload():
     username = session['user']
     form = UploadForm()
     mess = False
-    if form.validate_on_submit() or form.options.data['is_existing'] == 'generate_data':
-        if form.options.data['is_existing'] == 'new_files' and not form.new_files.train_file.data == '':
-            mess = config_ops.new_config(form.new_files.train_file.data, form.new_files.test_file.data, APP_ROOT,
-                                         username, sess)
-        elif form.options.data['is_existing'] == 'generate_data':
+    if form.validate_on_submit():  # or form.options.data['is_existing'] == 'generate_data':
+        if request.form['selected'] == 'tabular_data' and not form.new_tabular_files.train_file.data == '':
+            mess = config_ops.new_config(form.new_tabular_files.train_file.data, form.new_tabular_files.test_file.data,
+                                         APP_ROOT, username, sess)
+        elif request.form['selected'] == 'generate_data':
             dataset_name = form.generate_dataset.data['dataset_name']
             mess = config_ops.check_generated(dataset_name, APP_ROOT, username)
     flash_errors(form)
