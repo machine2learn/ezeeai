@@ -1,10 +1,14 @@
 $(document).ready(function () {
+
+    var selected_option;
     $('#options-is_existing option[value="new_files"]').prop('selected', true);
+
     if (appConfig.handle_key.mess !== false)
         $.notify("New dataset :  " + appConfig.handle_key.mess + " saved", "info");
 
 
     $('#data_graphs_button').prop('disabled', true);
+    $('#upload_form_button').prop('disabled', true);
     $('#generate_dataset-script').text(appConfig.handle_key.examples[get_option_selected()]);
 
     $('#upload_form').submit(function () {
@@ -33,7 +37,7 @@ $(document).ready(function () {
                 var valid_mess = data.valid;
                 console.log(valid_mess);
                 if (valid_mess == 'True') {
-                    $('#submit-button').prop('disabled', false);
+                    $('#upload_form_button').prop('disabled', false);
                     $('#data_graphs_button').prop('disabled', false);
                     document.getElementById("confirm").classList.remove('btn-primary');
                     document.getElementById("confirm").classList.add('btn-success');
@@ -68,6 +72,34 @@ $(document).ready(function () {
         })
     });
 
+    $('#new_tabular_files-train_file:file').change(function (e) {
+        $('#upload_form_button').prop('disabled', false);
+    });
+
+    $('#tabular_data').click(function (e) {
+        if ( $('#new_tabular_files-train_file').val() !== '')
+            $('#upload_form_button').prop('disabled', false);
+        $('#tabular_data_div').removeClass('hidden');
+        $('#image_data_div').addClass('hidden');
+        $('#generate_data_div').addClass('hidden');
+        $('#selected').val('tabular_data');
+        e.preventDefault();
+    });
+    $('#image_data').click(function (e) {
+        $('#image_data_div').removeClass('hidden');
+        $('#tabular_data_div').addClass('hidden');
+        $('#generate_data_div').addClass('hidden');
+        $('#selected').val('image_data');
+        e.preventDefault();
+    });
+    $('#generate_data').click(function (e) {
+        $('#generate_data_div').removeClass('hidden');
+        $('#tabular_data_div').addClass('hidden');
+        $('#image_data_div').addClass('hidden');
+        $('#selected').val('generate_data');
+        $('#upload_form_button').prop('disabled', true);
+        e.preventDefault();
+    });
 });
 
 
@@ -100,6 +132,6 @@ function check_selected() {
 function changes_generate_form() {
     document.getElementById("confirm").classList.add('btn-primary');
     document.getElementById("confirm").classList.remove('btn-success');
-    $('#submit-button').prop('disabled', true);
+    $('#upload_form_button').prop('disabled', true);
     $('#data_graphs_button').prop('disabled', true);
 }

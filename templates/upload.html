@@ -1,6 +1,6 @@
 {% extends "base_tf3.html" %}
 {% import 'bootstrap/wtf.html' as wtf %}
-{% from '_render_field.html' import render_checkbox, render_field_two_col, render_single_field, render_field %}
+{% from '_render_field.html' import render_checkbox, render_field_two_col, render_single_field, render_field, render_gener_field %}
 
 
 {% block styles %}
@@ -9,6 +9,7 @@
           integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css"
           href="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.css"/>
+    <link rel="stylesheet" href="{{ url_for('.static', filename='css/upload.css') }}">
 {% endblock %}
 
 {% block app_content %}
@@ -25,27 +26,48 @@
         {% endif %}
     {% endwith %}
     <div class="bs-callout bs-callout-pprimary" align="center">
-        <div align="center" class="container" id="upload_title">
-            <th1><i class="fas fa-database"></i> Data Upload</th1>
+    <div align="center" class="container" id="upload_title">
+        <th1><i class="fas fa-database"></i> Data Upload</th1>
 
         <div class="row">
             <!--{{ wtf.quick_form(form, id='new_dataset', enctype="multipart/form-data", button_map={'submit': 'primary'}) }}-->
             <form action="/upload" id="upload_form" method="post" enctype="multipart/form-data">
                 {{ form.csrf_token }}
-                <div id="check">
-                    {{ render_field_two_col(form.options) }}
+
+
+                <div class="options_new_files">
+                    <div class="form-group col-md-4">
+                        <button class='options_new_files_button' id="tabular_data"><i class="fas fa-table"></i><br>Tabular
+                            data
+                        </button>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <button class='options_new_files_button' id="image_data"><i class="far fa-image"></i> <br>Image
+                            data
+                        </button>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <button class='options_new_files_button' id="generate_data"><i class="fas fa-chart-pie"></i></i>
+                            <br>Generate data
+                        </button>
+                    </div>
+
                 </div>
-                <div id="newfiles">
-                    {{ render_field_two_col(form.new_files) }}
+
+                <div id="tabular_data_div" class="hidden">
+                    {{ render_field_two_col(form.new_tabular_files) }}
                 </div>
-                <div id="generate_dataset">
+                <div id="image_data_div" class="hidden">
+                    Image
+                </div>
+                <div id="generate_data_div" class="hidden">
+
                     <div class="row">
                         <div class="col-md-6">
                             <div id="error-confirm" style="color: red;"></div>
-                            {{ render_field(form.generate_dataset) }}
+                            {{ render_gener_field(form.generate_dataset) }}
                             <p align="right">
                                 <button id='confirm' align="left" class="btn btn-primary"> Confirm</button>
-
                                 <button type="button" id='data_graphs_button' align="left" class="btn btn-primary"> View
                                 </button>
                             </p>
@@ -54,10 +76,13 @@
                         </div>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary btn-left" type="submit" id="upload_form" formmethod="post">
+
+                <input class="hidden" id="selected" name="selected"> </input>
+                <button type="submit" class="btn btn-primary btn-left" type="submit" id="upload_form_button" formmethod="post">
                     <span class="glyphicon glyphicon-save"></span> Save
                 </button>
                 </p>
+
             </form>
         </div>
     </div>

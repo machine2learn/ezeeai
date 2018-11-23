@@ -1,0 +1,32 @@
+.options_new_files_button {
+    background-color: white;
+    border: none;
+    color: #4e4e4e;
+    padding: 16px 32px;
+    text-align: center;
+    font-weight: normal;
+    /*margin: 4px 2px;*/
+    opacity: 0.6;
+    transition: 0.3s;
+    display: inline-block;
+    text-decoration: none;
+    cursor: pointer;
+    width: 100%;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+.options_new_files_button i {
+    font-size: 25px;
+
+}
+
+.options_new_files_button:hover {
+    opacity: 1;
+    color: #5784be;
+}
+
+.options_new_files_button:active {
+    opacity: 1;
+    color: #5784be;
+}
