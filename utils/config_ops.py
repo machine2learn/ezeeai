@@ -1,9 +1,8 @@
 import os
 import configparser
-from tensorflow.python.platform import gfile
-from utils import upload_util, sys_ops, preprocessing
+from utils import upload_util, sys_ops
 
-import json
+import dill as pickle
 
 
 def get_datasets(app_root, username):
@@ -69,11 +68,12 @@ def get_configs_files(app_root, username):
             parameters_configs[model]['perf'] = config.get('BEST_MODEL', 'max_perf')
             parameters_configs[model]['loss'] = config.get('BEST_MODEL', 'min_loss')
         if 'PATHS' in config.sections():
-            parameters_configs[model]['dataset'] = config.get('PATHS', 'train_file').split('/')[-3]
+            dataset = pickle.load(open(config.get('PATHS', 'data_path'), 'rb'))
+            parameters_configs[model]['dataset'] = dataset.get_name()  # TODO from data object
     return models, parameters_configs
 
 
-def new_config(train_form_file, test_form_file, APP_ROOT, username, sess):
+def new_config(train_form_file, test_form_file, APP_ROOT, username):
     ext = train_form_file.filename.split('.')[-1]
     dataset_name = train_form_file.filename.split('.' + ext)[0]
     path = os.path.join(APP_ROOT, 'user_data', username, 'datasets', dataset_name)
@@ -83,13 +83,15 @@ def new_config(train_form_file, test_form_file, APP_ROOT, username, sess):
     else:
         os.makedirs(path, exist_ok=True)
 
-    sys_ops.save_filename(os.path.join(path, 'train'), train_form_file, 'train_file', dataset_name, sess)
+    sys_ops.save_filename(path, train_form_file, dataset_name)
+
     if not isinstance(test_form_file, str):
         ext = test_form_file.filename.split('.')[-1]
         test_file = test_form_file.filename.split('.' + ext)[0]
-        sys_ops.save_filename(os.path.join(path, 'test'), test_form_file, 'validation_file', test_file, sess)
+        sys_ops.save_filename(os.path.join(path, 'test'), test_form_file, test_file)
     else:
         os.makedirs(os.path.join(path, 'test'), exist_ok=True)
+    os.makedirs(os.path.join(path, 'train'), exist_ok=True)
     os.makedirs(os.path.join(path, 'valid'), exist_ok=True)
     return dataset_name
 

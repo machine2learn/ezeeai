@@ -145,11 +145,13 @@ $(document).ready(function () {
                     set_epochs(data.epochs);
                     if (playing !== data.running)
                         toggle_play(data.running);
+
                     if (data.data !== '')
                         $('#log').append(data.data).scrollTop($('#log')[0].scrollHeight);
                     let $checkp_table = $('#checkp_table').DataTable();
                     let row_selected = $checkp_table.rows({selected: true});
                     let rows = get_rows(data.checkpoints);
+                    // $("#next_button").attr("disabled", rows.length < 1);
                     $checkp_table
                         .clear().rows.add(rows).draw()
                         .row(row_selected).select();

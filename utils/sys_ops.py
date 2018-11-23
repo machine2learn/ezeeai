@@ -50,7 +50,7 @@ def find_free_port():
         return str(s.getsockname()[1])
 
 
-def save_filename(target, dataset_form_field, dataset_type, dataset_name, sess):
+def save_filename(target, dataset_form_field, dataset_name):
     dataset_form_field.filename = dataset_name + '.csv'
     dataset_file = dataset_form_field
     if dataset_file:
@@ -59,7 +59,6 @@ def save_filename(target, dataset_form_field, dataset_type, dataset_name, sess):
         if not os.path.exists(target):
             os.makedirs(target)
         dataset_file.save(destination)
-        sess.set(dataset_type, destination)
         preprocessing.clean_field_names(destination)
     return True
 
@@ -117,14 +116,15 @@ def check_df(test_df, df, targets, filename):
     return True
 
 
-def save_results(df, result, targets, filename):
+def save_results(df, result, targets, filename, base_path):
     if len(targets) == 1:
         df['prediction-' + targets[0]] = result
     else:
         result = np.array(result)
         for i in range(len(targets)):
             df['prediction-' + targets[i]] = result[:, i]
-    predict_file = filename.replace('.csv', '-predict.csv')
+    os.makedirs(os.path.join(base_path, 'predictions'), exist_ok=True)
+    predict_file = os.path.join(base_path, 'predictions', filename)
     df.to_csv(predict_file, index=False)
     return predict_file
 
@@ -203,4 +203,3 @@ def load_cy_model(model, user):
     if os.path.isfile(custom_path):
         cy_model = json.load(open(custom_path), object_pairs_hook=OrderedDict)
     return cy_model
-

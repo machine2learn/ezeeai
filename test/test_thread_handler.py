@@ -1,18 +1,9 @@
-from session import Session
-import flask
-from user import User
-from dfweb import app
-from config import config_reader
-import pytest
 from thread_handler import ThreadHandler
-from utils import feature_util, preprocessing
 from utils import feature_util
-import pytest
-from feature_selection import FeatureSelection
+from data.feature_selection import FeatureSelection
 import pandas as pd
-from config.config_writer import ConfigWriter
 from config import config_reader
-from utils import preprocessing, sys_ops
+from utils import preprocessing
 import logging
 
 

@@ -41,7 +41,7 @@ from collections import OrderedDict
 #     return 'ok'
 
 
-def save_model_config(df, targets, model, path, cy_model, datatypes, model_name):
+def save_model_config(model, path, cy_model, model_name):
     custom_path = os.path.join(path, model_name, 'custom')
     transform_path = os.path.join(path, model_name, 'transform')
     os.makedirs(custom_path, exist_ok=True)
@@ -50,12 +50,12 @@ def save_model_config(df, targets, model, path, cy_model, datatypes, model_name)
     with open(os.path.join(custom_path, 'model_tfjs.json'), 'w') as outfile:
         json.dump(model, outfile)
 
-    try:
-        scalers = save_scalers(df, targets, datatypes)
-        pkl.dump(scalers, open(os.path.join(transform_path, "scalers.pkl"), "wb"))
-
-    except Exception as e:
-        return 'Failed to load model: ' + str(e)
+    # try:
+    #     scalers = save_scalers(df, targets, datatypes)
+    #     pkl.dump(scalers, open(os.path.join(transform_path, "scalers.pkl"), "wb"))
+    #
+    # except Exception as e:
+    #     return 'Failed to load model: ' + str(e)
     return custom_path, transform_path
 
 

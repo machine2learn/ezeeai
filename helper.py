@@ -1,0 +1,191 @@
+from abc import ABCMeta, abstractmethod
+
+from data import tabular
+from utils.request_util import *
+from utils import feature_util, preprocessing, param_utils, run_utils, explain_util, sys_ops
+
+
+class Helper(metaclass=ABCMeta):
+    def __init__(self, dataset):
+        self._dataset = dataset
+
+    @abstractmethod
+    def get_num_outputs(self):
+        pass
+
+    @abstractmethod
+    def get_input_shape(self):
+        pass
+
+    @abstractmethod
+    def get_dataset_params(self):
+        pass
+
+    @abstractmethod
+    def get_data(self):
+        pass
+
+    @abstractmethod
+    def get_targets(self):
+        pass
+
+    @abstractmethod
+    def get_target_labels(self):
+        pass
+
+    @abstractmethod
+    def set_split(self, split):
+        pass
+
+    @abstractmethod
+    def process_features_request(self, request):
+        pass
+
+    @abstractmethod
+    def process_targets_request(self, request):
+        pass
+
+    @abstractmethod
+    def get_default_data_example(self):
+        pass
+
+    @abstractmethod
+    def get_new_features(self, form, default_features=False):
+        pass
+
+    @abstractmethod
+    def process_explain_request(self, request):
+        pass
+
+    @abstractmethod
+    def generate_rest_call(self, pred):
+        pass
+
+
+class Tabular(Helper):
+    def __init__(self, dataset):
+        if not isinstance(dataset, tabular.Tabular):
+            raise TypeError(f'dataset must be Tabular, not {dataset.__class__}')
+        super().__init__(dataset)
+
+    def get_num_outputs(self):
+        return self._dataset.get_num_outputs()
+
+    def get_input_shape(self):
+        return self._dataset.get_num_inputs()
+
+    def get_dataset_params(self):
+        return self._dataset.get_params()
+
+    def get_data(self):
+        return self._dataset.get_data_summary().to_json()
+
+    def get_targets(self):
+        return self._dataset.get_targets()
+
+    def get_target_labels(self):
+        return self._dataset.get_target_labels()
+
+    def set_split(self, split):
+        self._dataset.set_split(split)
+
+    def process_features_request(self, request):
+        ds = self._dataset.get_data_summary()
+        self._dataset.set_normalize(request.get_json()['normalize'])
+        cat_columns, default_values = feature_util.reorder_request(default_feature(request), get_cat_columns(request),
+                                                                   default_columns(request),
+                                                                   self._dataset.get_df().keys())
+        self._dataset.update_features(cat_columns, default_values)
+        data = ds[(ds.Category != 'hash') & (ds.Category != 'none')]
+        return {'data': data.to_json(),
+                'old_targets': self._dataset.get_targets() or []}
+
+    def process_targets_request(self, request):
+        selected_rows = request.get_json()['targets']
+
+        if not self._dataset.update_targets(selected_rows):
+            return {'error': 'Only numerical features are supported for multiouput.'}
+
+        self._dataset.split_dataset()
+        self._dataset.split_dataset()
+        self._dataset.update_feature_columns()  # TODO maybe inside split
+
+        if not preprocessing.check_train(self._dataset.get_train_file(),
+                                         self._dataset.get_targets()):  # TODO move to type-tabular
+            return {'error': 'Number of classes for the target should be greater than 1.'}
+
+        num_outputs = self.get_num_outputs()
+        input_shape = self.get_input_shape()
+        hidden_layers = param_utils.get_hidden_layers(input_shape, num_outputs, self._dataset.get_train_size())
+        result = {
+            'error': False,
+            'num_outputs': num_outputs,
+            'input_shape': '[' + str(input_shape) + ']',
+            'hidden_layers': hidden_layers
+        }
+        return result
+
+    def get_default_data_example(self):
+        dict_types, categoricals = run_utils.get_dictionaries(self._dataset.get_defaults(),
+                                                              self._dataset.get_categories(),
+                                                              self._dataset.get_feature_selection(),
+                                                              self._dataset.get_targets())
+        sfeatures = feature_util.remove_targets(self._dataset.get_defaults(), self._dataset.get_targets())
+        explain_disabled = run_utils.get_explain_disabled(self._dataset.get_categories())
+
+        result = {
+            'features': sfeatures,
+            'types': run_utils.get_html_types(dict_types),
+            'categoricals': categoricals,
+            'explain_disabled': explain_disabled,
+            'targets': self._dataset.get_targets(),
+            'has_test': self._dataset.get_test_file is not None
+        }
+
+        return result
+
+    def get_new_features(self, form, default_features=False):
+        return self._dataset.get_new_features(form) if not default_features else self._dataset.get_defaults()
+
+    def process_explain_request(self, request):
+        new_features = self.get_new_features(request.form)
+        labels = self._dataset.get_target_labels()
+        input_check = explain_util.check_input(request.form['num_feat'], request.form['top_labels'], len(new_features),
+                                               1 if labels is None else len(labels))
+        if input_check is not None:
+            return {'explanation': input_check}
+        ep = {
+            'features': new_features,
+            'num_features': int(request.form['num_feat']),
+            'top_labels': int(request.form['top_labels']),
+            'sel_target': request.form['exp_target']
+        }
+        return ep
+
+    def generate_rest_call(self, pred):
+        call, d, epred = sys_ops.gen_example(self._dataset.get_targets(), self._dataset.get_data_summary(),
+                                             self._dataset.get_df(),
+                                             'model_name', pred)
+        example = {'curl': call, 'd': d, 'output': epred}
+        return example
+
+    def create_ice_data(self, request):
+
+        file_path, unique_val_column = explain_util.generate_ice_df(request,
+                                                                    self._dataset.get_df(),
+                                                                    self._dataset.get_file(),
+                                                                    self._dataset.get_targets(),
+                                                                    self._dataset.get_dtypes())
+
+        return file_path, unique_val_column
+
+    def process_ice_request(self, request, unique_val_column, pred):
+        exp_target = request.get_json()['exp_target']
+        exp_feature = request.get_json()['explain_feature']
+        lab, probs = explain_util.get_exp_target_prediction(self._dataset.get_targets(), exp_target, pred,
+                                                            self._dataset.get_dtypes())
+        data = {exp_feature: unique_val_column,
+                exp_target: lab,
+                exp_target + '_prob': probs}
+
+        return data

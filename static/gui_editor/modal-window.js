@@ -16,8 +16,20 @@ $(document).ready(function () {
         deferRender: false,
 
     });
+
     modal_add_input_select('datasets_availables', appConfig.user_dataset);
 
+
+    $('#table_models tbody').on('click', 'tr', function (e) {
+
+        if (load_table.row(this, {selected: true}).any()) {
+            $('#submit_load').prop('disabled', true);
+        }
+        else {
+            $("#submit_load").prop('disabled', false);
+        }
+
+    });
 
     $('#form_load').submit(function () {
         let model_name;

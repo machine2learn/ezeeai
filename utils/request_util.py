@@ -7,6 +7,7 @@ def get_json_attr(request, attr):
     except:
         return request.get_json()[attr]
 
+
 def default_feature(request):
     return get_json_attr(request, 'default_featu')
 
