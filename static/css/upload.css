@@ -1,5 +1,3 @@
-
-
 /*  bhoechie tab */
 div.bhoechie-tab-container {
     z-index: 10;
@@ -21,7 +19,7 @@ div.bhoechie-tab-menu {
     padding-right: 0;
     padding-left: 0;
     padding-bottom: 0;
-    font-size: 17px;
+    font-size: 15px;
 }
 
 div.bhoechie-tab-menu div.list-group {
@@ -49,7 +47,7 @@ div.bhoechie-tab-menu div.list-group > a:last-child {
 
 div.bhoechie-tab-menu div.list-group > a.active,
 div.bhoechie-tab-menu div.list-group > a.active .glyphicon,
-div.bhoechie-tab-menu div.list-group > a.active .fas{
+div.bhoechie-tab-menu div.list-group > a.active .fas {
     background-color: #428bca;
     /*background-image: #428bca;*/
     color: #ffffff;
@@ -89,7 +87,37 @@ div.bhoechie-tab {
     margin-top: 3%;
 }
 
-div.bhoechie-tab-content .row{
+div.bhoechie-tab-content .row {
     margin-right: 3%;
 }
 
+.bar {
+    height: 18px;
+    background: green;
+}
+
+progress {
+    width: 50vh;
+    vertical-align: middle !important;
+}
+
+.not-active {
+    pointer-events: none;
+    cursor: default;
+}
+
+.abort {
+    margin: 0px !important;
+    padding: 0px !important;
+}
+
+h5 {
+    color: dimgrey;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+p {
+    color: dimgray;
+    font-size: 12px;
+}
