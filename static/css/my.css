@@ -231,7 +231,7 @@ table.formatHTML5 tr.selected {
 @import url(https://fonts.googleapis.com/css?family=Open+Sans:400,800);
 body {
     background: #f9f9f9;
-    font-family: 'Open Sans', sans-serif;
+    font-family: sans-serif,'Open Sans';
 }
 
 .h3 {

@@ -203,3 +203,26 @@ def load_cy_model(model, user):
     if os.path.isfile(custom_path):
         cy_model = json.load(open(custom_path), object_pairs_hook=OrderedDict)
     return cy_model
+
+
+def create_custom_path(APP_ROOT, username, model_name):
+    path = os.path.join(APP_ROOT, 'user_data', username, 'models', model_name, 'custom')
+    os.makedirs(path, exist_ok=True)
+    return path
+
+
+def get_config_path(APP_ROOT, username, model_name):
+    return os.path.join(APP_ROOT, 'user_data', username, 'models', model_name, 'config.ini')
+
+
+def get_dataset_path(APP_ROOT, username, dataset_name):
+    return os.path.join(APP_ROOT, 'user_data', username, 'datasets', dataset_name)
+
+
+def get_models_pat(APP_ROOT, username):
+    return os.path.join(APP_ROOT, 'user_data', username, 'models')
+
+def create_split_folders(main_path):
+    os.makedirs(os.path.join(main_path, 'train'), exist_ok=True)
+    os.makedirs(os.path.join(main_path, 'valid'), exist_ok=True)
+    os.makedirs(os.path.join(main_path, 'test'), exist_ok=True)

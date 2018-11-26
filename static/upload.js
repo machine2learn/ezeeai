@@ -1,6 +1,15 @@
 $(document).ready(function () {
+    $("div.bhoechie-tab-menu>div.list-group>a").click(function (e) {
+        e.preventDefault();
+        $(this).siblings('a.active').removeClass("active");
+        $(this).addClass("active");
+        var index = $(this).index();
+        $("div.bhoechie-tab>div.bhoechie-tab-content").removeClass("active");
+        $("div.bhoechie-tab>div.bhoechie-tab-content").eq(index).addClass("active");
+        $('#selected').val(this.name);
+    });
+$('#selected').val('tabular_data');
 
-    var selected_option;
     $('#options-is_existing option[value="new_files"]').prop('selected', true);
 
     if (appConfig.handle_key.mess !== false)
@@ -36,7 +45,7 @@ $(document).ready(function () {
             success: function (data) {
                 var valid_mess = data.valid;
                 console.log(valid_mess);
-                if (valid_mess == 'True') {
+                if (valid_mess === 'True') {
                     $('#upload_form_button').prop('disabled', false);
                     $('#data_graphs_button').prop('disabled', false);
                     document.getElementById("confirm").classList.remove('btn-primary');
@@ -77,7 +86,7 @@ $(document).ready(function () {
     });
 
     $('#tabular_data').click(function (e) {
-        if ( $('#new_tabular_files-train_file').val() !== '')
+        if ($('#new_tabular_files-train_file').val() !== '')
             $('#upload_form_button').prop('disabled', false);
         $('#tabular_data_div').removeClass('hidden');
         $('#image_data_div').addClass('hidden');

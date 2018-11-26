@@ -1,17 +1,20 @@
 function define_steps(page, tam) {
     var element = document.getElementById(page);
     element.className.replace("btn btn-default", "btn btn-primary");
-    for (var i = page + 1; i < tam; i++) {
+    for (var i = page + 2; i < tam; i++) {
         var nelement = document.getElementById(i);
         nelement.classList.add('disabled');
         nelement.disabled = true;
     }
     element.className = element.className.replace("btn btn-default", "btn btn-primary");
-    for (var i = page + 1; i < tam; i++) {
-        var nelement = document.getElementById(i);
-        nelement.classList.add('disabled');
-        nelement.disabled = true;
+    if (page > 0) {
+        for (var i = page + 1; i < tam; i++) {
+            var nelement = document.getElementById(i);
+            nelement.classList.add('disabled');
+            nelement.disabled = true;
+        }
     }
+
 }
 
 function token_session(token) {

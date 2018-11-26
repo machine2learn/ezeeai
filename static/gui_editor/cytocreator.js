@@ -479,9 +479,10 @@ $(document).ready(function () {
                 'normalize': appConfig.dataset_params.normalize
             }),
             success: function (data) {
-                appConfig.dataset_params.category_list = JSON.parse(data.data)['Category'];
-                appConfig.data_df = data.data;
-                table_target_created = create_target_table(data.data, null, null, dict_wizard);
+                var new_data = data.data;
+                appConfig.dataset_params.category_list = JSON.parse(new_data.data)['Category'];
+                appConfig.data_df = new_data.data;
+                table_target_created = create_target_table(new_data.data, null, null, dict_wizard);
             }
         });
     });

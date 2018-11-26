@@ -99,16 +99,26 @@ def get_predictions(targets, final_pred):
     return dict(zip(targets, final_pred.astype(str))) if len(targets) > 1 else {targets[0]: str(final_pred)}
 
 
-def create_result_parameters(request, sess, dataset, default_features=False, checkpoint=None):
+def create_result_parameters(request, sess, checkpoint=None):
     if 'radiob' in request.form:
         sess.set('model', request_util.get_radiob(request))
         sess.set('exp_target', request.form['exp_target'])
-    new_features = dataset.get_new_features(request.form) if not default_features else dataset.get_defaults()
     all_params_config = config_reader.read_config(sess.get_config_file())
-    all_params_config.set('PATHS', 'checkpoint_dir', os.path.join(all_params_config.export_dir(),
-                                                                  request_util.get_radiob(
-                                                                      request) if checkpoint is None else checkpoint))
-    return new_features, all_params_config
+    rb = request_util.get_radiob(request) if checkpoint is None else checkpoint
+    all_params_config.set('PATHS', 'checkpoint_dir', os.path.join(all_params_config.export_dir(), rb))
+    return all_params_config
+
+
+# def create_result_parameters(request, sess, dataset, default_features=False, checkpoint=None):
+#     if 'radiob' in request.form:
+#         sess.set('model', request_util.get_radiob(request))
+#         sess.set('exp_target', request.form['exp_target'])
+#     new_features = dataset.get_new_features(request.form) if not default_features else dataset.get_defaults()
+#     all_params_config = config_reader.read_config(sess.get_config_file())
+#     all_params_config.set('PATHS', 'checkpoint_dir', os.path.join(all_params_config.export_dir(),
+#                                                                   request_util.get_radiob(
+#                                                                       request) if checkpoint is None else checkpoint))
+#     return new_features, all_params_config
 
 
 def get_explain_disabled(cat_list):

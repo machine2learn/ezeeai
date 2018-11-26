@@ -1,13 +1,12 @@
-import dill as pickle
-
 from config.config_writer import ConfigWriter
 from config import config_reader
 from flask import session, redirect, url_for
-from data.feature_selection import FeatureSelection
-from data.tabular import Tabular
-from utils import preprocessing
+from helper import Tabular
+
+import dill as pickle
 import os
 import pandas as pd
+import data
 
 SAMPLE_DATA_SIZE = 5
 
@@ -19,6 +18,17 @@ class Session:
         # self._processes = {}
         # self._ports = {}
         self._app = app
+        self._helper = None
+
+    def get_helper(self):
+        return self._helper
+
+    def set_helper(self, helper):
+        self._helper = helper
+
+    def create_helper(self, dataset):
+        helper = Tabular(dataset)
+        self.set_helper(helper)
 
     def add_user(self, user):
         self._config[user] = {}
@@ -180,7 +190,7 @@ class Session:
     #     return "classification"
 
     def get_metric(self):
-        return "Accuracy" if self.get_dataset().get_mode() == "classification" else "R-squared"
+        return "Accuracy" if self.get_helper().get_mode() == "classification" else "R-squared"
 
     # def get_dataset_name(self):
     #     return self.get('dataset_name')
@@ -327,7 +337,10 @@ class Session:
         conf = config_reader.read_config(self.get('config_file'))  # TODO read tabular dataset
         # update files and df in config dict
         if 'PATHS' in conf.keys():
-            self.set_dataset(pickle.load(open(conf['PATHS']['data_path'], 'rb')))
+            dataset = pickle.load(open(conf['PATHS']['data_path'], 'rb'))
+            self.create_helper(dataset)
+
+            # self.set_dataset(pickle.load(open(conf['PATHS']['data_path'], 'rb')))
             # self.set('file', conf['PATHS']['file'])
             # self.set('train_file', conf['PATHS']['train_file'])
             # self.set('validation_file', conf['PATHS']['validation_file'])
@@ -402,12 +415,14 @@ class Session:
     #         self.get_writer().add_item('COLUMN_CATEGORIES', x, y)
 
     def write_params(self):
-        data_path = os.path.join(os.path.dirname(self.get_config_file()), self.get_dataset().get_name() + '.pkl')
+        hlp = self.get_helper()  # TODO revisar
+        data_path = os.path.join(os.path.dirname(self.get_config_file()), hlp.get_dataset_name() + '.pkl')
         self.set_data_path(data_path)
         self.get_writer().add_item('PATHS', 'data_path', data_path)
         # self.get_writer().write_config(self.get('config_file'))
 
-        pickle.dump(self.get_dataset(), open(data_path, 'wb'))
+        hlp.write_dataset(data_path)
+
         if self.get('mode') == 'custom':
             self.get_writer().add_item('CUSTOM_MODEL', 'custom_path', self.get('custom_path'))
             self.get_writer().add_item('CUSTOM_MODEL', 'transform_path', self.get('transform_path'))
@@ -415,21 +430,6 @@ class Session:
 
         self.get_writer().write_config(self.get_config_file())
 
-    # def get_dataset_params(self):
-    #     conf = config_reader.read_config(self.get('config_file'))
-    #     split = conf['SPLIT_DF']['split_df']
-    #     targets = conf['TARGETS']['targets']
-    #     category_list = {}
-    #     for key in self.get_df().columns:
-    #         category_list[key] = conf['COLUMN_CATEGORIES'][key]
-    #     self.set_column_categories(category_list)
-    #     self.set_category_list(list(category_list.values()))
-    #     return {'split': split, 'targets': targets, 'category_list': category_list, 'normalize': self.get_normalize()}
-    def get_dataset(self):
-        return self.get('dataset')
-
-    def set_dataset(self, data):
-        self.set('dataset', data)
 
     def get_data_path(self):
         return self.get('data_path')
@@ -443,6 +443,6 @@ class Session:
     def mode_is_canned(self):
         return self.get_mode() == 'canned'
 
-    def create_data(self, dataset_name, file):
-        tb = Tabular(dataset_name, file)
-        self.set_dataset(tb)
+    # def create_data(self, dataset_name, file):
+    #     tb = Tabular(dataset_name, file)
+    #     self.set_dataset(tb)

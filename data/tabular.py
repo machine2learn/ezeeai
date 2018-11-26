@@ -87,7 +87,8 @@ class Tabular:
         return self._validation_file
 
     def set_test_file(self, file):
-        args.assert_file(file)
+        # args.assert_file(file)
+        args.assert_type((str, list), file)
         self._test_file = file
 
     def get_test_file(self):
@@ -476,7 +477,7 @@ class Tabular:
         return csv_dataset
 
     def test_input_fn(self, batch_size, file=None):
-        file = file or self.get_test_file()
+        file = file or self.get_test_file()[0] if isinstance( self.get_test_file(), list) else  self.get_test_file()  #TODO
         csv_dataset = make_csv_dataset([file], batch_size=batch_size, shuffle=False,
                                        label_names=self.get_targets(), num_epochs=1,
                                        column_defaults=self.get_converted_defaults())

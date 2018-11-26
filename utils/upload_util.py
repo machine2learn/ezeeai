@@ -1,5 +1,5 @@
 import os
-from config import config_reader
+from data.tabular import Tabular
 
 
 def get_text(file_name):
@@ -19,7 +19,16 @@ def get_examples():
 
 def new_config(dataset_name, username, sess, app_root):
     path = os.path.join(app_root, 'user_data', username, 'datasets', dataset_name, dataset_name + '.csv')
-    sess.create_data(dataset_name, path)
+
+    # Create Tabular dataset
+    dataset = Tabular(dataset_name, path)  # TODO who have to create dataset
+
+    # Check test files
+    path_test = os.path.join(app_root, 'user_data', username, 'datasets', dataset_name, 'test')
+    test_files = [os.path.join(path_test, f) for f in os.listdir(path_test) if os.path.isfile(os.path.join(path_test, f))]
+    dataset.set_test_file(test_files)
+
+    sess.create_helper(dataset)
     return True
 
 

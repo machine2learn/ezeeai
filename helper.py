@@ -4,6 +4,10 @@ from data import tabular
 from utils.request_util import *
 from utils import feature_util, preprocessing, param_utils, run_utils, explain_util, sys_ops
 
+import os
+import pandas as pd
+import dill as pickle
+
 
 class Helper(metaclass=ABCMeta):
     def __init__(self, dataset):
@@ -26,11 +30,19 @@ class Helper(metaclass=ABCMeta):
         pass
 
     @abstractmethod
+    def get_dataset_name(self):
+        pass
+
+    @abstractmethod
     def get_targets(self):
         pass
 
     @abstractmethod
     def get_target_labels(self):
+        pass
+
+    @abstractmethod
+    def get_train_size(self):
         pass
 
     @abstractmethod
@@ -61,6 +73,14 @@ class Helper(metaclass=ABCMeta):
     def generate_rest_call(self, pred):
         pass
 
+    @abstractmethod
+    def test_request(self, request):
+        pass
+
+    @abstractmethod
+    def process_test_predict(self, df, final_pred, test_filename):
+        pass
+
 
 class Tabular(Helper):
     def __init__(self, dataset):
@@ -77,6 +97,9 @@ class Tabular(Helper):
     def get_dataset_params(self):
         return self._dataset.get_params()
 
+    def get_dataset_name(self):
+        return self._dataset.get_name()
+
     def get_data(self):
         return self._dataset.get_data_summary().to_json()
 
@@ -86,14 +109,18 @@ class Tabular(Helper):
     def get_target_labels(self):
         return self._dataset.get_target_labels()
 
+    def get_train_size(self):
+        return self._dataset.get_train_size()
+
     def set_split(self, split):
         self._dataset.set_split(split)
 
     def process_features_request(self, request):
         ds = self._dataset.get_data_summary()
-        self._dataset.set_normalize(request.get_json()['normalize'])
-        cat_columns, default_values = feature_util.reorder_request(default_feature(request), get_cat_columns(request),
-                                                                   default_columns(request),
+        self._dataset.set_normalize(get_normalize(request))
+        cat_columns, default_values = feature_util.reorder_request(get_default_feature(request),
+                                                                   get_cat_columns(request),
+                                                                   get_default_columns(request),
                                                                    self._dataset.get_df().keys())
         self._dataset.update_features(cat_columns, default_values)
         data = ds[(ds.Category != 'hash') & (ds.Category != 'none')]
@@ -101,7 +128,7 @@ class Tabular(Helper):
                 'old_targets': self._dataset.get_targets() or []}
 
     def process_targets_request(self, request):
-        selected_rows = request.get_json()['targets']
+        selected_rows = get_targets(request)
 
         if not self._dataset.update_targets(selected_rows):
             return {'error': 'Only numerical features are supported for multiouput.'}
@@ -139,7 +166,7 @@ class Tabular(Helper):
             'categoricals': categoricals,
             'explain_disabled': explain_disabled,
             'targets': self._dataset.get_targets(),
-            'has_test': self._dataset.get_test_file is not None
+            'has_test': self._dataset.get_test_file() is not None
         }
 
         return result
@@ -150,15 +177,20 @@ class Tabular(Helper):
     def process_explain_request(self, request):
         new_features = self.get_new_features(request.form)
         labels = self._dataset.get_target_labels()
-        input_check = explain_util.check_input(request.form['num_feat'], request.form['top_labels'], len(new_features),
+
+        num_feat = get_num_feat(request)
+        top_labels = get_top_labels(request)
+        input_check = explain_util.check_input(num_feat, top_labels, len(new_features),
                                                1 if labels is None else len(labels))
         if input_check is not None:
             return {'explanation': input_check}
+
+        sel_target = get_sel_target(request)
         ep = {
             'features': new_features,
-            'num_features': int(request.form['num_feat']),
-            'top_labels': int(request.form['top_labels']),
-            'sel_target': request.form['exp_target']
+            'num_features': num_feat,
+            'top_labels': top_labels,
+            'sel_target': sel_target
         }
         return ep
 
@@ -170,13 +202,11 @@ class Tabular(Helper):
         return example
 
     def create_ice_data(self, request):
-
         file_path, unique_val_column = explain_util.generate_ice_df(request,
                                                                     self._dataset.get_df(),
                                                                     self._dataset.get_file(),
                                                                     self._dataset.get_targets(),
                                                                     self._dataset.get_dtypes())
-
         return file_path, unique_val_column
 
     def process_ice_request(self, request, unique_val_column, pred):
@@ -189,3 +219,30 @@ class Tabular(Helper):
                 exp_target + '_prob': probs}
 
         return data
+
+    def test_request(self, request):
+        if 'filename' in request.get_json():
+            test_file = get_filename(request)
+            try:
+                test_filename = os.path.join(self._dataset.get_base_path(), 'test', test_file)
+                df_test = sys_ops.bytestr2df(request.get_json()['file'], test_filename)
+                has_targets = sys_ops.check_df(df_test, self._dataset.get_df(), self._dataset.get_targets(),
+                                               test_filename)
+            except ValueError:
+                return False, None, None, "The file contents are not valid."
+        else:
+            test_filename = self._dataset.get_test_file()[0] if isinstance(self._dataset.get_test_file(),
+                                                                           list) else self._dataset.get_test_file()  # TODO
+            has_targets = True
+            df_test = pd.read_csv(test_filename)
+        return has_targets, test_filename, df_test, None
+
+    def process_test_predict(self, df, final_pred, test_filename):
+        return sys_ops.save_results(df, final_pred['preds'], self._dataset.get_targets(), test_filename.split('/')[-1],
+                                    self._dataset.get_base_path())
+
+    def write_dataset(self, data_path):
+        pickle.dump(self._dataset, open(data_path, 'wb'))
+
+    def get_mode(self):
+        return self._dataset.get_mode()
