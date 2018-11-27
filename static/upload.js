@@ -128,7 +128,7 @@ function clear_images_form() {
     $(".img-select").children("div").each(function () {
         $('#' + this.id + '-file').val('');
         $('#progres_bar_' + this.id).val(0);
-        $('#status' + this.id).text('');
+        $('#status_' + this.id).text('');
         $('#loaded_n_total_' + this.id).text('');
     });
 }
@@ -155,7 +155,7 @@ function changes_generate_form() {
     $('#data_graphs_button').prop('disabled', true);
 }
 
-function freeze_view() {
+function uploud_id_file_uploading() {
     let selected = $('#selected').val();
     if (selected === 'images') {
         id_file_uploading = $('#selector-selector').val();
@@ -164,6 +164,9 @@ function freeze_view() {
     else if (selected === 'tabular_data') {
         id_file_uploading = 'new_tabular_files';
     }
+}
+
+function freeze_view() {
     _('selector-selector').prop('disabled', true);
     _('upload_form_button').prop('disabled', true);
     $(".list-group a").addClass('not-active');
@@ -178,17 +181,30 @@ function unfreeeze_view() {
 
 
 function uploadFile() {
-    freeze_view();
+    uploud_id_file_uploading();
     ajax = new XMLHttpRequest();
+    ajax.onreadystatechange = function () {
+        if (this.readyState === 4 && this.responseText !== 'Ok') {
+            alert('Upload failed: invalid data format');
+            _("progressBar_" + id_file_uploading).val(0);
+        } else if (this.readyState === 4 && this.responseText === 'Ok') {
+            $.notify("New dataset saved", "info");
+            _("status_" + id_file_uploading).text('File upload completed');
+            unfreeeze_view()
+        }
+    };
+
     ajax.upload.addEventListener("progress", progressHandler, false);
     ajax.addEventListener("load", completeHandler, false);
     ajax.addEventListener("error", errorHandler, false);
     ajax.addEventListener("abort", abortHandler, false);
+
     ajax.open("POST", "/upload");
+
     ajax.send(new FormData(_("upload_form")[0]));
+    freeze_view();
     _("progressBar_" + id_file_uploading).removeClass('hidden');
     _("abort_" + id_file_uploading).removeClass('hidden');
-
 
 }
 
@@ -198,11 +214,14 @@ function progressHandler(event) {
     percent = Math.round(percent);
     _("progressBar_" + id_file_uploading).val(percent);
     _("status_" + id_file_uploading).text(percent + "% uploaded... please wait");
+    if (percent === 100) {
+        clear_tabular_form();
+        clear_images_form();
+    }
 }
 
 function completeHandler(event) {
-    _("status_" + id_file_uploading).text('File upload completed');
-    $.notify("New dataset saved", "info");
+
     unfreeeze_view()
 }
 
@@ -216,4 +235,3 @@ function abortHandler(event) {
     _("loaded_n_total_" + id_file_uploading).text("");
     unfreeeze_view()
 }
-

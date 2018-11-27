@@ -18,6 +18,54 @@ import numpy as np
 import json
 
 
+def tree_remove(path):
+    shutil.rmtree(path)
+
+
+def zipdir(path, ziph, base):
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            src_path = os.path.join(root, file)
+            base_path = base + src_path.split(base)[-1]
+            ziph.write(src_path, base_path)
+
+
+def check_zip_file(path_file):
+    with open(path_file, 'rb') as fp:
+        if not zipfile.is_zipfile(fp):
+            return False
+        return True
+
+
+def check_numpy_file(path_file):
+    if not os.path.isfile(path_file) or not path_file.split('.')[-1] == '.npy':
+        return False
+    return True
+
+
+def unzip(path_to_zip_file, directory_to_extract_to):
+    zip_ref = zipfile.ZipFile(path_to_zip_file, 'r')
+    zip_ref.extractall(directory_to_extract_to)
+    zip_ref.close()
+
+    dirs = [f for f in os.listdir(directory_to_extract_to) if os.path.isdir(os.path.join(directory_to_extract_to, f))]
+    filtered_dir = dirs.copy()
+    for d in dirs:
+        if d.startswith('__'):
+
+            tree_remove(os.path.join(directory_to_extract_to, d))
+            del filtered_dir[filtered_dir.index(d)]
+
+    if len(filtered_dir) == 1:
+        source = os.path.join(directory_to_extract_to, filtered_dir[0])
+        dest1 = directory_to_extract_to
+
+        files = os.listdir(source)
+        for f in files:
+            shutil.move(os.path.join(source, f), dest1)
+        os.removedirs(source)
+
+
 def mkdir_recursive(path):
     if not path:
         return
@@ -54,7 +102,7 @@ def save_filename(target, dataset_form_field, dataset_name):
     dataset_form_field.filename = dataset_name + '.csv'
     dataset_file = dataset_form_field
     if dataset_file:
-        dataset_filename = secure_filename(dataset_file.filename)
+        dataset_filename = secure_filename(os.path.basename(dataset_file.filename))
         destination = os.path.join(target, dataset_filename)
         if not os.path.exists(target):
             os.makedirs(target)
@@ -189,14 +237,6 @@ def gen_example(targets, data, df, model_name, pred):
     return call, d, epred
 
 
-def zipdir(path, ziph, base):
-    for root, dirs, files in os.walk(path):
-        for file in files:
-            src_path = os.path.join(root, file)
-            base_path = base + src_path.split(base)[-1]
-            ziph.write(src_path, base_path)
-
-
 def load_cy_model(model, user):
     custom_path = os.path.join('user_data', user, 'models', model, 'custom', 'model_cy.json')
     cy_model = 'None'
@@ -221,6 +261,7 @@ def get_dataset_path(APP_ROOT, username, dataset_name):
 
 def get_models_pat(APP_ROOT, username):
     return os.path.join(APP_ROOT, 'user_data', username, 'models')
+
 
 def create_split_folders(main_path):
     os.makedirs(os.path.join(main_path, 'train'), exist_ok=True)

@@ -3,6 +3,42 @@ import os
 import pandas as pd
 
 
+class Image:
+    def __init__(self, name, file):
+        pass
+        # self._name = None
+        # self._file = None
+        #
+        # self._train_file = None
+        # self._validation_file = None
+        # self._test_file = None
+        #
+        # self._df = None
+        #
+        # self._normalize = False
+        #
+        # self._fs = None
+        # self._defaults = None
+        # self._converted_defaults = None
+        # self._keyed_defaults = None
+        # self._categories = None  # session -> category_list
+        # self._column_categories = None
+        # self._summary = None  # session -> data
+        # self._targets = None
+        #
+        # self._all_feature_columns = None  # session -> all_features
+        # self._feature_columns = None  # session -> features
+        # self._feature_names = None
+        #
+        # self._train_size = None
+        # self._split = None
+        #
+        # self.set_file(file)
+        # self.set_name(name)
+        # self.load_features()
+        # self._base_path = self._file.replace(self._name + '.csv', '')
+
+
 def _is_png(filename):
     return '.png' in filename
 
@@ -51,6 +87,7 @@ def find_image_files_folder_per_class(data_dir):
             filenames.extend(matching_files)
             i += 1
 
+    assert (len(filenames) > 1 and len(set(labels)) > 1)
     dataset = dataset_from_files(filenames, labels)
     return dataset, class_names
 
@@ -60,11 +97,12 @@ def find_image_files_from_file(data_dir, info_file):
     # TODO Structure for now: col 0 =  im name, col 1 = label
 
     filenames = info_file[info_file.columns[0]].values
-    if not os.path.isdir(filenames[0]):
+    if not os.path.isfile(filenames[0]):
         filenames = [os.path.join(data_dir, f) for f in filenames]
     class_names = list(info_file[info_file.columns[1]].unique())
     labels = info_file[info_file.columns[1]].values
     labels = [class_names.index(l) for l in labels]
 
+    assert (len(filenames) > 1 and len(set(labels)) > 1)
     dataset = dataset_from_files(filenames, labels)
     return dataset, class_names
