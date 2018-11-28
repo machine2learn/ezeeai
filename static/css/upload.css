@@ -93,3 +93,5 @@ div.bhoechie-tab-content .row{
     margin-right: 3%;
 }
 
+textarea { resize: vertical; }
+

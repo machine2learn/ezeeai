@@ -31,7 +31,6 @@ class NewTabularFileForm(FlaskForm):
                                                 'set from the train set in the next step.', )
 
 
-
 class GenerateDataSet(FlaskForm):
     dataset_name = StringField("Dataset name")
     example_type = SelectField('Select an option to generate an example script : ',
@@ -46,5 +45,3 @@ class UploadForm(FlaskForm):
     new_tabular_files = FormField(NewTabularFileForm)
     generate_dataset = FormField(GenerateDataSet)
     submit = SubmitField("Submit")
-
-

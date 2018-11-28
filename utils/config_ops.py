@@ -73,7 +73,6 @@ def get_configs_files(app_root, username):
     return models, parameters_configs
 
 
-
 def new_config(train_form_file, test_form_file, APP_ROOT, username):
     ext = train_form_file.filename.split('.')[-1]
     dataset_name = train_form_file.filename.split('.' + ext)[0]
