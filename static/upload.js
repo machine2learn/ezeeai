@@ -79,7 +79,8 @@ $(document).ready(function () {
 
 
     $('#generate_dataset-example_type').change(function () {
-        $('#generate_dataset-script').text(appConfig.handle_key.examples[get_option_selected()]);
+        var text = appConfig.handle_key.examples[get_option_selected()];
+        $('#generate_dataset-script').text();
         changes_generate_form();
     });
     $('#generate_dataset-script').bind('input', function () {

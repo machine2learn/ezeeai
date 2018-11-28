@@ -74,7 +74,7 @@ class NewImageOption2(FlaskForm):
 
 class NewImageOption3(FlaskForm):
     file = NumpyFileFieldWithAccept(label='Numpy file',
-                               validators=[FileAllowed(['npy', 'npz'], message="Please enter numpy file.")])
+                                    validators=[FileAllowed(['npy', 'npz'], message="Please enter numpy file.")])
 
 
 class GenerateDataSet(FlaskForm):

@@ -91,6 +91,8 @@ div.bhoechie-tab-content .row {
     margin-right: 3%;
 }
 
+textarea { resize: vertical; }
+
 .bar {
     height: 18px;
     background: green;
@@ -132,3 +134,4 @@ pre.prettyprint {
 .ind-p {
     text-indent: 30px;
 }
+
