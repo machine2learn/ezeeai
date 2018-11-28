@@ -116,7 +116,7 @@
 {% endmacro %}
 
 {% macro render_field(field) %}
-{#    <h4><label> {{ field.label.text }} </label></h4>#}
+    {#    <h4><label> {{ field.label.text }} </label></h4>#}
     {%- for subfield in field %}
         {% if not bootstrap_is_hidden_field(subfield) %}
             <div class="form-row">
@@ -136,18 +136,52 @@
 {% endmacro %}
 
 {% macro render_gener_field(field) %}
-{#    <h4><label> {{ field.label.text }} </label></h4>#}
+    {#    <h4><label> {{ field.label.text }} </label></h4>#}
     {%- for subfield in field %}
         {% if not bootstrap_is_hidden_field(subfield) %}
-                <label for="{{ subfield.name }}" class="control-label"  title="{{ subfield.description }}">{{ subfield.label.text }}</label>
-                {{ subfield(class_='form-control', **kwargs)|safe }}
-                <ul>
-                    {% for error in subfield.errors %}
-                        <li style="color:red;">{{ error }}</li>
-                    {% endfor %}
-                </ul>
+            <label for="{{ subfield.name }}" class="control-label"
+                   title="{{ subfield.description }}">{{ subfield.label.text }}</label>
+            {{ subfield(class_='form-control', **kwargs)|safe }}
+            <ul>
+                {% for error in subfield.errors %}
+                    <li style="color:red;">{{ error }}</li>
+                {% endfor %}
+            </ul>
         {% endif %}
     {%- endfor %}
     {{ field.hidden_tag() }}
 {% endmacro %}
+
+
+{% macro render_option_field(field) %}
+    {#    <h4><label> {{ field.label.text }} </label></h4>#}
+    {%- for subfield in field %}
+        {% if not bootstrap_is_hidden_field(subfield) %}
+            <label for="{{ subfield.name }}" class="control-label"
+                   title="{{ subfield.description }}">{{ subfield.label.text }}</label>
+            {{ subfield(class_='form-control', **kwargs)|safe }}
+            <ul>
+                {% for error in subfield.errors %}
+                    <li style="color:red;">{{ error }}</li>
+                {% endfor %}
+            </ul>
+
+        {% endif %}
+    {%- endfor %}
+    {{ field.hidden_tag() }}
+
+    <progress id="progressBar_{{ field.name }}" value="0" class="hidden" max="100" style="width:300px;">
+    </progress>
+
+    <button id="abort_{{ field.name }}" type="button" class="btn btn-light abort hidden" aria-label="Close"
+            onclick="ajax.abort()"><span
+            aria-hidden="true">&times;</span>
+    </button>
+
+    <h5 id="status_{{ field.name }}"></h5>
+    <p id="loaded_n_total_{{ field.name }}"></p>
+    <div id="status_{{ field.name }}"></div>
+{% endmacro %}
+
+
 

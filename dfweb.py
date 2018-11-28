@@ -110,18 +110,25 @@ def upload():
     sess.reset_user()  # TODO new session??
     username = session['user']
     form = UploadForm()
-    mess = False
     if form.validate_on_submit():
         if request.form['selected'] == 'tabular_data':
             if not form.new_tabular_files.data['train_file'] == '':
-                mess = config_ops.new_config(form.new_tabular_files.data['train_file'],
-                                             form.new_tabular_files.data['test_file'], APP_ROOT, username)
-        elif request.form['selected'] == 'generate_data':
-            dataset_name = form.generate_dataset.data['dataset_name']
-            mess = config_ops.check_generated(dataset_name, APP_ROOT, username)
+                config_ops.new_config(form.new_tabular_files.data['train_file'],
+                                      form.new_tabular_files.data['test_file'], APP_ROOT, username)
+            return 'Ok'
+        elif request.form['selected'] == 'images':
+            option_selected = form.selector.data['selector']
+            file = form[option_selected].data['file']
+            if not config_ops.new_image_dataset(APP_ROOT, username, option_selected, file):
+                return 'Error'
+            return 'Ok'
+
+        # else:
+        # dataset_name = form.generate_dataset.data['dataset_name']
+        # config_ops.check_generated(dataset_name, APP_ROOT, username)
     examples = upload_util.get_examples()
     return render_template('upload.html', title='Data upload', form=form, page=0, examples=examples, user=username,
-                           user_configs=config_ops.get_datasets(APP_ROOT, username), token=session['token'], mess=mess)
+                           user_configs=config_ops.get_datasets(APP_ROOT, username), token=session['token'])
 
 
 @app.route('/gui', methods=['GET', 'POST'])
@@ -317,7 +324,8 @@ def explain():
         if sess.mode_is_canned():
             all_params_config.set_canned_data(sess.get_canned_data())
         result = th.explain_estimator(all_params_config, ep)
-        return jsonify(explanation=explain_util.explain_return(sess, hlp.get_new_features(request.form), result, hlp.get_targets()))
+        return jsonify(explanation=explain_util.explain_return(sess, hlp.get_new_features(request.form), result,
+                                                               hlp.get_targets()))
     else:
         return render_template('explain.html', title="Explain", page=5, graphs=sess.get_dict_graphs(),
                                predict_table=sess.get_dict_table(), features=sess.get_new_features(),

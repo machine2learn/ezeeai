@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
-from data import tabular
+from data import tabular, image
+from data.image import find_image_files_folder_per_class, find_image_files_from_file
 from utils.request_util import *
 from utils import feature_util, preprocessing, param_utils, run_utils, explain_util, sys_ops
 
@@ -246,3 +247,38 @@ class Tabular(Helper):
 
     def get_mode(self):
         return self._dataset.get_mode()
+
+
+class Image(Helper):
+    def __init__(self, dataset):
+        if not isinstance(dataset, image.Image):
+            raise TypeError(f'dataset must be Image, not {dataset.__class__}')
+        super().__init__(dataset)
+
+    @staticmethod
+    def extract_dataset(option, file_path):
+        data_dir = ''
+        info_file = ''
+
+        if option == 'option1':
+            try:
+                find_image_files_folder_per_class(data_dir)
+            except AssertionError:
+                return False
+        elif option == 'option2':
+            try:
+                find_image_files_from_file(data_dir, info_file)
+            except AssertionError:
+                return False
+
+        elif option == 'option3':
+            pass
+        return True
+
+
+# import zipfile
+#
+# with open('/Users/aracelicanadas/Desktop/gui-tf3/gui-tf3/user_data/test/datasets/DORN-master/DORN-master.zip',
+#           'rb') as f:
+#     zf = zipfile.ZipFile(f)
+#     zf.extractall('/Users/aracelicanadas/Desktop/gui-tf3/gui-tf3/user_data/test/datasets')

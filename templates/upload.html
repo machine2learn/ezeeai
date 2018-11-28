@@ -1,6 +1,6 @@
 {% extends "base_tf3.html" %}
 {% import 'bootstrap/wtf.html' as wtf %}
-{% from '_render_field.html' import render_checkbox, render_field_two_col, render_single_field, render_field, render_gener_field %}
+{% from '_render_field.html' import render_checkbox, render_option_field, render_field_two_col, render_single_field, render_field, render_gener_field %}
 
 
 {% block styles %}
@@ -13,6 +13,7 @@
 {% endblock %}
 
 {% block app_content %}
+
     <div id="result"></div>
     {% with errors = get_flashed_messages(category_filter=["error"]) %}
         {% if errors %}
@@ -53,14 +54,21 @@
                         <div class="col-lg-9 col-md-9 col-sm-9 col-xs-9 bhoechie-tab">
 
                             <div class="bhoechie-tab-content active">
-
-                                {{ render_field_two_col(form.new_tabular_files) }}
-
+                                {{ render_option_field(form.new_tabular_files) }}
                             </div>
 
-                            <div class="bhoechie-tab-content">
+                            <div class="bhoechie-tab-content img-select">
+                                {{ render_gener_field(form.selector) }}
+                                <div id="option1">
+                                    {{ render_option_field(form.option1) }}
+                                </div>
+                                <div id="option2" class="hidden">
+                                    {{ render_option_field(form.option2) }}
+                                </div>
+                                <div id="option3" class="hidden">
+                                    {{ render_option_field(form.option3) }}
+                                </div>
                             </div>
-
 
                             <div class="bhoechie-tab-content">
 
@@ -80,28 +88,18 @@
                     </div>
 
                 </div>
+                <br><br>
+
+                <input class="hidden" id="selected" name="selected"> </input>
+
+                <button type="button" class="btn btn-primary btn-next" onclick="uploadFile();"
+                        id="upload_form_button"><span
+                        class="glyphicon glyphicon-save"></span> Save
+                </button>
+
+            </form>
         </div>
-        <br><br>
-
-        <input class="hidden" id="selected" name="selected"> </input>
-
-        <button type="submit" class="btn btn-primary btn-next" type="submit" id="upload_form_button"
-                formmethod="post">
-            <span class="glyphicon glyphicon-save"></span> Save
-        </button>
-
-        </form>
     </div>
-
-
-    {#    <form action="/gui" id="open_gui" method="post" enctype="multipart/form-data">#}
-    {#        <p align="right">#}
-    {#            <button type="submit" id="create_model" formmethod="post" class="btn btn-primary">#}
-    {#                Create Model#}
-    {#            </button>#}
-    {#        </p>#}
-    {#    </form>#}
-
 {% endblock %}
 
 
@@ -114,14 +112,14 @@
             src="https://cdn.datatables.net/fixedheader/3.1.5/js/dataTables.fixedHeader.min.js"></script>
     <script src="{{ url_for('.static', filename='choose.js') }}"></script>
     <script src="{{ url_for('.static', filename='notify.js') }}"></script>
+
     <script type="text/javascript">
         var handle_key = {};
         handle_key.configs = {{  user_configs | tojson | safe }};
         handle_key.examples = {{  examples | tojson | safe }};
-        handle_key.mess = {{ mess  | tojson | safe  }}
-            window.appConfig = {
-                handle_key: handle_key
-            }
+        window.appConfig = {
+            handle_key: handle_key
+        };
     </script>
     <script src="{{ url_for('.static', filename='upload.js') }}"></script>
 

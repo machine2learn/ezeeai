@@ -1,8 +1,13 @@
-import os
 import configparser
-from utils import upload_util, sys_ops
+import shutil
 
 import dill as pickle
+import os
+from werkzeug.utils import secure_filename
+
+from data.image import find_image_files_folder_per_class, find_image_files_from_file
+from utils import upload_util, sys_ops
+from utils.sys_ops import create_split_folders, check_zip_file, unzip, tree_remove, check_numpy_file
 
 
 def get_datasets(app_root, username):
@@ -76,13 +81,7 @@ def get_configs_files(app_root, username):
 def new_config(train_form_file, test_form_file, APP_ROOT, username):
     ext = train_form_file.filename.split('.')[-1]
     dataset_name = train_form_file.filename.split('.' + ext)[0]
-    path = os.path.join(APP_ROOT, 'user_data', username, 'datasets', dataset_name)
-    if os.path.isdir(path):
-        dataset_name = upload_util.generate_dataset_name(APP_ROOT, username, dataset_name)
-        path = os.path.join(APP_ROOT, 'user_data', username, 'datasets', dataset_name)
-    else:
-        os.makedirs(path, exist_ok=True)
-
+    dataset_name, path = check_dataset_path(APP_ROOT, username, dataset_name)
     sys_ops.save_filename(path, train_form_file, dataset_name)
 
     if not isinstance(test_form_file, str):
@@ -93,11 +92,49 @@ def new_config(train_form_file, test_form_file, APP_ROOT, username):
         os.makedirs(os.path.join(path, 'test'), exist_ok=True)
     os.makedirs(os.path.join(path, 'train'), exist_ok=True)
     os.makedirs(os.path.join(path, 'valid'), exist_ok=True)
-    return dataset_name
 
 
-def check_generated(dataset_name, APP_ROOT, username):
-    path = os.path.join(APP_ROOT, 'user_data', username, 'datasets', dataset_name)
-    if not os.path.isdir(path):
+def check_dataset_path(app_root, username, dataset_name):
+    path = os.path.join(app_root, 'user_data', username, 'datasets', dataset_name)
+    if os.path.isdir(path):
+        dataset_name = upload_util.generate_dataset_name(app_root, username, dataset_name)
+        path = os.path.join(app_root, 'user_data', username, 'datasets', dataset_name)
+    os.makedirs(path, exist_ok=True)
+    return dataset_name, path
+
+
+def new_image_dataset(app_root, username, option, file):
+    if isinstance(file, str):
         return False
-    return dataset_name
+    dataset_name = file.filename.split('.')[0]
+    dataset_name, dataset_path = check_dataset_path(app_root, username, dataset_name)
+    filename = secure_filename(file.filename)
+    path_file = os.path.join(dataset_path, filename)
+    file.save(path_file)
+
+    if option == 'option3':
+        return check_numpy_file(path_file)  # TODO check numpy data is correct
+
+    if not check_zip_file(path_file):
+        tree_remove(dataset_path)
+        return False
+    else:
+        unzip(path_file, dataset_path)
+        try:
+            if option == 'option1':
+                find_image_files_folder_per_class(dataset_path)
+            elif option == 'option2':
+                info_file = [f for f in os.listdir(dataset_path) if f.startswith('labels.')]
+                assert len(info_file) == 1
+                find_image_files_from_file(dataset_path, os.path.join(dataset_path, info_file[0]))
+        except AssertionError:
+            tree_remove(dataset_path)
+            return False
+    return True
+
+# TODO
+# def check_generated(dataset_name, APP_ROOT, username):
+#     path = os.path.join(APP_ROOT, 'user_data', username, 'datasets', dataset_name)
+#     if not os.path.isdir(path):
+#         return False
+#     return dataset_name
