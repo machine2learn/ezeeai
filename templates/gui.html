@@ -13,6 +13,7 @@
           integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css"
           href="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.css"/>
+
 {% endblock %}
 
 {% block app_content %}
@@ -89,33 +90,6 @@
                         <li>
                     </ul>
 
-                    {#                    <ul class="nav nav-tabs process-model more-icon-preocess" id="myTab" role="tablist">#}
-                    {#                        <li role="presentation" class="active">#}
-                    {#                            <a id="wizard1" href="#select_data" aria-controls="discover" role="tab" data-toggle="tab">#}
-                    {#                                <i class="fas fa-database" aria-hidden="true"></i>#}
-                    {#                                <p> 1. Select data </p>#}
-                    {#                            </a></li>#}
-                    {##}
-                    {#                        <li role="presentation" class="active">#}
-                    {#                            <a id="wizard2" href="#split_tab" aria-controls="discover" role="tab" data-toggle="tab">#}
-                    {#                            <i class="fas fa-cut" aria-hidden="true"></i>#}
-                    {#                            <p> 2. Split</p>#}
-                    {#                        </a></li>#}
-                    {##}
-                    {#                        <li role="presentation" class="active"><a id="wizard3" href="#features"#}
-                    {#                                                                  aria-controls="discover" role="tab" data-toggle="tab">#}
-                    {#                            <i class="fas fa-bars" aria-hidden="true"></i>#}
-                    {#                            <p> 3. Features</p>#}
-                    {#                        </a></li>#}
-                    {##}
-                    {#                        <li role="presentation" class="active"><a id="wizard4" href="#targets"#}
-                    {#                                                                  aria-controls="discover" role="tab" data-toggle="tab">#}
-                    {#                            <i class="fas fa-bullseye" aria-hidden="true"></i>#}
-                    {#                            <p> 4. Targets</p>#}
-                    {#                        </a></li>#}
-                    {##}
-                    {#                    </ul>#}
-
 
                     <div class="tab-content">
                         <!-- 1 Modal Wizard-->
@@ -158,18 +132,72 @@
                             <button class="btn btn-primary" id="splitTabContinue">Save and continue</button>
                         </div>
 
-
+                        <!-- 3 Model Feature-->
                         <div class="tab-pane fade" id="features" role="tabpanel">
                             <h4 align="center">Features</h4>
-                            <table id="table_features" class="display stripe" style="width:100%"></table>
-                            <div>
+                            <div id="tabular_features">
+                                <table id="table_features" class="display stripe" style="width:100%"></table>
+
                                 <input type="checkbox" id="normalize" name="normalize" checked>
                                 <label for="scales">Normalize</label>
                             </div>
 
+                            <div id="image_features" class="container hidden">
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <h4> Resize images</h4>
+                                        <label title="Height" for="height"> Height</label>
+                                        <input id='height' type="number" step="1" min="10" max="1000"/>
+                                        <label title="Width" for="width"> Width</label>
+                                        <input id='width' type="number" step="1" min="10" max="1000"/>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <h4 title="Normalization" for="normalization">Normalization</h4>
+                                        <select id="normalization">
+                                            <option value="unit_lenght">Unit lenght</option>
+                                            <option value="standard_scaling">Standard Scaling</option>
+                                            <option value="mean_subtraction">Mean Subtraction</option>
+                                            <option value="imagenet_mean_subtraction">ImageNet Mean Subtraction</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <br>
+                                <div class="row">
+                                    <div class="col-md-12"><h4>Data Augmentation</h4></div>
+                                    <div class="col-sm-3">
+                                        <div class="list-group" id="list1">
+                                            <a class="list-group-item active">Options
+                                                <input title="toggle all" type="checkbox" class="all pull-right"></a>
+                                            <a class="list-group-item">Flip<input type="checkbox"
+                                                                                  class="pull-right"></a>
+
+                                            <a class="list-group-item">Rotation<input type="checkbox"
+                                                                                      class="pull-right"></a>
+                                            <a class="list-group-item">Crop <input type="checkbox"
+                                                                                   class="pull-right"></a>
+                                            <a class="list-group-item">Color Saturation <input type="checkbox"
+                                                                                               class="pull-right"></a>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-1 v-center">
+                                        <button title="Send to list 2" class="btn btn-default center-block add"><i
+                                                class="glyphicon glyphicon-chevron-right"></i></button>
+                                        <button title="Send to list 1" class="btn btn-default center-block remove"><i
+                                                class="glyphicon glyphicon-chevron-left"></i></button>
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <div class="list-group" id="list2">
+                                            <a class="list-group-item active">Selected <input title="toggle all"
+                                                                                              type="checkbox"
+                                                                                              class="all pull-right"></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <button class="btn btn-primary" id="featuresContinue">Save and continue</button>
                         </div>
 
+                        <!-- 4 Model Target-->
                         <div class="tab-pane fade" id="targets" role="tabpanel">
                             <h4 align="center">Select target(s)</h4>
                             <table id="table_targets" class="display stripe" style="width:50%"></table>
@@ -210,10 +238,10 @@
         </div>
     </div>
 
-
 {% endblock %}
 
 {% block scripts %}
+
     {{ super() }}
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
@@ -259,6 +287,7 @@
     <script src="{{ url_for('.static', filename='table.js') }}"></script>
     <script src="{{ url_for('.static', filename='ion.rangeSlider.js') }}"></script>
     <script src="{{ url_for('.static', filename='slider.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 
     <script type="text/javascript">
         const dict_wizard = {1: 'select_data', 2: 'split_tab', 3: 'features', 4: 'targets'};
@@ -278,6 +307,26 @@
             dataset_params: dataset_params,
             data_df: data_df
         };
+        document.addEventListener('DOMContentLoaded', function () {
+            var elems = document.querySelectorAll('.collapsible');
+            var instances = M.Collapsible.init(elems, options);
+        });
+
+        // Or with jQuery
+
+        $(document).ready(function () {
+            $('.collapsible').collapsible();
+        });
+
+        {#$(".sortable_list").sortable({#}
+        {#    connectWith: ".connectedSortable",#}
+        {#    /*stop: function(event, ui) {#}
+        {#        var item_sortable_list_id = $(this).attr('id');#}
+        {#        console.log(ui);#}
+        {#        //alert($(ui.sender).attr('id'))#}
+        {#    },*/#}
+        {##}
+
     </script>
 
 {% endblock %}

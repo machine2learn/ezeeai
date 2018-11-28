@@ -453,7 +453,12 @@ $(document).ready(function () {
                 'test': test,
             }),
             success: function (data) {
-                table_feat_created = create_features_table(data.data, null, dict_wizard);
+                if (data.data.hasOwnProperty('height')) {
+                    table_feat_created = create_image_feature(data.data, dict_wizard);
+                } else {
+                    table_feat_created = create_features_table(data.data, null, dict_wizard);
+                }
+
             }
         })
     });
@@ -551,7 +556,7 @@ $(document).ready(function () {
         }
         $('#modelname').val(model_name);
 
-         let canned_nodes = cy.nodes().filter((node) => (node.data().class_name in corelayers["Canned Models"]));
+        let canned_nodes = cy.nodes().filter((node) => (node.data().class_name in corelayers["Canned Models"]));
         $('#mode').val(canned_nodes.length);
     });
 

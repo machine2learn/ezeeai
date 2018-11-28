@@ -9,6 +9,8 @@ from data.image import find_image_files_folder_per_class, find_image_files_from_
 from utils import upload_util, sys_ops
 from utils.sys_ops import create_split_folders, check_zip_file, unzip, tree_remove, check_numpy_file
 
+option_map = {'option1': '.images1', 'option2': '.images2', 'option3': '.images3'}
+
 
 def get_datasets(app_root, username):
     return [x for x in os.listdir(os.path.join(app_root, 'user_data', username, 'datasets')) if x[0] != '.']
@@ -84,6 +86,8 @@ def new_config(train_form_file, test_form_file, APP_ROOT, username):
     dataset_name, path = check_dataset_path(APP_ROOT, username, dataset_name)
     sys_ops.save_filename(path, train_form_file, dataset_name)
 
+    open(os.path.join(path, '.tabular'), 'w')
+
     if not isinstance(test_form_file, str):
         ext = test_form_file.filename.split('.')[-1]
         test_file = test_form_file.filename.split('.' + ext)[0]
@@ -111,9 +115,11 @@ def new_image_dataset(app_root, username, option, file):
     filename = secure_filename(file.filename)
     path_file = os.path.join(dataset_path, filename)
     file.save(path_file)
+    open(os.path.join(dataset_path, option_map[option]), 'w')
 
-    if option == 'option3':
-        return check_numpy_file(path_file)  # TODO check numpy data is correct
+    if option == 'option3' and not check_numpy_file(path_file):
+        tree_remove(dataset_path)
+        return False
 
     if not check_zip_file(path_file):
         tree_remove(dataset_path)

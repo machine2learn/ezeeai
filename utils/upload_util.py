@@ -1,5 +1,6 @@
 import os
 from data.tabular import Tabular
+from data.image import Image
 
 
 def get_text(file_name):
@@ -18,17 +19,21 @@ def get_examples():
 
 
 def new_config(dataset_name, username, sess, app_root):
-    path = os.path.join(app_root, 'user_data', username, 'datasets', dataset_name, dataset_name + '.csv')
+    dataset_path = os.path.join(app_root, 'user_data', username, 'datasets', dataset_name)
+    files = [f for f in os.listdir(dataset_path) if f.startswith('.')]
 
-    # Create Tabular dataset
-    dataset = Tabular(dataset_name, path)  # TODO who have to create dataset
+    if files[0].startswith('.tabular'):
+        # Create Tabular dataset
+        dataset = Tabular(dataset_name, os.path.join(dataset_path, dataset_name + '.csv'))
+        path_test = os.path.join(app_root, 'user_data', username, 'datasets', dataset_name, 'test')
+        test_files = [os.path.join(path_test, f) for f in os.listdir(path_test) if
+                      os.path.isfile(os.path.join(path_test, f))]
+        dataset.set_test_file(test_files)
+    else:
+        mode = int(files[0][-1])
+        dataset = Image(dataset_path, mode, dataset_name)
 
-    # Check test files
-    path_test = os.path.join(app_root, 'user_data', username, 'datasets', dataset_name, 'test')
-    test_files = [os.path.join(path_test, f) for f in os.listdir(path_test) if os.path.isfile(os.path.join(path_test, f))]
-    dataset.set_test_file(test_files)
-
-    sess.create_helper(dataset)
+    sess.create_helper(dataset) #TODO mode
     return True
 
 

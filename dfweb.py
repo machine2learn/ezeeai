@@ -115,17 +115,13 @@ def upload():
             if not form.new_tabular_files.data['train_file'] == '':
                 config_ops.new_config(form.new_tabular_files.data['train_file'],
                                       form.new_tabular_files.data['test_file'], APP_ROOT, username)
-            return 'Ok'
         elif request.form['selected'] == 'images':
             option_selected = form.selector.data['selector']
             file = form[option_selected].data['file']
             if not config_ops.new_image_dataset(APP_ROOT, username, option_selected, file):
                 return 'Error'
-            return 'Ok'
+        return 'Ok'
 
-        # else:
-        # dataset_name = form.generate_dataset.data['dataset_name']
-        # config_ops.check_generated(dataset_name, APP_ROOT, username)
     examples = upload_util.get_examples()
     return render_template('upload.html', title='Data upload', form=form, page=0, examples=examples, user=username,
                            user_configs=config_ops.get_datasets(APP_ROOT, username), token=session['token'])

@@ -259,7 +259,6 @@ class Image(Helper):
     def extract_dataset(option, file_path):
         data_dir = ''
         info_file = ''
-
         if option == 'option1':
             try:
                 find_image_files_folder_per_class(data_dir)
@@ -270,15 +269,58 @@ class Image(Helper):
                 find_image_files_from_file(data_dir, info_file)
             except AssertionError:
                 return False
-
         elif option == 'option3':
             pass
         return True
 
+    def get_num_outputs(self):
+        pass
 
-# import zipfile
-#
-# with open('/Users/aracelicanadas/Desktop/gui-tf3/gui-tf3/user_data/test/datasets/DORN-master/DORN-master.zip',
-#           'rb') as f:
-#     zf = zipfile.ZipFile(f)
-#     zf.extractall('/Users/aracelicanadas/Desktop/gui-tf3/gui-tf3/user_data/test/datasets')
+    def get_input_shape(self):
+        pass
+
+    def get_dataset_params(self):
+        pass
+
+    def get_dataset_name(self):
+        pass
+
+    def get_data(self):
+        sample = self._dataset.get_sample()
+        return {'height': sample.shape[0], 'width': sample.shape[1]}
+
+    def get_targets(self):
+        pass
+
+    def get_target_labels(self):
+        pass
+
+    def get_train_size(self):
+        pass
+
+    def set_split(self, split):
+        self._dataset.set_split(split)
+
+    def process_features_request(self, request):
+        pass
+
+    def process_targets_request(self, request):
+        pass
+
+    def get_default_data_example(self):
+        pass
+
+    def get_new_features(self, form, default_features=False):
+        pass
+
+    def process_explain_request(self, request):
+        pass
+
+    def generate_rest_call(self, pred):
+        pass
+
+    def process_test_predict(self, df, final_pred, test_filename):
+        pass
+
+    def test_request(self, request):
+        pass

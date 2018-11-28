@@ -221,7 +221,6 @@ function progressHandler(event) {
 }
 
 function completeHandler(event) {
-
     unfreeeze_view()
 }
 

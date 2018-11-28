@@ -1,42 +1,10 @@
 import tensorflow as tf
 import os
 import pandas as pd
-
-
-class Image:
-    def __init__(self, name, file):
-        pass
-        # self._name = None
-        # self._file = None
-        #
-        # self._train_file = None
-        # self._validation_file = None
-        # self._test_file = None
-        #
-        # self._df = None
-        #
-        # self._normalize = False
-        #
-        # self._fs = None
-        # self._defaults = None
-        # self._converted_defaults = None
-        # self._keyed_defaults = None
-        # self._categories = None  # session -> category_list
-        # self._column_categories = None
-        # self._summary = None  # session -> data
-        # self._targets = None
-        #
-        # self._all_feature_columns = None  # session -> all_features
-        # self._feature_columns = None  # session -> features
-        # self._feature_names = None
-        #
-        # self._train_size = None
-        # self._split = None
-        #
-        # self.set_file(file)
-        # self.set_name(name)
-        # self.load_features()
-        # self._base_path = self._file.replace(self._name + '.csv', '')
+import numpy as np
+import cv2
+from utils import args
+from sklearn.model_selection import train_test_split
 
 
 def _is_png(filename):
@@ -88,8 +56,8 @@ def find_image_files_folder_per_class(data_dir):
             i += 1
 
     assert (len(filenames) > 1 and len(set(labels)) > 1)
-    dataset = dataset_from_files(filenames, labels)
-    return dataset, class_names
+    # dataset = dataset_from_files(filenames, labels)
+    return filenames, labels
 
 
 def find_image_files_from_file(data_dir, info_file):
@@ -104,5 +72,82 @@ def find_image_files_from_file(data_dir, info_file):
     labels = [class_names.index(l) for l in labels]
 
     assert (len(filenames) > 1 and len(set(labels)) > 1)
-    dataset = dataset_from_files(filenames, labels)
-    return dataset, class_names
+    # dataset = dataset_from_files(filenames, labels)
+    return filenames, labels
+
+
+def read_numpy_array(path_file):
+    data = np.load(path_file)
+    x, y = data['x'], data['y']
+    return x, y
+
+
+class Image:
+    def __init__(self, dataset_path, mode, name):
+        self._name = name
+        self._dataset_path = dataset_path
+        self._mode = mode
+        self._images = None
+        self._labels = None
+
+        self._train_size = None
+        self._split = None
+
+        self._read_data()
+        self._train_images = self._val_images = self._test_images = self._train_labels = self._val_labels = self._test_labels = None
+
+    def set_name(self, name):
+        args.assert_type(str, name)
+        self._name = name
+
+    def get_name(self):
+        return self._name
+
+    def get_mode(self):
+        return self._mode
+
+    def get_dataset_path(self):
+        return self._dataset_path
+
+    def get_split(self):
+        return self._split
+
+    def set_split(self, split):
+        args.assert_type(str, split)
+        self._split = split
+
+    def _read_data(self):
+        if self.get_mode() == 1:
+            self._images, self._labels = find_image_files_folder_per_class(self.get_dataset_path())
+        elif self.get_mode() == 2:
+            info_file = [f for f in os.listdir(self.get_dataset_path()) if f.startswith('labels.')]
+            self._images, self._labels = find_image_files_from_file(self.get_dataset_path(),
+                                                                    os.path.join(self.get_dataset_path(), info_file[0]))
+        elif self.get_mode() == 3:
+            npz_file = [f for f in os.listdir(self.get_dataset_path()) if f.endswith('.npz')]
+            self._images, self._labels = read_numpy_array(os.path.join(self.get_dataset_path(), npz_file[0]))
+
+    def split_dataset(self, percent=None):
+        percent = percent or self.get_split()
+        self.set_split(percent)
+
+        percent = percent.split(',')
+        percent = (int(percent[0]), int(percent[1]), int(percent[2]))
+        # TODO split filename list or numpy array
+
+        # stratify = None
+        val_frac = percent[1] / 100
+
+        self._train_images, self._val_images, self._train_labels, self._val_labels = train_test_split(
+            self._images, self._labels, test_size=val_frac, stratify=self._labels, random_state=42)
+
+        if percent[2] != 0:
+            test_size = int(round((percent[2] / 100) * len(self._images)))
+            self._train_images, self._test_images, self._train_labels, self._test_labels = train_test_split(
+                self._train_images, self._train_labels, test_size=test_size, stratify=self._train_labels,
+                random_state=42)
+
+    def get_sample(self):
+        if self.get_mode() == 3:
+            return self._images[0]
+        return cv2.imread(self._images[0])

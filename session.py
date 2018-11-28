@@ -1,12 +1,13 @@
 from config.config_writer import ConfigWriter
 from config import config_reader
 from flask import session, redirect, url_for
-from helper import Tabular
+from helper import Tabular, Image
 
 import dill as pickle
 import os
 import pandas as pd
-import data
+from data.tabular import Tabular as DataTabular
+from data.image import Image as DataImage
 
 SAMPLE_DATA_SIZE = 5
 
@@ -27,7 +28,10 @@ class Session:
         self._helper = helper
 
     def create_helper(self, dataset):
-        helper = Tabular(dataset)
+        if isinstance(dataset, DataTabular):
+            helper = Tabular(dataset)
+        if isinstance(dataset, DataImage):
+            helper = Image(dataset)
         self.set_helper(helper)
 
     def add_user(self, user):

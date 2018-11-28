@@ -121,3 +121,14 @@ p {
     color: dimgray;
     font-size: 12px;
 }
+
+pre.prettyprint {
+    border: 1px solid #ccc;
+    margin-bottom: 0;
+    padding: 9.5px;
+    text-align: left;
+}
+
+.ind-p {
+    text-indent: 30px;
+}

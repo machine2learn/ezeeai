@@ -38,9 +38,20 @@ def check_zip_file(path_file):
 
 
 def check_numpy_file(path_file):
-    if not os.path.isfile(path_file) or not path_file.split('.')[-1] == '.npy':
+    try:
+        data = np.load(path_file)
+        # assert isinstance(data, (list, tuple, np.ndarray)) and len(data) == 2
+        x, y = data['x'], data['y']
+
+        assert len(x.shape) == 3 or len(x.shape) == 4
+        assert len(y.shape) == 1 or len(y.shape) == 2
+
+        assert x.shape[0] == y.shape[0]
+
+        return True
+
+    except:
         return False
-    return True
 
 
 def unzip(path_to_zip_file, directory_to_extract_to):
@@ -52,7 +63,6 @@ def unzip(path_to_zip_file, directory_to_extract_to):
     filtered_dir = dirs.copy()
     for d in dirs:
         if d.startswith('__'):
-
             tree_remove(os.path.join(directory_to_extract_to, d))
             del filtered_dir[filtered_dir.index(d)]
 

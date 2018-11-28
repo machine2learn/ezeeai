@@ -26,10 +26,15 @@
             {% endfor -%}
         {% endif %}
     {% endwith %}
+
+
+
     <div class="bs-callout bs-callout-pprimary" align="center">
         <div align="center" class="container" id="upload_title">
             <th1><i class="fas fa-database"></i> Data Upload</th1>
             <br><br>
+
+
             <form action="/upload" id="upload_form" method="post" enctype="multipart/form-data">
                 {{ form.csrf_token }}
                 <div class="row">
@@ -59,12 +64,38 @@
                             <div class="bhoechie-tab-content img-select">
                                 {{ render_gener_field(form.selector) }}
                                 <div id="option1">
+                                    <label> Format:</label>
+                                    <pre class="prettyprint">
+my-images/
+├── cat/
+│   ├── 1.jpg
+│   └── 2.jpg
+└── dog/
+    ├── 1.jpg
+    └── 2.jpg </pre>
                                     {{ render_option_field(form.option1) }}
                                 </div>
                                 <div id="option2" class="hidden">
+                                    <label> Format:</label>
+                                    <pre class="prettyprint">
+my-images/
+├── 1.jpg
+├── 2.jpg
+├── 3.jpg
+└── labels.txt
+
+or
+
+my-images/
+├── images/
+│   ├── 1.jpg
+│   └── 2.jpg
+└── labels.txt</pre>
                                     {{ render_option_field(form.option2) }}
                                 </div>
                                 <div id="option3" class="hidden">
+                                <pre class="prettyprint">
+Save your data with np.savez(filename, x=images, y=labels)                   </pre>
                                     {{ render_option_field(form.option3) }}
                                 </div>
                             </div>
@@ -99,6 +130,8 @@
             </form>
         </div>
     </div>
+
+
 {% endblock %}
 
 
@@ -109,6 +142,7 @@
     <script type="text/javascript" src="https://cdn.datatables.net/select/1.2.7/js/dataTables.select.min.js"></script>
     <script type="text/javascript"
             src="https://cdn.datatables.net/fixedheader/3.1.5/js/dataTables.fixedHeader.min.js"></script>
+    <script src="//google-code-prettify.googlecode.com/svn/loader/run_prettify.js"></script>
     <script src="{{ url_for('.static', filename='choose.js') }}"></script>
     <script src="{{ url_for('.static', filename='notify.js') }}"></script>
 

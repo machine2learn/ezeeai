@@ -48,6 +48,69 @@ $(document).ready(function () {
             .appendTo('#form_load');
         return true;
     });
+
+    $('.add').click(function () {
+        $('.all').prop("checked", false);
+        var items = $("#list1 input:checked:not('.all')");
+        var n = items.length;
+        if (n > 0) {
+            items.each(function (idx, item) {
+                var choice = $(item);
+                choice.prop("checked", false);
+                choice.parent().appendTo("#list2");
+            });
+        }
+        else {
+            alert("Choose an item from list 1");
+        }
+    });
+
+    $('.remove').click(function () {
+        $('.all').prop("checked", false);
+        var items = $("#list2 input:checked:not('.all')");
+        items.each(function (idx, item) {
+            var choice = $(item);
+            choice.prop("checked", false);
+            choice.parent().appendTo("#list1");
+        });
+    });
+
+    /* toggle all checkboxes in group */
+    $('.all').click(function (e) {
+        e.stopPropagation();
+        var $this = $(this);
+        if ($this.is(":checked")) {
+            $this.parents('.list-group').find("[type=checkbox]").prop("checked", true);
+        }
+        else {
+            $this.parents('.list-group').find("[type=checkbox]").prop("checked", false);
+            $this.prop("checked", false);
+        }
+    });
+
+    $('[type=checkbox]').click(function (e) {
+        e.stopPropagation();
+    });
+
+    /* toggle checkbox when list group item is clicked */
+    $('.list-group a').click(function (e) {
+
+        e.stopPropagation();
+
+        var $this = $(this).find("[type=checkbox]");
+        if ($this.is(":checked")) {
+            $this.prop("checked", false);
+        }
+        else {
+            $this.prop("checked", true);
+        }
+
+        if ($this.hasClass("all")) {
+            $this.trigger('click');
+        }
+    });
+
+
 });
 
 
@@ -64,6 +127,7 @@ function wizard_next(number, dict_wizard) {
 
 function create_features_table(data, category_list, dict_wizard) {
     wizard_next(3, dict_wizard);
+
     if (table_feat_created) {
         $('#table_features').DataTable().clear().rows.add(get_feature_rows(data, category_list)).draw();
     } else {
@@ -83,6 +147,20 @@ function create_features_table(data, category_list, dict_wizard) {
     }
     return true;
 }
+
+
+function create_image_feature(data, dict_wizard) {
+    if (table_feat_created) {
+        $('#table_features').DataTable().clear();
+        $('#tabular_features').addClass('hidden');
+    }
+    wizard_next(3, dict_wizard);
+    $('#image_features').removeClass('hidden');
+    $('#height').val(data.height);
+    $('#width').val(data.width);
+    return true;
+}
+
 
 function update_split(values) {
     $(".js-range-slider-1").data()['ionRangeSlider'].update({from: values[0]});

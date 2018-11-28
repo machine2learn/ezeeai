@@ -33,7 +33,7 @@ class NumpyFileInputWithAccept:
     def __call__(self, field, **kwargs):
         kwargs.setdefault('id', field.id)
         return HTMLString(
-            '<input %s>' % html_params(label=field.label, name=field.name, type='file', accept='.npy,.npz', **kwargs))
+            '<input %s>' % html_params(label=field.label, name=field.name, type='file', accept='.npz', **kwargs))
 
 
 class NumpyFileFieldWithAccept(StringField):
