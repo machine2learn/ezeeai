@@ -9,6 +9,18 @@ import os
 import pandas as pd
 import dill as pickle
 
+import base64
+import numpy as np
+
+
+def encode_image(path):
+    if isinstance(path, np.ndarray):
+        return base64.b64encode(path).decode()
+
+    with open(path, "rb") as image_file:
+        encoded_string = base64.b64encode(image_file.read())
+    return encoded_string.decode()
+
 
 class Helper(metaclass=ABCMeta):
     def __init__(self, dataset):
@@ -165,12 +177,11 @@ class Tabular(Helper):
             'features': sfeatures,
             'types': run_utils.get_html_types(dict_types),
             'categoricals': categoricals,
-            'explain_disabled': explain_disabled,
             'targets': self._dataset.get_targets(),
             'has_test': self._dataset.get_test_file() is not None
         }
 
-        return result
+        return result, explain_disabled
 
     def get_new_features(self, form, default_features=False):
         return self._dataset.get_new_features(form) if not default_features else self._dataset.get_defaults()
@@ -274,41 +285,81 @@ class Image(Helper):
         return True
 
     def get_num_outputs(self):
-        pass
+        return self._dataset.get_num_outputs()
 
     def get_input_shape(self):
         pass
 
     def get_dataset_params(self):
-        pass
+        return self._dataset.get_params()
 
     def get_dataset_name(self):
-        pass
+        return self._dataset.get_name()
 
     def get_data(self):
         sample = self._dataset.get_sample()
         return {'height': sample.shape[0], 'width': sample.shape[1]}
 
     def get_targets(self):
-        pass
+        return self._dataset.get_targets()
 
     def get_target_labels(self):
         pass
 
     def get_train_size(self):
-        pass
+        return self._dataset.get_train_size()
 
     def set_split(self, split):
         self._dataset.set_split(split)
 
+    def get_mode(self):
+        if self._dataset.get_class_names():
+            return 'classification'
+        return 'regression'
+
     def process_features_request(self, request):
-        pass
+        augmentation_options = request.get_json()['augmentation_options']
+        features_params = request.get_json()['augmentation_params']
+
+        # TODO augmentation
+        self._dataset.set_normalization_method(features_params['normalization'])
+        self._dataset.set_image_size(features_params['height'], features_params['width'])
+        data = {}
+        class_names = self._dataset.get_class_names()
+        labels = self._dataset.get_labels() if isinstance(self._dataset.get_labels(),
+                                                          list) else self._dataset.get_labels().tolist()
+        for c in class_names:
+            data[c] = {}
+            im_path = self._dataset._images[labels.index(c)]
+            data[c]['img'] = encode_image(im_path)
+            if self._dataset.get_mode() != 3:
+                data[c]['extension'] = im_path.split('.')[-1]
+
+        h, w, c = self._dataset.get_sample().shape
+        data['input_shape'] = '[' + features_params['height'] + ',' + features_params['width'] + ',' + str(c) + ']'
+        data['num_outputs'] = self._dataset.get_num_outputs()
+
+        self._dataset.split_dataset(self._dataset.get_split())
+        del features_params['normalization']
+        del features_params['height']
+        del features_params['width']
+        self._dataset.set_augmentation_params(features_params)
+        self._dataset.set_augmentation_options(augmentation_options)
+        return data
 
     def process_targets_request(self, request):
         pass
 
     def get_default_data_example(self):
-        pass
+        # TODO
+        example = np.random.choice(self._dataset._images)
+        result = {
+            'targets': self.get_targets(),
+            'has_test': self._dataset._test_images is not None,
+            'image': encode_image(example),
+            'extension': example.split('.')[-1] if self._dataset.get_mode() != 3 else None
+        }
+        return result, False
 
     def get_new_features(self, form, default_features=False):
         pass
@@ -324,3 +375,6 @@ class Image(Helper):
 
     def test_request(self, request):
         pass
+
+    def write_dataset(self, data_path):
+        pickle.dump(self._dataset, open(data_path, 'wb'))

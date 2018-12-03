@@ -16,6 +16,16 @@ def get_datasets(app_root, username):
     return [x for x in os.listdir(os.path.join(app_root, 'user_data', username, 'datasets')) if x[0] != '.']
 
 
+def get_datasets_and_types(app_root, username):
+    data_and_type = {}
+    datasets = get_datasets(app_root, username)
+    for dataset in datasets:
+        for entry in os.scandir(os.path.join(app_root, 'user_data', username, 'datasets', dataset)):
+            if entry.is_file() and entry.name[0] == '.':
+                data_and_type[dataset] = entry.name[1:]
+    return data_and_type
+
+
 def generate_config_name(app_root, username, dataset_name):
     user_configs = []
     if os.path.isdir(os.path.join(app_root, 'user_data', username, 'datasets', dataset_name)):

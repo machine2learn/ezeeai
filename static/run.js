@@ -1,7 +1,9 @@
 $(document).ready(function () {
+
     let handle_key = appConfig.handle_key;
     let hh = appConfig.hh;
-    let targets = appConfig.targets;
+    let targets = appConfig.handle_key.targets;
+
     let check_table = $('#checkp_table').DataTable({
         data: get_rows(appConfig.handle_key.checkpoints),
         columns: [{title: 'Model'}, {title: appConfig.metric}, {title: 'Loss'}, {
@@ -21,19 +23,33 @@ $(document).ready(function () {
             en_disable_objs(true)
         });
 
-    //create_test_features_values
-    $.each(handle_key.features, function (key, value) {
-        add_input_number(handle_key.types[key], key, value, 0.001);
-    });
-    $.each(handle_key.categoricals, function (key, value) {
-        add_input_select(key, handle_key.categoricals[key], appConfig.handle_key.features[key]);
-    });
+    // create_test_features_values
+    var $feature_div = $('.pre-scrollable')[1];
+    if (handle_key.hasOwnProperty('image')) {
+        $feature_div.append('Example image');
+        // var im = new Image();
+        // im.src = 'data:image/' + appConfig.handle_key.extension + ';base64,' + appConfig.handle_key.image;
+        // im.id = 'image_uploaded';
+        // $feature_div.append(im);
+        let result = 'data:image/' + appConfig.handle_key.extension + ';base64,' + appConfig.handle_key.image;
+        $('.inputDnD').css('background-image', 'url("' + result + '")');
+
+
+    } else {
+        $feature_div.append('Add new feature values ');
+        $.each(handle_key.features, function (key, value) {
+            add_input_number(handle_key.types[key], key, value, 0.001);
+        });
+        $.each(handle_key.categoricals, function (key, value) {
+            add_input_select(key, handle_key.categoricals[key], appConfig.handle_key.features[key]);
+        });
+    }
 
     show_error_has_hash(hh);
     let explain_select_target = add_select("exp_target", targets);
     $('#exp_label').append(explain_select_target);
 
-    if (!appConfig.has_test) {
+    if (!appConfig.handle_key.has_test) {
         document.getElementById("opt3").className = "hidden";
     }
 
@@ -188,9 +204,39 @@ function show_error_has_hash(hh) {
 function submitDeployForm() {
     var checkp_table = $('#checkp_table').DataTable();
     var n_ckpt = checkp_table.data().rows()[0].length;
-    if (n_ckpt > 0){
-         $('form#deploy').submit();
-         return
+    if (n_ckpt > 0) {
+        $('form#deploy').submit();
+        return
     }
     alert('Please train the model before deployment.')
 };
+
+function readUrl(input) {
+    if (input.files && input.files[0]) {
+        let reader = new FileReader();
+        reader.onload = (e) => {
+            let imgData = e.target.result;
+            let imgName = input.files[0].name;
+            input.setAttribute("data-title", imgName);
+            console.log(e.target.result);
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+    // var preview = document.querySelector('#image_uploaded');
+    var file = document.querySelector('input[type=file]').files[0];
+    var reader = new FileReader();
+
+    reader.onloadend = function () {
+        // preview.src = reader.result;
+         $('.inputDnD').css('background-image', 'url("' + reader.result + '")');
+
+    };
+
+    if (file) {
+        reader.readAsDataURL(file);
+    } else {
+        // preview.src = "";
+         $('.inputDnD').css('background-image:""');
+
+    }
+}

@@ -3,7 +3,7 @@ var cy;
 var table_feat_created = false;
 var table_target_created = false;
 var inputs_layers = {};
-
+var mode;
 document.addEventListener('DOMContentLoaded', function () {
     $('#inp').val(appConfig.m_name);
     $('#submit').prop('disabled', true);
@@ -128,9 +128,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 $('#datasets_availables').val(inputs_layers[name].dataset);
                 update_split(inputs_layers[name].split.split(','));
                 wizard_next(2, dict_wizard);
-                table_feat_created = create_features_table(inputs_layers[name]['df'], inputs_layers[name]['category_list'], dict_wizard);
-                table_target_created = create_target_table(inputs_layers[name]['df'], inputs_layers[name]['category_list'], inputs_layers[name]['targets'], dict_wizard)
-                $('#normalize').prop('checked', inputs_layers[name]['normalize']);
+                if (inputs_layers[name].hasOwnProperty('df')) {
+                    table_feat_created = create_features_table(inputs_layers[name]['df'], inputs_layers[name]['category_list'], dict_wizard);
+                    table_target_created = create_target_table(inputs_layers[name]['df'], inputs_layers[name]['category_list'], inputs_layers[name]['targets'], dict_wizard);
+                    $('#normalize').prop('checked', inputs_layers[name]['normalize']);
+                } else {
+                    restore_features_images(inputs_layers[name]['augmentation_options'], inputs_layers[name]['augmentation_params']);
+                    create_images_targets(inputs_layers[name]['image_data']);
+                }
             }
         }
     });
@@ -228,8 +233,6 @@ document.addEventListener('DOMContentLoaded', function () {
             let root = Object.keys(corelayers).find(key => id_checked in corelayers[key]);
             Object.keys(corelayers).forEach(function (key) {
                 let content = $.extend(true, {}, corelayers[key][id_checked]);
-
-
                 if (id_checked in corelayers[key]) {
                     if (id_checked === 'InputLayer' && 'input_shape' in content) {
                         content['input_shape']['value'] = appConfig.input_shape;
@@ -394,21 +397,28 @@ $(document).ready(function () {
         $('#datasets_availables').val(appConfig.parameters[appConfig.m_name].dataset);
         update_split(appConfig.dataset_params.split.split(','));
         wizard_next(2, dict_wizard);
-        table_feat_created = create_features_table(appConfig.data_df, appConfig.dataset_params.category_list, dict_wizard);
-        table_target_created = create_target_table(appConfig.data_df, appConfig.dataset_params.category_list, appConfig.dataset_params.targets, dict_wizard)
-        $('#normalize').prop('checked', appConfig.dataset_params.normalize);
 
-        let input_nodes = cy.nodes().filter((node) => 'name' in node.data()).roots();
-        input_nodes.forEach(node => {
-            inputs_layers[node.data('name')] = {
-                'dataset': appConfig.parameters[appConfig.m_name].dataset,
-                'split': appConfig.dataset_params.split,
-                'df': appConfig.data_df,
-                'category_list': appConfig.dataset_params.category_list,
-                'normalize': appConfig.dataset_params.normalize,
-                'targets': appConfig.dataset_params.targets
-            };
-        });
+        if ( 'category_list' in appConfig.dataset_params) {
+            table_feat_created = create_features_table(appConfig.data_df, appConfig.dataset_params.category_list, dict_wizard);
+            table_target_created = create_target_table(appConfig.data_df, appConfig.dataset_params.category_list, appConfig.dataset_params.targets, dict_wizard);
+            $('#normalize').prop('checked', appConfig.dataset_params.normalize);
+
+            let input_nodes = cy.nodes().filter((node) => 'name' in node.data()).roots();
+            input_nodes.forEach(node => {
+                inputs_layers[node.data('name')] = {
+                    'dataset': appConfig.parameters[appConfig.m_name].dataset,
+                    'split': appConfig.dataset_params.split,
+                    'df': appConfig.data_df,
+                    'category_list': appConfig.dataset_params.category_list,
+                    'normalize': appConfig.dataset_params.normalize,
+                    'targets': appConfig.dataset_params.targets
+                };
+            });
+        }else{
+        //    TODO
+
+        }
+
     }
     $('#select_continue').click(function (e) {
         let dataset = $('#datasets_availables').find("option:selected").text();
@@ -454,16 +464,26 @@ $(document).ready(function () {
             }),
             success: function (data) {
                 if (data.data.hasOwnProperty('height')) {
-                    table_feat_created = create_image_feature(data.data, dict_wizard);
+                    create_image_feature(data.data, dict_wizard);
+                    mode = 'image'
                 } else {
                     table_feat_created = create_features_table(data.data, null, dict_wizard);
+                    mode = 'tabular'
                 }
-
             }
         })
     });
 
     $('#featuresContinue').click(function (e) {
+        if (mode === 'tabular')
+            tabular_features_continue();
+        else
+            image_features_continue();
+    });
+
+    function tabular_features_continue() {
+        $('#image_target').addClass('hidden');
+        $('#tabular_target').removeClass('hidden');
         let table = $('#table_features').DataTable();
         let cat_column = table.column('Category:name').data().map(b => $(b).val());
         let default_features = table.column('Features:name').data();
@@ -490,7 +510,63 @@ $(document).ready(function () {
                 table_target_created = create_target_table(new_data.data, null, null, dict_wizard);
             }
         });
-    });
+    }
+
+    function image_features_continue() {
+        $('#image_target').removeClass('hidden');
+        $('#tabular_target').addClass('hidden');
+        let augmentation_options = [];
+        let params = {
+            'height': $('#height').val(),
+            'width': $('#width').val(),
+            'normalization': $('#normalization').val(),
+        };
+        $.each($('#list2 a'), function (a, b) {
+            if (b.id !== "")
+                augmentation_options.push(b.id);
+        });
+        $('#list2 input[type="number"]').each(function () {
+            let id_input = $(this)[0].id;
+            params[id_input] = $('#' + id_input).val();
+        });
+        $('#list2 input:checkbox, #list2 input[type="radio"]').each(function () {
+            let id_input = $(this)[0].id;
+            if (id_input !== '')
+                params[id_input] = $('#' + id_input).is(":checked");
+        });
+
+        $.ajax({
+            url: "/gui_features",
+            type: 'POST',
+            dataType: 'json',
+            contentType: 'application/json;charset=UTF-8',
+            accepts: {
+                json: 'application/json',
+            },
+            data: JSON.stringify({
+                'augmentation_options': augmentation_options,
+                'augmentation_params': params
+            }),
+            success: function (data) {
+                let input_shape = data.data.input_shape;
+                $('#input_shape').val(input_shape);
+                appConfig.num_outputs = data.data['num_outputs'];
+
+                cy.$(':selected').data()['content']['input_shape']['value'] = input_shape;
+                inputs_layers[cy.$(':selected').data().name] = {
+                    'dataset': appConfig.dataset,
+                    'split': appConfig.dataset_params.split,
+                    'augmentation_options': augmentation_options,
+                    'augmentation_params': params,
+                    'image_data': data.data,
+                };
+                delete data.data['input_shape'];
+                delete data.data['num_outputs'];
+                create_images_targets(data.data);
+            }
+        });
+    }
+
 
     $('#table_features').on('change', '.selfeat', function () {
         let td = $(this).parent('td');
@@ -502,6 +578,10 @@ $(document).ready(function () {
     });
 
     $('#targetContinue').click(function (e) {
+        if ($('#tabular_target').hasClass('hidden')) {
+            close_modal();
+            return true;
+        }
         var targets = [];
         $('#table_targets').DataTable().rows({selected: true}).every(function () {
             targets.push(this.data()[0]);
@@ -534,7 +614,7 @@ $(document).ready(function () {
                             'normalize': appConfig.dataset_params.normalize,
                             'targets': appConfig.dataset_params.targets
                         };
-                        clear_input_modal(dict_wizard);
+
                         close_modal();
                     } else
                         alert(data.error);

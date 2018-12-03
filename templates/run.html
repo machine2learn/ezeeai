@@ -123,8 +123,21 @@
                                 </div>
                                 <br>
                                 <div id="feature-div">
-                                    Add new feature values
-                                    <br> <br>
+                                    <div class="container" id="image_upload">
+{#                                        <div class="row m-b-1">#}
+{#                                            <div class="col-sm-6 offset-sm-3">#}
+                                                <div class="form-group inputDnD">
+                                                    <label class="sr-only" for="inputFile">File Upload</label>
+                                                    <input type="file"
+                                                           class="form-control-file text-primary font-weight-bold"
+                                                           id="inputFile"
+                                                           accept="image/*" onchange="readUrl(this)"
+                                                           data-title="Drag and drop a file">
+                                                </div>
+{#                                            </div>#}
+{#                                        </div>#}
+                                    </div>
+
                                     <div class="pre-scrollable">
                                         <table id="table_features" align="center">
                                         </table>
@@ -221,6 +234,9 @@
                class="btn btn-primary btn-next" value="Next"/>
     </form>
 
+
+
+
 {% endblock %}
 
 {% block scripts %}
@@ -231,17 +247,13 @@
     <script type=text/javascript>
         $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
         var handle_key = {};
-        handle_key.features = {{ features | tojson | safe }};
-        handle_key.types = {{ types | tojson | safe }};
-        handle_key.categoricals = {{ categoricals | tojson | safe }};
+        handle_key = {{ params | tojson | safe }};
         handle_key.checkpoints = {{ checkpoints | tojson | safe }};
         window.appConfig = {
             handle_key: handle_key,
-            hh: {{explain_disabled | tojson | safe}},
+            hh: {{ hh | tojson | safe}},
             running: {{ running | tojson | safe}},
-            targets: {{ targets | tojson | safe }},
             metric: {{ metric | tojson | safe }},
-            has_test: {{ has_test | tojson | safe }}
         }
     </script>
     <script type="text/javascript" src="{{ url_for('.static', filename='run.js') }}"></script>

@@ -34,7 +34,7 @@ class DataSetGeneratorTransformer(Transformer):
             1], f"Value dimension do not agree with variable dimension {names} have " \
                 f"{len(names)} whereas values {values.shape[-1]}"
         new_columns = dict(zip(names, values.T))
-        new_columns = { k: v.reshape((-1, 1)) for k, v in new_columns.items()}
+        new_columns = {k: v.reshape((-1, 1)) for k, v in new_columns.items()}
         self.columns.update(new_columns)
 
     @v_args(inline=True)
@@ -118,6 +118,7 @@ class DataSetGeneratorTransformer(Transformer):
     def combine(self, left, right):
         def left_or_right(l, r):
             return l if l != 'not_assigned' and r == 'not_assigned' else r
+
         left = left.reshape(-1, )
         right = right.reshape(-1, )
 
@@ -137,7 +138,8 @@ class DataSetGeneratorTransformer(Transformer):
 
     @v_args(inline=True)
     def bool_compound(self, array, default_value):
-        array = array.reshape(-1,)
+        array = array.reshape(-1, )
+
         def f(x):
             return default_value if x == 'not_assigned' else x
 
@@ -254,6 +256,7 @@ def parse(script, path, datsetname):
     transformer.transform(rg_tree)
     mkdir_recursive(path)
     transformer.df.to_csv(os.path.join(path, datsetname + '.csv'), index=False)
+    open(os.path.join(path, '.tabular'), 'w')
     return True
 
 

@@ -44,17 +44,17 @@
 
     </div>
     <br>
+    <div id="form">
+        <form action="/save_model" id="submitform" method="post" align="right">
+            <input class="hidden" id="modelname" name="modelname">
+            <input class="hidden" id="mode" name="mode">
+            <button type="button" id="validate_model" class="btn btn-primary">
+                <i class="fas fa-check fa-sm" id="i_validate_model"></i> Validate
+            </button>
+            <button type="submit" formmethod="get" id="submit" class="btn btn-primary">Next</button>
+        </form>
 
-    <form action="/save_model" id="submitform" method="post" align="right">
-        <input class="hidden" id="modelname" name="modelname">
-        <input class="hidden" id="mode" name="mode">
-        <button type="button" id="validate_model" class="btn btn-primary">
-            <i class="fas fa-check fa-sm" id="i_validate_model"></i> Validate
-        </button>
-        <button type="submit" formmethod="get" id="submit" class="btn btn-primary hidden">Next</button>
-    </form>
-
-
+    </div>
 
     <!-- Modal INPUT -->
 
@@ -162,21 +162,113 @@
                                     </div>
                                 </div>
                                 <br>
+                                <!-- 3.1 DATA AUGMENTATION-->
                                 <div class="row">
                                     <div class="col-md-12"><h4>Data Augmentation</h4></div>
                                     <div class="col-sm-3">
                                         <div class="list-group" id="list1">
                                             <a class="list-group-item active">Options
                                                 <input title="toggle all" type="checkbox" class="all pull-right"></a>
-                                            <a class="list-group-item">Flip<input type="checkbox"
-                                                                                  class="pull-right"></a>
 
-                                            <a class="list-group-item">Rotation<input type="checkbox"
-                                                                                      class="pull-right"></a>
-                                            <a class="list-group-item">Crop <input type="checkbox"
-                                                                                   class="pull-right"></a>
-                                            <a class="list-group-item">Color Saturation <input type="checkbox"
-                                                                                               class="pull-right"></a>
+                                            <a class="list-group-item" id="flip"><b>Flip</b>
+                                                <input type="checkbox" class="pull-right">
+                                                <br>
+                                                <hr class="collapse-aug collapse-flip">
+                                                <label class="collapse-aug collapse-flip"> Horizontal Flip </label>
+                                                <input id="horizontal_flip" type="checkbox"
+                                                       class="collapse-aug collapse-flip">
+                                                <br class="collapse-aug collapse-flip">
+                                                <label class="collapse-aug collapse-flip"> Vertical Flip </label>
+                                                <input id="vertical_flip" type="checkbox"
+                                                       class="collapse-aug collapse-flip">
+                                            </a>
+
+                                            <a class="list-group-item" id="rotation"><b>Rotation</b>
+                                                <input type="checkbox" class="pull-right">
+                                                <br>
+                                                <hr class="collapse-aug collapse-rotation">
+                                                <label class="collapse-aug collapse-rotation"> Angle : </label>
+                                                <br class="collapse-aug collapse-rotation">
+                                                <label class="collapse-aug collapse-rotation"> From </label>
+                                                <input id="angle_from_rotation" type="number" step="1" min="0" max="360"
+                                                       class="collapse-aug collapse-rotation">
+                                                <label class="collapse-aug collapse-rotation"> To </label>
+                                                <input id="angle_to_rotation" type="number" step="1" min="0" max="360"
+                                                       class="collapse-aug collapse-rotation">
+                                                <br class="collapse-aug collapse-rotation">
+                                                <label class="collapse-aug collapse-rotation"> Interpolation : </label>
+                                                <br class="collapse-aug collapse-rotation">
+                                                <input type="radio" name="interp_rot"
+                                                       id="interpolation_rotation_nearest"
+                                                       class="collapse-aug collapse-rotation"> <label
+                                                        class="collapse-aug collapse-rotation">
+                                                    NEAREST </label>
+                                                <input type="radio" name="interp_rot"
+                                                       id="interpolation_rotation_bilinear"
+                                                       class="collapse-aug collapse-rotation"><label
+                                                        class="collapse-aug collapse-rotation">
+                                                    BILINEAR </label>
+                                            </a>
+
+                                            <a class="list-group-item" id="saturation"><b> Saturation </b>
+                                                <input type="checkbox" class="pull-right">
+                                                <br>
+                                                <hr class="collapse-aug collapse-saturation">
+                                                <label class="collapse-aug collapse-saturation"> From </label>
+                                                <input id="from_saturation" type="number" step="any" min="0"
+                                                       class="collapse-aug collapse-saturation">
+
+                                                <label class="collapse-aug collapse-saturation"> To </label>
+                                                <input id="to_saturation" type="number" step="any" min="0"
+                                                       class="collapse-aug collapse-saturation">
+                                            </a>
+
+                                            <a class="list-group-item" id="contrast"><b> Contrast </b>
+                                                <input type="checkbox" class="pull-right">
+                                                <br>
+                                                <hr class="collapse-aug collapse-contrast">
+                                                <label class="collapse-aug collapse-contrast"> From</label>
+                                                <input id="from_contrast" type="number" step="any" min="0"
+                                                       class="collapse-aug collapse-contrast">
+                                                <label class="collapse-aug collapse-contrast"> To </label>
+                                                <input id="to_contrast" type="number" step="any" min="0"
+                                                       class="collapse-aug collapse-contrast">
+
+                                            </a>
+
+                                            <a class="list-group-item" id="brightness"><b> Brightness </b>
+                                                <input type="checkbox" class="pull-right">
+                                                <br>
+                                                <hr class="collapse-aug collapse-brightness">
+                                                <label class="collapse-aug collapse-brightness"> Max Delta </label>
+                                                <input id="max_delta_brightness" type="number" step="any" min="0"
+                                                       max="1"
+                                                       class="collapse-aug collapse-brightness">
+                                            </a>
+
+
+                                            <a class="list-group-item" id="randomhue"><b> HUE </b>
+                                                <input type="checkbox" class="pull-right">
+                                                <br>
+                                                <hr class="collapse-aug collapse-randomhue">
+                                                <label class="collapse-aug collapse-randomhue"> Max Delta </label>
+                                                <input id="max_delta_randomhue" type="number" step="any" min="0"
+                                                       max="0.5"
+                                                       class="collapse-aug collapse-randomhue">
+                                            </a>
+
+
+                                            <a class="list-group-item" id="quality"><b> Quality </b>
+                                                <input type="checkbox" class="pull-right">
+                                                <br>
+                                                <hr class="collapse-aug collapse-quality">
+                                                <label class="collapse-aug collapse-quality"> From</label>
+                                                <input id="from_quality" type="number" step="any" min="0" max="100"
+                                                       class="collapse-aug collapse-quality">
+                                                <label class="collapse-aug collapse-quality"> To </label>
+                                                <input id="to_quality" type="number" step="any" min="0" max="100"
+                                                       class="collapse-aug collapse-quality">
+                                            </a>
                                         </div>
                                     </div>
                                     <div class="col-md-1 v-center">
@@ -192,6 +284,8 @@
                                                                                               class="all pull-right"></a>
                                         </div>
                                     </div>
+
+
                                 </div>
                             </div>
                             <button class="btn btn-primary" id="featuresContinue">Save and continue</button>
@@ -199,15 +293,36 @@
 
                         <!-- 4 Model Target-->
                         <div class="tab-pane fade" id="targets" role="tabpanel">
-                            <h4 align="center">Select target(s)</h4>
-                            <table id="table_targets" class="display stripe" style="width:50%"></table>
+                            <div id="tabular_target">
+                                <h4 align="center">Select target(s)</h4>
+                                <table id="table_targets" class="display stripe" style="width:50%"></table>
+                            </div>
+
+                            <div id="image_target">
+                                <h4 align="center"> Labels</h4>
+                                <div id="image_row" class="row">
+                                </div>
+                                <div id="image_modal" class="img_modal modal">
+                                    <span class="close_im cursor" onclick="closeModal()">&times;</span>
+                                    <div class="modal-content">
+                                        <div id="slides"></div>
+
+                                        <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+                                        <a class="next" onclick="plusSlides(1)">&#10095;</a>
+
+                                        <div class="caption-container">
+                                            <p id="caption"></p>
+                                        </div>
+                                        <div id="image_demo"></div>
+                                    </div>
+                                </div>
+                            </div>
                             <button class="btn btn-primary btn-block" id="targetContinue">Finish</button>
                         </div>
+
+                        <div class="modal-footer">
+                        </div>
                     </div>
-
-                </div>
-
-                <div class="modal-footer">
                 </div>
             </div>
         </div>
@@ -307,26 +422,6 @@
             dataset_params: dataset_params,
             data_df: data_df
         };
-        document.addEventListener('DOMContentLoaded', function () {
-            var elems = document.querySelectorAll('.collapsible');
-            var instances = M.Collapsible.init(elems, options);
-        });
-
-        // Or with jQuery
-
-        $(document).ready(function () {
-            $('.collapsible').collapsible();
-        });
-
-        {#$(".sortable_list").sortable({#}
-        {#    connectWith: ".connectedSortable",#}
-        {#    /*stop: function(event, ui) {#}
-        {#        var item_sortable_list_id = $(this).attr('id');#}
-        {#        console.log(ui);#}
-        {#        //alert($(ui.sender).attr('id'))#}
-        {#    },*/#}
-        {##}
-
     </script>
 
 {% endblock %}

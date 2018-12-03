@@ -2,16 +2,16 @@ import pandas as pd
 from config import config_reader
 import os
 
+#
+# def get_number_inputs(categories):
+#     return len([categories[i] for i in range(len(categories)) if categories[i] != 'none']) - 1
 
-def get_number_inputs(categories):
-    return len([categories[i] for i in range(len(categories)) if categories[i] != 'none']) - 1
 
-
-def get_number_outputs(targets, data):
-    if len(targets) > 1:
-        return len(targets)
-    target_type = data.Category[targets[0]]
-    return 1 if target_type == 'numerical' else data['#Unique Values'][targets[0]]
+# def get_number_outputs(targets, data):
+#     if len(targets) > 1:
+#         return len(targets)
+#     target_type = data.Category[targets[0]]
+#     return 1 if target_type == 'numerical' else data['#Unique Values'][targets[0]]
 
 
 def get_hidden_layers(INPUT_DIM, OUTUPUT_DIM, num_samples, alpha=2):

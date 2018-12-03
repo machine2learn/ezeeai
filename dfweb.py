@@ -132,8 +132,9 @@ def upload():
 @check_config
 def gui():
     username = session['user']
+
     _, param_configs = config_ops.get_configs_files(APP_ROOT, username)
-    user_dataset = config_ops.get_datasets(APP_ROOT, username)
+    user_dataset = config_ops.get_datasets_and_types(APP_ROOT, username)
 
     if not sess.check_key('config_file'):
         return render_template('gui.html', user=username, token=session['token'], page=1, user_dataset=user_dataset,
@@ -152,7 +153,7 @@ def gui():
 def gui_load():
     username = session['user']
     _, param_configs = config_ops.get_configs_files(APP_ROOT, username)
-    user_dataset = config_ops.get_datasets(APP_ROOT, username)
+    user_dataset = config_ops.get_datasets_and_types(APP_ROOT, username)
 
     model_name = request.form['model']
     sess.set_config_file(sys_ops.get_config_path(APP_ROOT, username, model_name))
@@ -287,10 +288,10 @@ def run():
         th.handle_request(get_action(request), all_params_config, username, get_resume_from(request))
         return jsonify(True)
 
-    params = sess.get_helper().get_default_data_example()
+    params, explain = sess.get_helper().get_default_data_example()
     return render_template('run.html', title="Run", page=3, checkpoints=checkpoints, user=username,
                            token=session['token'], port=th.get_port(username, sess.get_config_file()),
-                           running=sess.get_status(), metric=sess.get_metric(), **params)
+                           running=sess.get_status(), metric=sess.get_metric(), params=params, hh=explain)
 
 
 @app.route('/predict', methods=['POST'])

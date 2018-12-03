@@ -331,7 +331,7 @@ class Tabular:
         self.set_validation_file(validation_file)
 
     def get_params(self):
-        return {'split': self.get_split(), 'targets': self.get_targets(), 'category_list': self.get_column_categories(),
+        return {'name': self.get_name(), 'split': self.get_split(), 'targets': self.get_targets(), 'category_list': self.get_column_categories(),
                 'normalize': self.get_normalize()}
 
     def get_num_outputs(self):

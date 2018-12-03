@@ -92,13 +92,23 @@ def create_output(features, params, mode):
     if params['mode'] == 'custom':
         if hasattr(dataset, 'get_feature_columns'):
             features = tf.feature_column.input_layer(features, dataset.get_feature_columns())
+        if isinstance(features, dict):
+            features = list(features.values())
+            if len(features) == 1:
+                features = features[0]
+
         model = keras_tfjs_loader.load_keras_model(params['model_path'],
                                                    load_weights=False,
                                                    use_unique_name_scope=False)
+
         return run_internal_graph(model, features, mode), label_vocabulary
     if params['mode'] == 'canned_dnn':
         if hasattr(dataset, 'get_feature_columns'):
             features = tf.feature_column.input_layer(features, dataset.get_feature_columns())
+        if isinstance(features, dict):
+            features = list(features.values())
+            if len(features) == 1:
+                features = features[0]
         return dnn(features, params, mode), label_vocabulary
 
     if params['mode'] == 'canned_linear':
