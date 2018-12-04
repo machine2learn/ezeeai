@@ -398,7 +398,7 @@ $(document).ready(function () {
         update_split(appConfig.dataset_params.split.split(','));
         wizard_next(2, dict_wizard);
 
-        if ( 'category_list' in appConfig.dataset_params) {
+        if ('category_list' in appConfig.dataset_params) {
             table_feat_created = create_features_table(appConfig.data_df, appConfig.dataset_params.category_list, dict_wizard);
             table_target_created = create_target_table(appConfig.data_df, appConfig.dataset_params.category_list, appConfig.dataset_params.targets, dict_wizard);
             $('#normalize').prop('checked', appConfig.dataset_params.normalize);
@@ -414,8 +414,8 @@ $(document).ready(function () {
                     'targets': appConfig.dataset_params.targets
                 };
             });
-        }else{
-        //    TODO
+        } else {
+            //    TODO
 
         }
 
@@ -735,8 +735,9 @@ async function tf_load_model(nodes, models, loss_function, cy_json, cy, loss_nod
                     disable_submit_button();
                     return false;
                 }
-                if (!(check_output(model.outputs[0].shape))) {
-                    alert('Output shape is not valid. Should be : ' + appConfig.num_outputs);
+                let check_out = check_output(model.outputs[0].shape);
+                if (!(check_out['val'])) {
+                    alert(check_out['mess']);
                     disable_submit_button();
                     return false;
                 }
@@ -765,11 +766,19 @@ function disable_submit_button() {
 }
 
 function check_output(model_shape) {
-    return (model_shape[model_shape.length - 1] === appConfig.num_outputs);
+    let result = {};
+    if (model_shape.length < 3) {
+        result ['val'] = model_shape[model_shape.length - 1] === appConfig.num_outputs;
+        result['mess'] = 'Output shape is not valid. Should be : ' + appConfig.num_outputs;
+    } else {
+        result ['val'] = false;
+        result['mess'] = 'Output shape should have rank 2';
+    }
+    return result;
 }
 
 function create_popper(cy, node, id, text) {
-    var makeDiv = function (text, id) {
+    let makeDiv = function (text, id) {
         let div = $('<div></div>').attr('id', id)
             .addClass('popper-div')
             .text('(' + text + ')')
@@ -791,10 +800,10 @@ function create_popper(cy, node, id, text) {
 function create_poppers(layers, nodes, cy, loss_node) {
     $("div.popper-div").remove();
     let shapes = layers.map(function (layer) {
-        if ('batchInputShape' in layer)
-            return String(add_ba_size(layer.batchInputShape));
-        if ('kernel' in layer)
-            return String(add_ba_size(layer.kernel.shape));
+        // if ('batchInputShape' in layer)
+        //     return String(add_ba_size(layer.batchInputShape));
+        // if ('kernel' in layer)
+        //     return String(add_ba_size(layer.kernel.shape));
         if ('outputShape' in layer)
             return String(add_ba_size(layer.outputShape));
         return ''

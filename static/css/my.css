@@ -771,7 +771,9 @@ tr:hover td {
     visibility: hidden;
     pointer-events: none;
     transform: translateY(-15px);
+     z-index: 99;
 }
+
 
 .custom-option {
     position: relative;
@@ -1068,7 +1070,7 @@ img {
     cursor: pointer;
     background-color: #c61c23;
     box-shadow: 0 0 5px solid currentColor;
-    font-size: 18px;
+    font-size: 1.48vh;
 
 
 }
@@ -1101,9 +1103,9 @@ img {
 }
 
 .inputDnD {
-    background-repeat: no-repeat;
+    background-repeat: round;
     background-size: 100%;
-    height: 100%;
+    height: 20vh;
     opacity: 0.9;
 }
 input{

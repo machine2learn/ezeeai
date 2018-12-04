@@ -27,13 +27,8 @@ $(document).ready(function () {
     var $feature_div = $('.pre-scrollable')[1];
     if (handle_key.hasOwnProperty('image')) {
         $feature_div.append('Example image');
-        // var im = new Image();
-        // im.src = 'data:image/' + appConfig.handle_key.extension + ';base64,' + appConfig.handle_key.image;
-        // im.id = 'image_uploaded';
-        // $feature_div.append(im);
         let result = 'data:image/' + appConfig.handle_key.extension + ';base64,' + appConfig.handle_key.image;
         $('.inputDnD').css('background-image', 'url("' + result + '")');
-
 
     } else {
         $feature_div.append('Add new feature values ');
@@ -202,14 +197,14 @@ function show_error_has_hash(hh) {
 }
 
 function submitDeployForm() {
-    var checkp_table = $('#checkp_table').DataTable();
-    var n_ckpt = checkp_table.data().rows()[0].length;
+    let checkp_table = $('#checkp_table').DataTable();
+    let n_ckpt = checkp_table.data().rows()[0].length;
     if (n_ckpt > 0) {
         $('form#deploy').submit();
         return
     }
     alert('Please train the model before deployment.')
-};
+}
 
 function readUrl(input) {
     if (input.files && input.files[0]) {
@@ -219,24 +214,20 @@ function readUrl(input) {
             let imgName = input.files[0].name;
             input.setAttribute("data-title", imgName);
             console.log(e.target.result);
-        }
+        };
         reader.readAsDataURL(input.files[0]);
     }
-    // var preview = document.querySelector('#image_uploaded');
     var file = document.querySelector('input[type=file]').files[0];
     var reader = new FileReader();
 
     reader.onloadend = function () {
-        // preview.src = reader.result;
-         $('.inputDnD').css('background-image', 'url("' + reader.result + '")');
-
+        $('.inputDnD').css('background-image', 'url("' + reader.result + '")');
     };
 
-    if (file) {
+    if (file)
         reader.readAsDataURL(file);
-    } else {
-        // preview.src = "";
-         $('.inputDnD').css('background-image:""');
+    else
+        $('.inputDnD').css('background-image:""');
 
-    }
+
 }
