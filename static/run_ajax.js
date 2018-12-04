@@ -34,26 +34,42 @@ $(document).ready(function () {
     }
 
     $("#predict_button").click(function (e) {
-        $.ajax({
-            url: "/predict",
-            type: 'POST',
-            data: serialize_form(),
-            success: function (data) {
-                if ('error' in data) {
-                    alert('Model\'s structure does not match the new parameter configuration');
-                } else {
-                    $('#predict_val').empty();
 
-                    $.each(data, function (key, val) {
-                        $('#predict_val')
-                            .append(key)
-                            .append(' : ')
-                            .append(val)
-                            .append('<br>');
-                    });
+        if ($("#image_upload").hasClass("hidden")) {
+            $.ajax({
+                url: "/predict",
+                type: 'POST',
+                dataType: 'json',
+                data: serialize_form(),
+                success: function (data) {
+                    if ('error' in data) {
+                        alert('Model\'s structure does not match the new parameter configuration');
+                    } else {
+                        $('#predict_val').empty();
+
+                        $.each(data, function (key, val) {
+                            $('#predict_val')
+                                .append(key)
+                                .append(' : ')
+                                .append(val)
+                                .append('<br>');
+                        });
+                    }
                 }
+            })
+        } else {
+
+            var data_form = new FormData($("#predict_form")[0]);
+            if ($('#inputFile').val() ===''){
+                data_form.set('inputFile',  dataURItoBlob('data:image/' + appConfig.handle_key.extension + ';base64,' + appConfig.handle_key.image))
             }
-        })
+            data_form.append('radiob', get_checkpoint_selected());
+            var ajax = new XMLHttpRequest();
+            ajax.open("POST", "/predict");
+            ajax.send(data_form);
+            var response = ajax.response()
+        }
+
     });
 
     function test_success(href, result) {
@@ -194,4 +210,24 @@ function serialize_form() {
 function get_checkpoint_selected() {
     let model = $('#checkp_table').DataTable().rows({selected: true}).data();
     return model[0][0];
+}
+
+function dataURItoBlob(dataURI) {
+   // convert base64/URLEncoded data component to raw binary data held in a string
+   var byteString;
+   if (dataURI.split(',')[0].indexOf('base64') >= 0)
+       byteString = atob(dataURI.split(',')[1]);
+   else
+       byteString = unescape(dataURI.split(',')[1]);
+
+   // separate out the mime component
+   var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+
+   // write the bytes of the string to a typed array
+   var ia = new Uint8Array(byteString.length);
+   for (var i = 0; i < byteString.length; i++) {
+       ia[i] = byteString.charCodeAt(i);
+   }
+
+   return new Blob([ia], {type:mimeString});
 }

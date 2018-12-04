@@ -25,7 +25,9 @@ $(document).ready(function () {
 
     // create_test_features_values
     var $feature_div = $('.pre-scrollable')[1];
+
     if (handle_key.hasOwnProperty('image')) {
+        $('#image_upload').removeClass('hidden');
         $feature_div.append('Example image');
         let result = 'data:image/' + appConfig.handle_key.extension + ';base64,' + appConfig.handle_key.image;
         $('.inputDnD').css('background-image', 'url("' + result + '")');
@@ -213,7 +215,6 @@ function readUrl(input) {
             let imgData = e.target.result;
             let imgName = input.files[0].name;
             input.setAttribute("data-title", imgName);
-            console.log(e.target.result);
         };
         reader.readAsDataURL(input.files[0]);
     }
@@ -227,7 +228,7 @@ function readUrl(input) {
     if (file)
         reader.readAsDataURL(file);
     else
-        $('.inputDnD').css('background-image:""');
+        $('.inputDnD').css('background-image""');
 
 
 }

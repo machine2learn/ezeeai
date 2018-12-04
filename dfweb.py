@@ -300,7 +300,7 @@ def run():
 def predict():
     hlp = sess.get_helper()
     all_params_config = run_utils.create_result_parameters(request, sess)
-    new_features = hlp.get_new_features(request.form, default_features=False)
+    new_features = hlp.get_new_features(request, default_features=False)
     if sess.mode_is_canned():
         all_params_config.set_canned_data(sess.get_canned_data())
     final_pred = th.predict_estimator(all_params_config, new_features)

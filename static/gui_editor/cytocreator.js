@@ -800,10 +800,6 @@ function create_popper(cy, node, id, text) {
 function create_poppers(layers, nodes, cy, loss_node) {
     $("div.popper-div").remove();
     let shapes = layers.map(function (layer) {
-        // if ('batchInputShape' in layer)
-        //     return String(add_ba_size(layer.batchInputShape));
-        // if ('kernel' in layer)
-        //     return String(add_ba_size(layer.kernel.shape));
         if ('outputShape' in layer)
             return String(add_ba_size(layer.outputShape));
         return ''

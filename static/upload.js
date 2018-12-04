@@ -235,3 +235,5 @@ function abortHandler(event) {
     _("loaded_n_total_" + id_file_uploading).text("");
     unfreeeze_view()
 }
+
+

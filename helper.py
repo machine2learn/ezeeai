@@ -1,3 +1,4 @@
+import cv2
 from abc import ABCMeta, abstractmethod
 
 from data import tabular, image
@@ -183,8 +184,8 @@ class Tabular(Helper):
 
         return result, explain_disabled
 
-    def get_new_features(self, form, default_features=False):
-        return self._dataset.get_new_features(form) if not default_features else self._dataset.get_defaults()
+    def get_new_features(self, request, default_features=False):
+        return self._dataset.get_new_features(request.form) if not default_features else self._dataset.get_defaults()
 
     def process_explain_request(self, request):
         new_features = self.get_new_features(request.form)
@@ -361,8 +362,11 @@ class Image(Helper):
         }
         return result, False
 
-    def get_new_features(self, form, default_features=False):
-        pass
+    def get_new_features(self, request, default_features=False):
+        b = request.files['inputFile'].read()
+        npimg = np.fromstring(b, np.uint8)
+        img = cv2.imdecode(npimg, cv2.IMREAD_UNCHANGED)
+        return img.astype(np.float32)
 
     def process_explain_request(self, request):
         pass

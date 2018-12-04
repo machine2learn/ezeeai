@@ -123,19 +123,17 @@
                                 </div>
                                 <br>
                                 <div id="feature-div">
-                                    <div class="container" id="image_upload">
-{#                                        <div class="row m-b-1">#}
-{#                                            <div class="col-sm-6 offset-sm-3">#}
-                                                <div class="form-group inputDnD">
-                                                    <label class="sr-only" for="inputFile">File Upload</label>
-                                                    <input type="file"
-                                                           class="form-control-file text-primary font-weight-bold"
-                                                           id="inputFile"
-                                                           accept="image/*" onchange="readUrl(this)"
-                                                           data-title="Click or drag and drop a file">
-                                                </div>
-{#                                            </div>#}
-{#                                        </div>#}
+                                    <div class="container hidden" id="image_upload">
+                                        <div class="form-group inputDnD">
+
+                                            <label class="sr-only" for="inputFile">File Upload</label>
+                                            <input type="file"
+                                                   class="form-control-file text-primary font-weight-bold"
+                                                   id="inputFile"
+                                                   name="inputFile"
+                                                   accept="image/*" onchange="readUrl(this)"
+                                                   data-title="Click or drag and drop a file">
+                                        </div>
                                     </div>
 
                                     <div class="pre-scrollable">

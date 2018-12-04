@@ -771,9 +771,8 @@ tr:hover td {
     visibility: hidden;
     pointer-events: none;
     transform: translateY(-15px);
-     z-index: 99;
+    z-index: 99;
 }
-
 
 .custom-option {
     position: relative;
@@ -1071,8 +1070,6 @@ img {
     background-color: #c61c23;
     box-shadow: 0 0 5px solid currentColor;
     font-size: 1.48vh;
-
-
 }
 
 .inputDnD .form-control-file:before {
@@ -1088,11 +1085,17 @@ img {
     border: 0.2em dashed currentColor;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     overflow: hidden;
+}
+
+.inputDnD .form-control-file:hover:before {
+    border-style: solid;
+    box-shadow: inset 0px 0px 0px 0.25em currentColor;
+    background-blend-mode: overlay !important;
 
 }
 
-.inputDnD .form-control-file:hover:before {    border-style: solid;
-    box-shadow: inset 0px 0px 0px 0.25em currentColor;
+.inputDnD:hover {
+    background-blend-mode: overlay !important;
 
 }
 
@@ -1106,8 +1109,6 @@ img {
     background-repeat: round;
     background-size: 100%;
     height: 20vh;
-    opacity: 0.9;
-}
-input{
-    opacity:1 !important;
+    background-color: hsla(0, 0%, 100%, 0.70);
+    background-blend-mode: initial;
 }
