@@ -208,7 +208,8 @@ class Image:
             image_string = tf.read_file(image)
             image = tf.image.decode_jpeg(image_string)
         image_decoded = tf.cast(image, tf.float32)
-        return tf.image.resize_images(image_decoded, self.get_image_size()), label
+        # TODO normalization
+        return tf.image.resize_images(image_decoded, self.get_image_size().copy().re), label
 
     def train_input_fn(self, batch_size, num_epochs):
         if self.get_mode() == 3:
@@ -241,16 +242,13 @@ class Image:
         # return csv_dataset
         pass
 
-    def input_predict_fn(self, features):
-        # df = self.get_df()
-        # for t in self.get_targets():
-        #     del features[t]
-        # features = {k: features[k] for k in get_feature_names(self.get_feature_columns())}
-        # for k, v in features.items():
-        #     features[k] = np.array([v]).astype(df[k].dtype) if df[k].dtype == 'object' else np.array(
-        #         [float(v)]).astype(df[k].dtype)
-        # return tf.estimator.inputs.numpy_input_fn(x=features, y=None, num_epochs=1, shuffle=False)
-        pass
+    def input_predict_fn(self, image):
+        size = self.get_image_size().copy()
+        size.reverse()
+
+        image = cv2.resize(image, tuple(size))
+        #TODO normalization
+        return tf.estimator.inputs.numpy_input_fn(x=image, y=None, num_epochs=1, shuffle=False)
 
     def serving_input_receiver_fn(self):
         h, w, c = self.get_sample().shape
