@@ -60,14 +60,15 @@ $(document).ready(function () {
         } else {
 
             var data_form = new FormData($("#predict_form")[0]);
-            if ($('#inputFile').val() ===''){
-                data_form.set('inputFile',  dataURItoBlob('data:image/' + appConfig.handle_key.extension + ';base64,' + appConfig.handle_key.image))
+            if ($('#inputFile').val() === '') {
+                data_form.set('inputFile', dataURItoBlob('data:image/' + appConfig.handle_key.extension + ';base64,' + appConfig.handle_key.image))
             }
             data_form.append('radiob', get_checkpoint_selected());
             var ajax = new XMLHttpRequest();
             ajax.open("POST", "/predict");
             ajax.send(data_form);
-            var response = ajax.response()
+            ajax.addEventListener("load", completeHandler, false);
+
         }
 
     });
@@ -80,14 +81,27 @@ $(document).ready(function () {
     }
 
     $("#explain_button").click(function (e) {
-        $.ajax({
-            url: "/explain",
-            type: 'POST',
-            data: serialize_form(),
-            success: function (data) {
-                test_success('explain', data.explanation);
+
+        if ($("#image_upload").hasClass("hidden")) {
+            $.ajax({
+                url: "/explain",
+                type: 'POST',
+                data: serialize_form(),
+                success: function (data) {
+                    test_success('explain', data.explanation);
+                }
+            })
+        } else {
+            var data_form = new FormData($("#predict_form")[0]);
+            if ($('#inputFile').val() === '') {
+                data_form.set('inputFile', dataURItoBlob('data:image/' + appConfig.handle_key.extension + ';base64,' + appConfig.handle_key.image))
             }
-        })
+            data_form.append('radiob', get_checkpoint_selected());
+            var ajax = new XMLHttpRequest();
+            ajax.open("POST", "/explain");
+            ajax.send(data_form);
+            ajax.addEventListener("load", completeHandlerExplain, false);
+        }
     });
 
     $("#test_from_file").click(function (e) {
@@ -213,21 +227,44 @@ function get_checkpoint_selected() {
 }
 
 function dataURItoBlob(dataURI) {
-   // convert base64/URLEncoded data component to raw binary data held in a string
-   var byteString;
-   if (dataURI.split(',')[0].indexOf('base64') >= 0)
-       byteString = atob(dataURI.split(',')[1]);
-   else
-       byteString = unescape(dataURI.split(',')[1]);
+    // convert base64/URLEncoded data component to raw binary data held in a string
+    var byteString;
+    if (dataURI.split(',')[0].indexOf('base64') >= 0)
+        byteString = atob(dataURI.split(',')[1]);
+    else
+        byteString = unescape(dataURI.split(',')[1]);
 
-   // separate out the mime component
-   var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+    // separate out the mime component
+    var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
 
-   // write the bytes of the string to a typed array
-   var ia = new Uint8Array(byteString.length);
-   for (var i = 0; i < byteString.length; i++) {
-       ia[i] = byteString.charCodeAt(i);
-   }
+    // write the bytes of the string to a typed array
+    var ia = new Uint8Array(byteString.length);
+    for (var i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+    }
 
-   return new Blob([ia], {type:mimeString});
+    return new Blob([ia], {type: mimeString});
+}
+
+function completeHandler(event) {
+    let data = JSON.parse(event.target.responseText);
+    if ('error' in data) {
+        alert('Model\'s structure does not match the new parameter configuration');
+    } else {
+        $('#predict_val').empty();
+
+        $.each(data, function (key, val) {
+            $('#predict_val')
+                .append(key)
+                .append(' : ')
+                .append(val)
+                .append('<br>');
+        });
+    }
+}
+
+function completeHandlerExplain(event) {
+    let data = JSON.parse(event.target.responseText);
+    test_success('explain', data['explanation']);
+
 }

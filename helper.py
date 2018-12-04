@@ -188,7 +188,7 @@ class Tabular(Helper):
         return self._dataset.get_new_features(request.form) if not default_features else self._dataset.get_defaults()
 
     def process_explain_request(self, request):
-        new_features = self.get_new_features(request.form)
+        new_features = self.get_new_features(request)
         labels = self._dataset.get_target_labels()
 
         num_feat = get_num_feat(request)
@@ -366,10 +366,23 @@ class Image(Helper):
         b = request.files['inputFile'].read()
         npimg = np.fromstring(b, np.uint8)
         img = cv2.imdecode(npimg, cv2.IMREAD_UNCHANGED)
+        img = cv2.cvtColor(img, cv2.COLOR_RGBA2RGB)
         return img.astype(np.float32)
 
     def process_explain_request(self, request):
-        pass
+        new_features = self.get_new_features(request)
+
+        num_feat = get_num_feat(request)
+        top_labels = get_top_labels(request)
+
+        sel_target = get_sel_target(request)
+        ep = {
+            'features': new_features,
+            'num_features': num_feat,
+            'top_labels': top_labels,
+            'sel_target': sel_target
+        }
+        return ep
 
     def generate_rest_call(self, pred):
         pass

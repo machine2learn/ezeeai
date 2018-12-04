@@ -5,6 +5,20 @@ import numpy as np
 import cv2
 from utils import args
 from sklearn.model_selection import train_test_split
+from scipy.misc import imresize
+
+
+def zeroCenter(x):
+    x /= 255.
+    x -= 0.5
+    x *= 2.
+    return x
+
+
+MEANS = np.array([123.68, 116.779, 103.939]).astype(np.float32)  # BGR
+norm_options = {"unit_lenght": lambda x: x / 255,
+                "zero_center": zeroCenter,
+                "imagenet_mean_subtraction": lambda x: x - MEANS}
 
 
 def dataset_from_files(filenames, labels):
@@ -209,7 +223,8 @@ class Image:
             image = tf.image.decode_jpeg(image_string)
         image_decoded = tf.cast(image, tf.float32)
         # TODO normalization
-        return tf.image.resize_images(image_decoded, self.get_image_size().copy().re), label
+        image_decoded = norm_options[self.get_normalization_method()](image_decoded)
+        return tf.image.resize_images(image_decoded, self.get_image_size().copy()), label
 
     def train_input_fn(self, batch_size, num_epochs):
         if self.get_mode() == 3:
@@ -243,11 +258,13 @@ class Image:
         pass
 
     def input_predict_fn(self, image):
-        size = self.get_image_size().copy()
-        size.reverse()
+        image = imresize(image, self.get_image_size(), interp='bilinear')
+        image = image.astype(np.float32)
+        if len(image.shape) == 3:
+            image = image[np.newaxis, ...]
+        # TODO normalization
+        image = norm_options[self.get_normalization_method()](image)
 
-        image = cv2.resize(image, tuple(size))
-        #TODO normalization
         return tf.estimator.inputs.numpy_input_fn(x=image, y=None, num_epochs=1, shuffle=False)
 
     def serving_input_receiver_fn(self):

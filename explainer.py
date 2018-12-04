@@ -1,4 +1,6 @@
-from lime import lime_tabular
+from lime import lime_tabular, lime_image
+from scipy.misc import imresize
+from data.image import norm_options
 
 import numpy as np
 import tensorflow as tf
@@ -55,3 +57,23 @@ class TabularExplainer:
                                                     top_labels=top_labels)
 
         return self._explainer.explain_instance(sample, predict_fn, num_features=num_features)
+
+
+class ImageExplainer:
+
+    def __init__(self, dataset, verbose=True):
+        self._dataset = dataset
+        self._explainer = lime_image.LimeImageExplainer(verbose=verbose)
+
+    def explain_instance(self, model, features, num_features=5, top_labels=3, sel_target=None):
+        def predict_fn(x):
+            predict_input_fn = tf.estimator.inputs.numpy_input_fn(x=x, y=None, num_epochs=1, shuffle=False)
+            probabilities = list(model.predict(input_fn=predict_input_fn))
+            return np.array([x['probabilities'] for x in probabilities])
+
+        features = imresize(features, self._dataset.get_image_size(), interp='bilinear')
+        features = features.astype(np.float32)
+
+        features = norm_options[self._dataset.get_normalization_method()](features)
+
+        return self._explainer.explain_instance(features, predict_fn, num_features=num_features)

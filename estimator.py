@@ -9,9 +9,10 @@ import os
 
 import pandas as pd
 
+from data.tabular import Tabular
 from model_builder import ModelBuilder
 from best_exporter import BestExporter
-from explainer import TabularExplainer
+from explainer import TabularExplainer, ImageExplainer
 from utils.email_ops import send_email
 from utils.run_utils import check_exports
 from utils import feature_util
@@ -140,7 +141,7 @@ class AbstractEstimator(metaclass=ABCMeta):
         send_email({"email_address": self.email}, server_info)
 
     def _create_explainer(self):
-        return TabularExplainer(self.dataset)
+        return TabularExplainer(self.dataset) if isinstance(self.dataset, Tabular) else ImageExplainer(self.dataset)
 
     def explain(self, **params):
         explainer = self._create_explainer()

@@ -321,7 +321,7 @@ def explain():
         if sess.mode_is_canned():
             all_params_config.set_canned_data(sess.get_canned_data())
         result = th.explain_estimator(all_params_config, ep)
-        return jsonify(explanation=explain_util.explain_return(sess, hlp.get_new_features(request.form), result,
+        return jsonify(explanation=explain_util.explain_return(sess, hlp.get_new_features(request), result,
                                                                hlp.get_targets()))
     else:
         return render_template('explain.html', title="Explain", page=5, graphs=sess.get_dict_graphs(),
