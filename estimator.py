@@ -11,7 +11,7 @@ import pandas as pd
 
 from model_builder import ModelBuilder
 from best_exporter import BestExporter
-from explainer import Explainer
+from explainer import TabularExplainer
 from utils.email_ops import send_email
 from utils.run_utils import check_exports
 from utils import feature_util
@@ -138,49 +138,20 @@ class AbstractEstimator(metaclass=ABCMeta):
                        "email_address": "tf3deep@gmail.com"}
 
         send_email({"email_address": self.email}, server_info)
-        # send_email({"email_address": "yoel@machine2learn.nl"}, server_info)
+
+    def _create_explainer(self):
+        return TabularExplainer(self.dataset)
+
+    def explain(self, **params):
+        explainer = self._create_explainer()
+
+        return explainer.explain_instance(self.model, **params)
 
 
 class Estimator(AbstractEstimator):
 
     def __init__(self, params):
         super().__init__(params)
-
-    def _create_explainer(self):
-
-        train_dataset, training_labels = self.dataset.make_numpy_array(self.dataset.get_train_file())
-
-        mode = self.dataset.get_mode()
-        categorical_features, categorical_index, categorical_names = self.dataset.get_categorical_features()
-        unique = self.label_unique_values if hasattr(self, 'label_unique_values') else None
-
-        return Explainer(train_dataset, training_labels, self.dataset.get_feature_names(), unique,
-                         categorical_index, categorical_names, mode)
-
-    def explain(self, features, num_features, top_labels):
-
-        feat_array = self.dataset.create_feat_array(features)  # self._to_array(features, feature_types, df.copy())
-
-        explainer = self._create_explainer()
-        features = {k: features[k] for k in self.dataset.get_feature_names()}
-
-        def model_predict(x):
-            x = x.reshape(-1, len(features))
-
-            local_features = {k: x[:, i] for i, k in enumerate(features.keys())}
-            local_features = self.dataset.from_array(local_features)
-
-            predict_input_fn = tf.estimator.inputs.numpy_input_fn(x=local_features,
-                                                                  y=None, num_epochs=1, shuffle=False)
-            predictions = list(self.model.predict(input_fn=predict_input_fn))
-            if explainer.get_mode() == 'classification':
-                probs = np.array([x['probabilities'] for x in predictions])
-                return probs
-            else:
-                preds = np.array([x['predictions'] for x in predictions]).reshape(-1)
-                return preds
-
-        return explainer.explain_instance(feat_array, model_predict, num_features, top_labels)
 
     def _create_model(self):
         self.label_unique_values = self.dataset.get_target_labels()
@@ -193,38 +164,6 @@ class MultOutEstimator(AbstractEstimator):
 
     def __init__(self, params):
         super().__init__(params)
-
-    def _create_explainer(self):
-        train_dataset, training_labels = self.dataset.make_numpy_array(self.dataset.get_train_file())
-
-        mode = self.dataset.get_mode()
-        categorical_features, categorical_index, categorical_names = self.dataset.get_categorical_features()
-        unique = self.label_unique_values if hasattr(self, 'label_unique_values') else None
-
-        return Explainer(train_dataset, training_labels, self.dataset.get_feature_names(), unique,
-                         categorical_index, categorical_names, mode)
-
-    def explain(self, features, num_features, top_labels, sel_target):
-        feat_array = self.dataset.create_feat_array(features)  # self._to_array(features, feature_types, df.copy())
-
-        explainer = self._create_explainer()
-        features = {k: features[k] for k in self.dataset.get_feature_names()}
-
-        def model_predict(x):
-            x = x.reshape(-1, len(features))
-
-            local_features = {k: x[:, i] for i, k in enumerate(features.keys())}
-            local_features = self.dataset.from_array(local_features)
-
-            predict_input_fn = tf.estimator.inputs.numpy_input_fn(x=local_features,
-                                                                  y=None, num_epochs=1, shuffle=False)
-            predictions = list(self.model.predict(input_fn=predict_input_fn))
-            tidx = self.dataset.get_targets().index(sel_target)
-
-            preds = np.array([x['predictions'][tidx] for x in predictions]).reshape(-1)
-            return preds
-
-        return explainer.explain_instance(feat_array, model_predict, num_features, top_labels)
 
     def predict(self, features, all=False):
         predictions = list(self.model.predict(input_fn=self.dataset.input_predict_fn(features)))
