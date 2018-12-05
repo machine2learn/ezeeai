@@ -420,7 +420,7 @@ def refresh():
         config_file = sess.get_config_file()
         export_dir = config_reader.read_config(config_file).export_dir()
         checkpoints = run_utils.get_eval_results(export_dir, sess.get_writer(), config_file)
-        return jsonify(checkpoints=checkpoints, data=sess.get('log_fp').read(), running=running, epochs=epochs)
+        return jsonify(checkpoints=checkpoints, data=sess.get('log_fp').read() if sess.check_key('log_fp') else '', running=running, epochs=epochs)
     except (KeyError, NoSectionError):
         return jsonify(checkpoints='', data='', running=running, epochs=epochs)
 
