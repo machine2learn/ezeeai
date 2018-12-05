@@ -90,7 +90,7 @@ def find_image_files_from_file(data_dir, info_file):
 def read_numpy_array(path_file):
     data = np.load(path_file)
     x, y = data['x'], data['y']
-    return x, y, [str(x) for x in np.unique(y)]
+    return x, [str(i) for i in y], [str(i) for i in np.unique(y)]
 
 
 class Image:

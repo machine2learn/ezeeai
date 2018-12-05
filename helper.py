@@ -1,9 +1,9 @@
 from io import BytesIO
 
+import PIL.Image
+from skimage.segmentation import mark_boundaries
 import cv2
 from abc import ABCMeta, abstractmethod
-
-from skimage.segmentation import mark_boundaries
 
 from data import tabular, image
 from data.image import find_image_files_folder_per_class, find_image_files_from_file
@@ -17,8 +17,6 @@ import dill as pickle
 
 import base64
 import numpy as np
-
-import PIL.Image
 
 
 def encode_image(path):
@@ -382,7 +380,9 @@ class Image(Helper):
         pass
 
     def get_default_data_example(self):
-        example = np.random.choice(self._dataset._images)
+        # TODO
+        example = self._dataset._images[np.random.choice(np.arange(len(self._dataset._images)))]
+
         result = {
             'targets': self.get_targets(),
             'has_test': self._dataset._test_images is not None,
