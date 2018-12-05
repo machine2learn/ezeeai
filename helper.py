@@ -381,7 +381,7 @@ class Image(Helper):
 
     def get_default_data_example(self):
         # TODO
-        example = self._dataset._images[np.random.choice(np.arange(len(self._dataset._images)))]
+        example = self._dataset._val_images[np.random.choice(np.arange(len(self._dataset._val_images)))]
 
         result = {
             'targets': self.get_targets(),

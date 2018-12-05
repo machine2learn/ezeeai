@@ -201,8 +201,7 @@ class Image:
     def get_sample(self):
         if self.get_mode() == 3:
             return self._images[0]
-        srcBGR = cv2.imread(self._images[0])
-        return cv2.cvtColor(srcBGR, cv2.COLOR_BGR2RGB)
+        return cv2.imread(self._images[0])
 
     def get_num_outputs(self):
         num_classes = len(self.get_class_names())
@@ -235,7 +234,7 @@ class Image:
             image = tf.image.decode_jpeg(image_string)
         image_decoded = tf.cast(image, tf.float32)
         # TODO normalization
-        image_decoded = self.normalize(image_decoded)
+        image_decoded = norm_options[self.get_normalization_method()](image_decoded)
         return tf.image.resize_images(image_decoded, self.get_image_size().copy()), label
 
     def train_input_fn(self, batch_size, num_epochs):
@@ -275,7 +274,8 @@ class Image:
         if len(image.shape) == 3:
             image = image[np.newaxis, ...]
         # TODO normalization
-        image = self.normalize(image)
+        image = norm_options[self.get_normalization_method()](image)
+
         return tf.estimator.inputs.numpy_input_fn(x=image, y=None, num_epochs=1, shuffle=False)
 
     def serving_input_receiver_fn(self):

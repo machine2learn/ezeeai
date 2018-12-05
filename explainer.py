@@ -75,4 +75,5 @@ class ImageExplainer:
         features = self._dataset.normalize(features)
 
         return self._explainer.explain_instance(features, predict_fn, batch_size=100, num_features=num_features,
-                                                labels=self._dataset.get_class_names())
+                                                labels=self._dataset.get_class_names(),
+                                                top_labels=len(self._dataset.get_class_names()))
