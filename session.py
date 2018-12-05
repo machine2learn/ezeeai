@@ -434,7 +434,6 @@ class Session:
 
         self.get_writer().write_config(self.get_config_file())
 
-
     def get_data_path(self):
         return self.get('data_path')
 
@@ -450,3 +449,5 @@ class Session:
     # def create_data(self, dataset_name, file):
     #     tb = Tabular(dataset_name, file)
     #     self.set_dataset(tb)
+    def get_explain_params(self):
+        return self.get('explain_params')

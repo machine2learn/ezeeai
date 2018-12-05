@@ -104,6 +104,12 @@ $(document).ready(function () {
         }
     });
 
+    function completeHandlerExplain(event) {
+        let data = JSON.parse(event.target.responseText);
+        test_success('explain', data['explanation']);
+
+    }
+
     $("#test_from_file").click(function (e) {
         let $input = $('#upload-file');
         if ($input[0].files.length === 0) {
@@ -261,10 +267,4 @@ function completeHandler(event) {
                 .append('<br>');
         });
     }
-}
-
-function completeHandlerExplain(event) {
-    let data = JSON.parse(event.target.responseText);
-    test_success('explain', data['explanation']);
-
 }

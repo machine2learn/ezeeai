@@ -1,8 +1,13 @@
+from io import BytesIO
+
 import cv2
 from abc import ABCMeta, abstractmethod
 
+from skimage.segmentation import mark_boundaries
+
 from data import tabular, image
 from data.image import find_image_files_folder_per_class, find_image_files_from_file
+from utils.explain_util import get_reg_explain, get_class_explain, clean_predict_table
 from utils.request_util import *
 from utils import feature_util, preprocessing, param_utils, run_utils, explain_util, sys_ops
 
@@ -13,10 +18,15 @@ import dill as pickle
 import base64
 import numpy as np
 
+import PIL.Image
+
 
 def encode_image(path):
     if isinstance(path, np.ndarray):
-        return base64.b64encode(path).decode()
+        pil_img = PIL.Image.fromarray(path)
+        buff = BytesIO()
+        pil_img.save(buff, format="JPEG")
+        return base64.b64encode(buff.getvalue()).decode()
 
     with open(path, "rb") as image_file:
         encoded_string = base64.b64encode(image_file.read())
@@ -260,6 +270,26 @@ class Tabular(Helper):
     def get_mode(self):
         return self._dataset.get_mode()
 
+    def explain_return(self, sess, request, result):
+        if result is None:
+            return 'Model\'s structure does not match the new parameter configuration'
+
+        new_features = self.get_new_features(request)
+        targets = self.get_targets()
+        params = {}
+        params['data_type'] = 'tabular'
+        params["features"] = {k: new_features[k] for k in new_features.keys() if k not in targets}
+        if result.mode == 'regression':
+            graphs, predict_table = get_reg_explain(result)
+            params['type'] = 'regression'
+        else:
+            graphs, predict_table = get_class_explain(result)
+            params['type'] = 'class'
+        params['graphs'] = graphs
+        params['predict_table'] = predict_table
+        sess.set('explain_params', params)
+        return 'ok'
+
 
 class Image(Helper):
     def __init__(self, dataset):
@@ -352,7 +382,6 @@ class Image(Helper):
         pass
 
     def get_default_data_example(self):
-        # TODO
         example = np.random.choice(self._dataset._images)
         result = {
             'targets': self.get_targets(),
@@ -364,6 +393,7 @@ class Image(Helper):
 
     def get_new_features(self, request, default_features=False):
         b = request.files['inputFile'].read()
+        request.files['inputFile'].seek(0)
         npimg = np.fromstring(b, np.uint8)
         img = cv2.imdecode(npimg, cv2.IMREAD_UNCHANGED)
         img = cv2.cvtColor(img, cv2.COLOR_RGBA2RGB)
@@ -395,3 +425,35 @@ class Image(Helper):
 
     def write_dataset(self, data_path):
         pickle.dump(self._dataset, open(data_path, 'wb'))
+
+    def explain_return(self, sess, request, result):
+        if result is None:
+            return 'Model\'s structure does not match the new parameter configuration'
+        params = {}
+        label = result.top_labels[0]
+        num_features = get_num_feat(request)
+        temp, mask = result.get_image_and_mask(label, positive_only=False, num_features=num_features, hide_rest=False)
+
+        image = mark_boundaries(self._dataset.unnormalize(temp).astype(np.uint8), mask)
+        params['data_type'] = 'image'
+        params['type'] = 'class'
+        params['features'] = encode_image((image * 255).astype(np.uint8))
+
+        predict_table = {'columns': [], 'data': []}
+        num_class = len(self._dataset.get_class_names())
+
+        if num_class == 2:
+            predict_table['columns'] = self._dataset.get_class_names()
+            d = result.intercept[0]
+            predict_table['data'] = [float("{0:.3f}".format(1 - d)), float("{0:.3f}".format(d))]
+
+        else:
+            for i in range(num_class):
+                c = self._dataset.get_class_names()[i]
+                d = result.intercept[i]
+                predict_table['columns'].append(c)
+                predict_table['data'].append(float("{0:.3f}".format(d)))
+        params['predict_table'] = clean_predict_table(predict_table)
+        params['graphs'] = None
+        sess.set('explain_params', params)
+        return 'ok'

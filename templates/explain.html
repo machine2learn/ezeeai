@@ -56,6 +56,7 @@
 
     <script type="text/javascript">
         var handle_key = {};
+        handle_key.data_type = {{  data_type | tojson | safe }};
         handle_key.graphs = {{  graphs | tojson | safe }};
         handle_key.predict_table = {{  predict_table | tojson | safe }};
         handle_key.features = {{  features | tojson | safe }};

@@ -321,13 +321,15 @@ def explain():
         if sess.mode_is_canned():
             all_params_config.set_canned_data(sess.get_canned_data())
         result = th.explain_estimator(all_params_config, ep)
-        return jsonify(explanation=explain_util.explain_return(sess, hlp.get_new_features(request), result,
-                                                               hlp.get_targets()))
+        return jsonify(explanation=hlp.explain_return(sess, request, result))
     else:
-        return render_template('explain.html', title="Explain", page=5, graphs=sess.get_dict_graphs(),
-                               predict_table=sess.get_dict_table(), features=sess.get_new_features(),
-                               model=sess.get_model(), exp_target=sess.get_exp_target(), type=sess.get_type(),
-                               user=session['user'], token=session['token'])
+        params = sess.get_explain_params()
+        return render_template('explain.html', title="Explain", page=5,
+                               model=sess.get_model(),
+                               user=session['user'],
+                               token=session['token'],
+                               exp_target=sess.get_exp_target(),
+                               **params)
 
 
 @app.route('/test', methods=['POST', 'GET'])

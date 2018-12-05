@@ -1,7 +1,5 @@
 from lime import lime_tabular, lime_image
 from scipy.misc import imresize
-from data.image import norm_options
-
 import numpy as np
 import tensorflow as tf
 
@@ -74,6 +72,7 @@ class ImageExplainer:
         features = imresize(features, self._dataset.get_image_size(), interp='bilinear')
         features = features.astype(np.float32)
 
-        features = norm_options[self._dataset.get_normalization_method()](features)
+        features = self._dataset.normalize(features)
 
-        return self._explainer.explain_instance(features, predict_fn, num_features=num_features)
+        return self._explainer.explain_instance(features, predict_fn, batch_size=100, num_features=num_features,
+                                                labels=self._dataset.get_class_names())

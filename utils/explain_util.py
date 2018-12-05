@@ -2,22 +2,28 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
+
 MAX_FEATURES = 10
 
 
-def explain_return(sess, new_features, result, targets):
-    if result is not None:
-        sess.set("new_features", {k: new_features[k] for k in new_features.keys() if k not in targets})
-        if result.mode == 'regression':
-            graphs, predict_table = get_reg_explain(result)
-            sess.set('type', 'regression')
-        else:
-            graphs, predict_table = get_class_explain(result)
-            sess.set('type', 'class')
-        sess.set('dict_graphs', graphs)
-        sess.set('dict_table', predict_table)
-        return 'ok'
-    return 'Model\'s structure does not match the new parameter configuration'
+# def explain_return(sess, new_features, result, targets):
+#     if result is None:
+#         return 'Model\'s structure does not match the new parameter configuration'
+#     if isinstance(sess.get_helper(), Image):
+#
+#         pass
+#     else:
+#         sess.set("new_features", {k: new_features[k] for k in new_features.keys() if k not in targets})
+#         if result.mode == 'regression':
+#             graphs, predict_table = get_reg_explain(result)
+#             sess.set('type', 'regression')
+#         else:
+#             graphs, predict_table = get_class_explain(result)
+#             sess.set('type', 'class')
+#         sess.set('dict_graphs', graphs)
+#         sess.set('dict_table', predict_table)
+#         return 'ok'
+#
 
 
 def create_graphs(k, dict_list):
