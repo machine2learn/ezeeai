@@ -196,7 +196,7 @@ function uploadFile() {
     };
 
     ajax.upload.addEventListener("progress", progressHandler, false);
-   c
+    ajax.addEventListener("load", completeHandler, false);
     ajax.addEventListener("error", errorHandler, false);
     ajax.addEventListener("abort", abortHandler, false);
 

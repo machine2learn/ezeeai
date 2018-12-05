@@ -1,3 +1,7 @@
+from io import BytesIO
+
+import PIL.Image
+
 import cv2
 from abc import ABCMeta, abstractmethod
 
@@ -16,7 +20,10 @@ import numpy as np
 
 def encode_image(path):
     if isinstance(path, np.ndarray):
-        return base64.b64encode(path).decode()
+        pil_img = PIL.Image.fromarray(path)
+        buff = BytesIO()
+        pil_img.save(buff, format="JPEG")
+        return base64.b64encode(buff.getvalue()).decode()
 
     with open(path, "rb") as image_file:
         encoded_string = base64.b64encode(image_file.read())
@@ -353,7 +360,8 @@ class Image(Helper):
 
     def get_default_data_example(self):
         # TODO
-        example = np.random.choice(self._dataset._images)
+        example = self._dataset._images[np.random.choice(np.arange(len(self._dataset._images)))]
+
         result = {
             'targets': self.get_targets(),
             'has_test': self._dataset._test_images is not None,
