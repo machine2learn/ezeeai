@@ -326,8 +326,8 @@ class Image(Helper):
         return self._dataset.get_name()
 
     def get_data(self):
-        sample = self._dataset.get_sample()
-        return {'height': sample.shape[0], 'width': sample.shape[1]}
+        size = self._dataset.get_image_size()
+        return {'height': size[0], 'width': size[1], 'data': self.get_labels_images()}
 
     def get_targets(self):
         return self._dataset.get_targets()
@@ -346,13 +346,7 @@ class Image(Helper):
             return 'classification'
         return 'regression'
 
-    def process_features_request(self, request):
-        augmentation_options = request.get_json()['augmentation_options']
-        features_params = request.get_json()['augmentation_params']
-
-        # TODO augmentation
-        self._dataset.set_normalization_method(features_params['normalization'])
-        self._dataset.set_image_size(features_params['height'], features_params['width'])
+    def get_labels_images(self):
         data = {}
         class_names = self._dataset.get_class_names()
         labels = self._dataset.get_labels() if isinstance(self._dataset.get_labels(),
@@ -363,6 +357,17 @@ class Image(Helper):
             data[c]['img'] = encode_image(im_path)
             if self._dataset.get_mode() != 3:
                 data[c]['extension'] = im_path.split('.')[-1]
+        return data
+
+    def process_features_request(self, request):
+        augmentation_options = request.get_json()['augmentation_options']
+        features_params = request.get_json()['augmentation_params']
+
+        # TODO augmentation
+        self._dataset.set_normalization_method(features_params['normalization'])
+        self._dataset.set_image_size(features_params['height'], features_params['width'])
+
+        data = self.get_labels_images()
 
         h, w, c = self._dataset.get_sample().shape
         data['input_shape'] = '[' + features_params['height'] + ',' + features_params['width'] + ',' + str(c) + ']'

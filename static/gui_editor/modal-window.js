@@ -1,9 +1,7 @@
 $(document).ready(function () {
     $('#close').on('click', function () {
-
         close_modal();
     });
-
 
     var load_table = $('#table_models').DataTable({
         data: get_load_rows(appConfig.parameters),
@@ -19,7 +17,6 @@ $(document).ready(function () {
     });
 
     modal_add_input_select('datasets_availables', appConfig.user_dataset);
-
 
     $('#table_models tbody').on('click', 'tr', function (e) {
         if (load_table.row(this, {selected: true}).any())

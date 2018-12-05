@@ -392,8 +392,10 @@ function show_params_config(prop, param, saved_config) {
 
 $(document).ready(function () {
     wizard_next(1, dict_wizard);
+
+
+    // Load model -> modal window
     if (appConfig.data_df !== null) {
-        // Load input modal window
         $('#datasets_availables').val(appConfig.parameters[appConfig.m_name].dataset);
         update_split(appConfig.dataset_params.split.split(','));
         wizard_next(2, dict_wizard);
@@ -415,11 +417,14 @@ $(document).ready(function () {
                 };
             });
         } else {
-            //    TODO
-
+            create_image_feature(appConfig.data_df, dict_wizard);
+            restore_features_images(appConfig.dataset_params.augmentation_options, appConfig.dataset_params.augmentation_params);
+            create_images_targets(appConfig.data_df.data);
         }
-
+        $('#validate_model').click();
     }
+
+
     $('#select_continue').click(function (e) {
         let dataset = $('#datasets_availables').find("option:selected").text();
         appConfig.dataset = dataset;
@@ -480,93 +485,6 @@ $(document).ready(function () {
         else
             image_features_continue();
     });
-
-    function tabular_features_continue() {
-        $('#image_target').addClass('hidden');
-        $('#tabular_target').removeClass('hidden');
-        let table = $('#table_features').DataTable();
-        let cat_column = table.column('Category:name').data().map(b => $(b).val());
-        let default_features = table.column('Features:name').data();
-        let default_column = table.column('Defaults:name').data();
-        appConfig.dataset_params.normalize = $('#normalize').is(":checked");
-        $.ajax({
-            url: "/gui_features",
-            type: 'POST',
-            dataType: 'json',
-            contentType: 'application/json;charset=UTF-8',
-            accepts: {
-                json: 'application/json',
-            },
-            data: JSON.stringify({
-                'default_featu': default_features.toArray(),
-                'cat_column': cat_column.toArray(),
-                'default_column': default_column.toArray(),
-                'normalize': appConfig.dataset_params.normalize
-            }),
-            success: function (data) {
-                var new_data = data.data;
-                appConfig.dataset_params.category_list = JSON.parse(new_data.data)['Category'];
-                appConfig.data_df = new_data.data;
-                table_target_created = create_target_table(new_data.data, null, null, dict_wizard);
-            }
-        });
-    }
-
-    function image_features_continue() {
-        $('#image_target').removeClass('hidden');
-        $('#tabular_target').addClass('hidden');
-        let augmentation_options = [];
-        let params = {
-            'height': $('#height').val(),
-            'width': $('#width').val(),
-            'normalization': $('#normalization').val(),
-        };
-        $.each($('#list2 a'), function (a, b) {
-            if (b.id !== "")
-                augmentation_options.push(b.id);
-        });
-        $('#list2 input[type="number"]').each(function () {
-            let id_input = $(this)[0].id;
-            params[id_input] = $('#' + id_input).val();
-        });
-        $('#list2 input:checkbox, #list2 input[type="radio"]').each(function () {
-            let id_input = $(this)[0].id;
-            if (id_input !== '')
-                params[id_input] = $('#' + id_input).is(":checked");
-        });
-
-        $.ajax({
-            url: "/gui_features",
-            type: 'POST',
-            dataType: 'json',
-            contentType: 'application/json;charset=UTF-8',
-            accepts: {
-                json: 'application/json',
-            },
-            data: JSON.stringify({
-                'augmentation_options': augmentation_options,
-                'augmentation_params': params
-            }),
-            success: function (data) {
-                let input_shape = data.data.input_shape;
-                $('#input_shape').val(input_shape);
-                appConfig.num_outputs = data.data['num_outputs'];
-
-                cy.$(':selected').data()['content']['input_shape']['value'] = input_shape;
-                inputs_layers[cy.$(':selected').data().name] = {
-                    'dataset': appConfig.dataset,
-                    'split': appConfig.dataset_params.split,
-                    'augmentation_options': augmentation_options,
-                    'augmentation_params': params,
-                    'image_data': data.data,
-                };
-                delete data.data['input_shape'];
-                delete data.data['num_outputs'];
-                create_images_targets(data.data);
-            }
-        });
-    }
-
 
     $('#table_features').on('change', '.selfeat', function () {
         let td = $(this).parent('td');
@@ -640,6 +558,90 @@ $(document).ready(function () {
         $('#mode').val(canned_nodes.length);
     });
 
+    function tabular_features_continue() {
+        $('#image_target').addClass('hidden');
+        $('#tabular_target').removeClass('hidden');
+        let table = $('#table_features').DataTable();
+        let cat_column = table.column('Category:name').data().map(b => $(b).val());
+        let default_features = table.column('Features:name').data();
+        let default_column = table.column('Defaults:name').data();
+        appConfig.dataset_params.normalize = $('#normalize').is(":checked");
+        $.ajax({
+            url: "/gui_features",
+            type: 'POST',
+            dataType: 'json',
+            contentType: 'application/json;charset=UTF-8',
+            accepts: {
+                json: 'application/json',
+            },
+            data: JSON.stringify({
+                'default_featu': default_features.toArray(),
+                'cat_column': cat_column.toArray(),
+                'default_column': default_column.toArray(),
+                'normalize': appConfig.dataset_params.normalize
+            }),
+            success: function (data) {
+                var new_data = data.data;
+                appConfig.dataset_params.category_list = JSON.parse(new_data.data)['Category'];
+                appConfig.data_df = new_data.data;
+                table_target_created = create_target_table(new_data.data, null, null, dict_wizard);
+            }
+        });
+    }
+
+    function image_features_continue() {
+        $('#image_target').removeClass('hidden');
+        $('#tabular_target').addClass('hidden');
+        let augmentation_options = [];
+        let params = {
+            'height': $('#height').val(),
+            'width': $('#width').val(),
+            'normalization': $('#normalization').val(),
+        };
+        $.each($('#list2 a'), function (a, b) {
+            if (b.id !== "")
+                augmentation_options.push(b.id);
+        });
+        $('#list2 input[type="number"]').each(function () {
+            let id_input = $(this)[0].id;
+            params[id_input] = $('#' + id_input).val();
+        });
+        $('#list2 input:checkbox, #list2 input[type="radio"]').each(function () {
+            let id_input = $(this)[0].id;
+            if (id_input !== '')
+                params[id_input] = $('#' + id_input).is(":checked");
+        });
+
+        $.ajax({
+            url: "/gui_features",
+            type: 'POST',
+            dataType: 'json',
+            contentType: 'application/json;charset=UTF-8',
+            accepts: {
+                json: 'application/json',
+            },
+            data: JSON.stringify({
+                'augmentation_options': augmentation_options,
+                'augmentation_params': params
+            }),
+            success: function (data) {
+                let input_shape = data.data.input_shape;
+                $('#input_shape').val(input_shape);
+                appConfig.num_outputs = data.data['num_outputs'];
+                cy.$(':selected').data()['content']['input_shape']['value'] = input_shape;
+                inputs_layers[cy.$(':selected').data().name] = {
+                    'dataset': appConfig.dataset,
+                    'split': appConfig.dataset_params.split,
+                    'augmentation_options': augmentation_options,
+                    'augmentation_params': params,
+                    'image_data': data.data,
+                };
+                delete data.data['input_shape'];
+                delete data.data['num_outputs'];
+                create_images_targets(data.data);
+            }
+        });
+    }
 });
 
 function zoom(cy, level) {
@@ -816,17 +818,6 @@ function node_name_exists(cy, value) {
     return nodes_names.indexOf(value) >= 0
 }
 
-// TODO validate different types
-function is_valid(type, value, id, cy) {
-    if (id === 'name' && node_name_exists(cy, value)) {
-        return false;
-    } else if (type === 'integer_list') {
-        let list_number = RegExp('^\[[0-9]+(,[0-9]+)*\]$');
-        let only_number = new RegExp('^[0-9]+$');
-        return list_number.test(value) || only_number.test(value) || value === null || value === ''
-    }
-    return true;
-}
 
 function append_after(label_name, config, id_item_before) {
     let $label = $("<label>").text(label_name);
@@ -865,4 +856,16 @@ function append_after(label_name, config, id_item_before) {
 
     $('#' + id_item_before).after(x)
         .after($label);
+}
+
+// TODO validate different types
+function is_valid(type, value, id, cy) {
+    if (id === 'name' && node_name_exists(cy, value)) {
+        return false;
+    } else if (type === 'integer_list') {
+        let list_number = RegExp('^\[[0-9]+(,[0-9]+)*\]$');
+        let only_number = new RegExp('^[0-9]+$');
+        return list_number.test(value) || only_number.test(value) || value === null || value === ''
+    }
+    return true;
 }
