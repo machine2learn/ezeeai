@@ -247,7 +247,7 @@ class Image:
             batch_size)
 
         # dataset = dataset.map(self._parse_function)
-        # dataset = dataset.prefetch(buffer_size) TODO
+        dataset = dataset.prefetch(1)
         # TODO DATA AUGMENTATION
         return dataset
 
@@ -257,6 +257,7 @@ class Image:
         else:
             dataset = dataset_from_files(self._val_images, self._val_labels)
         dataset = dataset.map(self._parse_function).batch(batch_size)
+        dataset = dataset.prefetch(1)
         return dataset
 
     def test_input_fn(self, batch_size, file=None):
