@@ -5,12 +5,6 @@ $(document).ready(function () {
 
     $('#graph_ice_prob').remove();
 
-    //TODO ICE
-    // if ('columns' in appConfig.handle_key.predict_table)
-    //     regression = false;
-    // else
-    //     $('#graph_ice_prob').remove();
-
     h4 = document.createElement("h4");
     if (appConfig.handle_key.type === 'regression') {
         h4.textContent = "Prediction value ";
@@ -27,6 +21,9 @@ $(document).ready(function () {
     }
 
     if (appConfig.handle_key.data_type === 'tabular') {
+
+        // TABULAR OPTIONS
+
         var dataset_rows = get_rows(appConfig.handle_key.features);
         var configs_table = $('#table_features').DataTable({
             data: dataset_rows,
@@ -44,7 +41,44 @@ $(document).ready(function () {
         if (!regression) {
             $('#select_feature_explain').append(add_select('labels_ice', appConfig.handle_key.predict_table.columns));
         }
+
+
+        //  TODO ICE
+        if ('columns' in appConfig.handle_key.predict_table)
+            regression = false;
+        else
+            $('#graph_ice_prob').remove();
+
+
+        $('#features').change(function (e) {
+            generate_plots(regression);
+        });
+
+
+        $('#labels_ice').change(function (e) {
+            if ('data' in handle_key) {
+                let feature_selected = $("#features option:selected").text();
+                let cluster = $("#labels_ice option:selected").text();
+                let index_label = appConfig.handle_key.predict_table.columns.indexOf(cluster);
+                let plot_data = [
+                    {
+                        x: handle_key.data['data'][feature_selected],
+                        y: handle_key.data['data'][appConfig.handle_key.exp_target + '_prob'].map(function (value, index) {
+                            return value[index_label];
+                        }),
+                        type: 'scatter'
+                    }
+                ];
+                Plotly.newPlot('graph_ice_prob', plot_data, get_prob_layout(appConfig, cluster));
+            }
+        });
+        generate_plots(regression);
+
     } else {
+
+        // IMAGE  OPTIONS
+        $('#explain_graps').addClass('hidden');
+        $('#select_feature_explain').addClass('hidden');
         let im2 = new Image();
         im2.src = 'data:image/jpg;base64,' + appConfig.handle_key.features;
         im2.style = "width:50%"; //TODO image size
@@ -53,30 +87,6 @@ $(document).ready(function () {
 
     }
 
-
-    // $('#features').change(function (e) {
-    //     generate_plots(regression);
-    // });
-
-    //
-    // $('#labels_ice').change(function (e) {
-    //     if ('data' in handle_key) {
-    //         var feature_selected = $("#features option:selected").text();
-    //         var cluster = $("#labels_ice option:selected").text();
-    //         var index_label = appConfig.handle_key.predict_table.columns.indexOf(cluster);
-    //         var plot_data = [
-    //             {
-    //                 x: handle_key.data['data'][feature_selected],
-    //                 y: handle_key.data['data'][appConfig.handle_key.exp_target + '_prob'].map(function (value, index) {
-    //                     return value[index_label];
-    //                 }),
-    //                 type: 'scatter'
-    //             }
-    //         ];
-    //         Plotly.newPlot('graph_ice_prob', plot_data, get_prob_layout(appConfig, cluster));
-    //     }
-    // });
-    // generate_plots(regression);
 
 });
 

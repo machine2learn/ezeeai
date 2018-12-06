@@ -18,6 +18,9 @@ $(document).ready(function () {
 
     modal_add_input_select('datasets_availables', appConfig.user_dataset);
 
+    if (appConfig.data_df !== null)
+        $('#datasets_availables').val(appConfig.dataset_params.name);
+
     $('#table_models tbody').on('click', 'tr', function (e) {
         if (load_table.row(this, {selected: true}).any())
             $('#submit_load').prop('disabled', true);
@@ -497,9 +500,9 @@ function restore_features_images(aug_op, aug_param) {
     });
     $.each(aug_param, function (key, val) {
         let $input = $('#' + key);
-        if ($input.type === 'radio')
+        if ($input[0].type === 'radio')
             $input.attr('checked', val);
-        if ($input.type === 'checkbox')
+        if ($input[0].type === 'checkbox')
             $input.prop('checked', val);
         else
             $input.val(val);

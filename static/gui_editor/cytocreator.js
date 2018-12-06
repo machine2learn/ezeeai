@@ -104,8 +104,6 @@ document.addEventListener('DOMContentLoaded', function () {
         } else if (e.which === 46 || e.which === 8) { // + Remove
             if ($(":focus").length === 0) {
                 let node = cy.nodes().filter((node) => (node.selected()));
-                // if ((node.data().class_name === "InputLayer") && !(node.data().name in Object.keys(inputs_layers)))
-                //     clear_input_modal(dict_wizard);
                 if (inputs_layers.hasOwnProperty(node.data().name))
                     delete inputs_layers[node.data().name];
                 node.remove();
@@ -393,10 +391,9 @@ function show_params_config(prop, param, saved_config) {
 $(document).ready(function () {
     wizard_next(1, dict_wizard);
 
-
     // Load model -> modal window
     if (appConfig.data_df !== null) {
-        $('#datasets_availables').val(appConfig.parameters[appConfig.m_name].dataset);
+
         update_split(appConfig.dataset_params.split.split(','));
         wizard_next(2, dict_wizard);
 
@@ -532,7 +529,6 @@ $(document).ready(function () {
                             'normalize': appConfig.dataset_params.normalize,
                             'targets': appConfig.dataset_params.targets
                         };
-
                         close_modal();
                     } else
                         alert(data.error);
