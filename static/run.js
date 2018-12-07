@@ -33,7 +33,7 @@ $(document).ready(function () {
         $('.inputDnD').css('background-image', 'url("' + result + '")');
 
     } else {
-        $feature_div.append('Add new feature values ');
+        // $feature_div.append('Add new feature values ');
         $.each(handle_key.features, function (key, value) {
             add_input_number(handle_key.types[key], key, value, 0.001);
         });
@@ -95,6 +95,13 @@ $(document).ready(function () {
         $(this).parents(".custom-select").find(".custom-select-trigger").text($(this).text());
         selectOption();
     });
+
+    // TEST AND DEPLOY IMAGES NOT AVAILABLE YET
+    if (handle_key.hasOwnProperty('image')) {
+        $('#selector').addClass('hidden');
+        $('#next_button').addClass('hidden');
+    }
+
 });
 
 function selectOption() {

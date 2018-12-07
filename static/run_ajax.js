@@ -68,7 +68,7 @@ $(document).ready(function () {
             ajax.open("POST", "/predict");
             ajax.send(data_form);
             ajax.addEventListener("load", completeHandler, false);
-
+            ajax.addEventListener("error", errorHandler, false);
         }
 
     });
@@ -81,6 +81,8 @@ $(document).ready(function () {
     }
 
     $("#explain_button").click(function (e) {
+        $('#loading_explain').removeClass('hidden');
+        $('#explain_button').prop('disabled', true);
 
         if ($("#image_upload").hasClass("hidden")) {
             $.ajax({
@@ -88,27 +90,37 @@ $(document).ready(function () {
                 type: 'POST',
                 data: serialize_form(),
                 success: function (data) {
+                    $('#loading_explain').addClass('hidden');
+                    $('#explain_button').prop('disabled', false);
                     test_success('explain', data.explanation);
                 }
             })
         } else {
-            var data_form = new FormData($("#predict_form")[0]);
+            let data_form = new FormData($("#predict_form")[0]);
             if ($('#inputFile').val() === '') {
                 data_form.set('inputFile', dataURItoBlob('data:image/' + appConfig.handle_key.extension + ';base64,' + appConfig.handle_key.image))
             }
             data_form.append('radiob', get_checkpoint_selected());
-            var ajax = new XMLHttpRequest();
+            let ajax = new XMLHttpRequest();
             ajax.open("POST", "/explain");
             ajax.send(data_form);
             ajax.addEventListener("load", completeHandlerExplain, false);
         }
     });
 
+
     function completeHandlerExplain(event) {
         let data = JSON.parse(event.target.responseText);
+        explain_success(data);
+    }
+
+    function explain_success(data) {
+        $('#loading_explain').addClass('hidden');
+        $('#explain_button').prop('disabled', false);
         test_success('explain', data['explanation']);
 
     }
+
 
     $("#test_from_file").click(function (e) {
         let $input = $('#upload-file');
@@ -267,4 +279,7 @@ function completeHandler(event) {
                 .append('<br>');
         });
     }
+}
+function errorHandler(event) {
+    alert('Error prediction');
 }

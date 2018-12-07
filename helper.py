@@ -253,7 +253,7 @@ class Tabular(Helper):
                 return False, None, None, "The file contents are not valid."
         else:
             test_filename = self._dataset.get_test_file()[0] if isinstance(self._dataset.get_test_file(),
-                                                                           list) else self._dataset.get_test_file()  # TODO
+                                                                           list)  else self._dataset.get_test_file()  # TODO
             has_targets = True
             df_test = pd.read_csv(test_filename)
         return has_targets, test_filename, df_test, None
@@ -327,7 +327,10 @@ class Image(Helper):
 
     def get_data(self):
         size = self._dataset.get_image_size()
-        return {'height': size[0], 'width': size[1], 'data': self.get_labels_images()}
+        if size is not None:
+            return {'height': size[0], 'width': size[1], 'data': self.get_labels_images()}
+        return {'height': self._dataset.get_sample().shape[0], 'width': self._dataset.get_sample().shape[1],
+                'data': self.get_labels_images()}
 
     def get_targets(self):
         return self._dataset.get_targets()

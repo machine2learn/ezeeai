@@ -111,6 +111,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 let selected_edge = cy.edges().filter((edge) => (edge.selected()));
                 selected_edge.remove();
                 disable_submit_button();
+                clear_input_modal(dict_wizard)
             }
         }
     });
@@ -131,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     table_target_created = create_target_table(inputs_layers[name]['df'], inputs_layers[name]['category_list'], inputs_layers[name]['targets'], dict_wizard);
                     $('#normalize').prop('checked', inputs_layers[name]['normalize']);
                 } else {
-                    restore_features_images(inputs_layers[name]['augmentation_options'], inputs_layers[name]['augmentation_params']);
+                    restore_features_images(inputs_layers[name]['height'], inputs_layers[name]['width'], inputs_layers[name]['normalization'], inputs_layers[name]['augmentation_options'], inputs_layers[name]['augmentation_params']);
                     create_images_targets(inputs_layers[name]['image_data']);
                 }
             }
@@ -227,6 +228,21 @@ document.addEventListener('DOMContentLoaded', function () {
     function add_new_node(event) {
         let radio_checked = document.querySelector('input[name="radio"]:checked');
         if (radio_checked) {
+
+            // ONE INPUT LAYER ALLOW
+            if (radio_checked.id === 'InputLayer') {
+                let exists = false;
+                let c = cy.filter(function (element, i) {
+                    if (element.isNode() && element.data().class_name === 'InputLayer') {
+                        alert('Input layer already exists');
+                        exists = true;
+                    }
+                });
+                if (exists)
+                    return false;
+            }
+
+
             let id_checked = document.querySelector('input[name="radio"]:checked').id;
             let root = Object.keys(corelayers).find(key => id_checked in corelayers[key]);
             Object.keys(corelayers).forEach(function (key) {
@@ -426,6 +442,9 @@ $(document).ready(function () {
             inputs_layers[loaded_input.data().name] = {
                 'dataset': appConfig.dataset_params.name,
                 'split': appConfig.dataset_params.split,
+                'height': appConfig.dataset_params.height,
+                'width': appConfig.dataset_params.width,
+                'normalization': appConfig.dataset_params.normalization,
                 'augmentation_options': appConfig.dataset_params.augmentation_options,
                 'augmentation_params': appConfig.dataset_params.augmentation_params,
                 'image_data': appConfig.data_df.data,
@@ -641,6 +660,11 @@ $(document).ready(function () {
                 inputs_layers[cy.$(':selected').data().name] = {
                     'dataset': appConfig.dataset,
                     'split': appConfig.dataset_params.split,
+
+                    'height': params.height,
+                    'width': params.width,
+                    'normalization': params.normalization,
+
                     'augmentation_options': augmentation_options,
                     'augmentation_params': params,
                     'image_data': data.data,

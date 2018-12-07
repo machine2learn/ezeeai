@@ -88,7 +88,8 @@ class Tabular:
 
     def set_test_file(self, file):
         # args.assert_file(file)
-        args.assert_type((str, list), file)
+        if file:
+            args.assert_type((str, list), file)
         self._test_file = file
 
     def get_test_file(self):
@@ -331,7 +332,8 @@ class Tabular:
         self.set_validation_file(validation_file)
 
     def get_params(self):
-        return {'name': self.get_name(), 'split': self.get_split(), 'targets': self.get_targets(), 'category_list': self.get_column_categories(),
+        return {'name': self.get_name(), 'split': self.get_split(), 'targets': self.get_targets(),
+                'category_list': self.get_column_categories(),
                 'normalize': self.get_normalize()}
 
     def get_num_outputs(self):
@@ -458,7 +460,7 @@ class Tabular:
             else:
                 for x in self.get_feature_columns():
                     if type(x) == _IndicatorColumn and x[0].key == c:
-                            categorical_features.append(c)
+                        categorical_features.append(c)
 
         categorical_index = [list(df.columns.values).index(x) for x in categorical_features]
         categorical_names = {k: df[k].unique() for k in categorical_features}
@@ -477,7 +479,8 @@ class Tabular:
         return csv_dataset
 
     def test_input_fn(self, batch_size, file=None):
-        file = file or self.get_test_file()[0] if isinstance( self.get_test_file(), list) else  self.get_test_file()  #TODO
+        file = file or self.get_test_file()[0] if isinstance(self.get_test_file(),
+                                                             list) else self.get_test_file()  # TODO
         csv_dataset = make_csv_dataset([file], batch_size=batch_size, shuffle=False,
                                        label_names=self.get_targets(), num_epochs=1,
                                        column_defaults=self.get_converted_defaults())

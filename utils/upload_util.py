@@ -20,22 +20,22 @@ def get_examples():
 
 def new_config(dataset_name, username, sess, app_root):
     dataset_path = os.path.join(app_root, 'user_data', username, 'datasets', dataset_name)
-    files = [f for f in os.listdir(dataset_path) if f.startswith('.')]
+    files = [f for f in os.listdir(dataset_path) if f in ['.tabular', '.images1', '.images2', '.images3']]
 
     if files[0].startswith('.tabular'):
         # Create Tabular dataset
         dataset = Tabular(dataset_name, os.path.join(dataset_path, dataset_name + '.csv'))
         path_test = os.path.join(app_root, 'user_data', username, 'datasets', dataset_name, 'test')
         test_files = [os.path.join(path_test, f) for f in os.listdir(path_test) if
-                      os.path.isfile(os.path.join(path_test, f))] #TODO
-        if len( test_files) == 0:
+                      os.path.isfile(os.path.join(path_test, f))]  # TODO
+        if len(test_files) == 0:
             test_files = None
         dataset.set_test_file(test_files)
     else:
         mode = int(files[0][-1])
         dataset = Image(dataset_path, mode, dataset_name)
 
-    sess.create_helper(dataset) #TODO mode
+    sess.create_helper(dataset)  # TODO mode
     return True
 
 
