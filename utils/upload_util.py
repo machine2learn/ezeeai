@@ -27,7 +27,9 @@ def new_config(dataset_name, username, sess, app_root):
         dataset = Tabular(dataset_name, os.path.join(dataset_path, dataset_name + '.csv'))
         path_test = os.path.join(app_root, 'user_data', username, 'datasets', dataset_name, 'test')
         test_files = [os.path.join(path_test, f) for f in os.listdir(path_test) if
-                      os.path.isfile(os.path.join(path_test, f))]
+                      os.path.isfile(os.path.join(path_test, f))] #TODO
+        if len( test_files) == 0:
+            test_files = None
         dataset.set_test_file(test_files)
     else:
         mode = int(files[0][-1])

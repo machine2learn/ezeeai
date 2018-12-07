@@ -12,7 +12,7 @@ class TabularExplainer:
 
         mode = dataset.get_mode()
         categorical_features, categorical_index, categorical_names = dataset.get_categorical_features()
-        unique = self.label_unique_values if hasattr(self, 'label_unique_values') else None
+        unique = dataset.get_target_labels()
 
         self._mode = mode
         self.dataset = dataset
