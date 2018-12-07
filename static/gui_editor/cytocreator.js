@@ -3,7 +3,7 @@ var cy;
 var table_feat_created = false;
 var table_target_created = false;
 var inputs_layers = {};
-var mode;
+var mode, loaded_input;
 document.addEventListener('DOMContentLoaded', function () {
     $('#inp').val(appConfig.m_name);
     $('#submit').prop('disabled', true);
@@ -111,6 +111,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 let selected_edge = cy.edges().filter((edge) => (edge.selected()));
                 selected_edge.remove();
                 disable_submit_button();
+                clear_input_modal(dict_wizard)
             }
         }
     });
@@ -131,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     table_target_created = create_target_table(inputs_layers[name]['df'], inputs_layers[name]['category_list'], inputs_layers[name]['targets'], dict_wizard);
                     $('#normalize').prop('checked', inputs_layers[name]['normalize']);
                 } else {
-                    restore_features_images(inputs_layers[name]['augmentation_options'], inputs_layers[name]['augmentation_params']);
+                    restore_features_images(inputs_layers[name]['height'], inputs_layers[name]['width'], inputs_layers[name]['normalization'], inputs_layers[name]['augmentation_options'], inputs_layers[name]['augmentation_params']);
                     create_images_targets(inputs_layers[name]['image_data']);
                 }
             }
@@ -227,6 +228,21 @@ document.addEventListener('DOMContentLoaded', function () {
     function add_new_node(event) {
         let radio_checked = document.querySelector('input[name="radio"]:checked');
         if (radio_checked) {
+
+            // ONE INPUT LAYER ALLOW
+            if (radio_checked.id === 'InputLayer') {
+                let exists = false;
+                let c = cy.filter(function (element, i) {
+                    if (element.isNode() && element.data().class_name === 'InputLayer') {
+                        alert('Input layer already exists');
+                        exists = true;
+                    }
+                });
+                if (exists)
+                    return false;
+            }
+
+
             let id_checked = document.querySelector('input[name="radio"]:checked').id;
             let root = Object.keys(corelayers).find(key => id_checked in corelayers[key]);
             Object.keys(corelayers).forEach(function (key) {
@@ -354,6 +370,13 @@ document.addEventListener('DOMContentLoaded', function () {
         zoom(cy, -0.1);
     });
 
+    loaded_input = cy.filter(function (element, i) {
+        if (element.isNode() && 'name' in element.data())
+            if (element.data().class_name.includes('InputLayer') && element.data().content.input_shape.value !== undefined)
+                return element.data('name');
+        return false;
+    });
+
 });
 
 function show_params_config(prop, param, saved_config) {
@@ -393,10 +416,8 @@ $(document).ready(function () {
 
     // Load model -> modal window
     if (appConfig.data_df !== null) {
-
         update_split(appConfig.dataset_params.split.split(','));
         wizard_next(2, dict_wizard);
-
         if ('category_list' in appConfig.dataset_params) {
             table_feat_created = create_features_table(appConfig.data_df, appConfig.dataset_params.category_list, dict_wizard);
             table_target_created = create_target_table(appConfig.data_df, appConfig.dataset_params.category_list, appConfig.dataset_params.targets, dict_wizard);
@@ -417,6 +438,17 @@ $(document).ready(function () {
             create_image_feature(appConfig.data_df, dict_wizard);
             restore_features_images(appConfig.dataset_params.augmentation_options, appConfig.dataset_params.augmentation_params);
             create_images_targets(appConfig.data_df.data);
+            // Supposed one input
+            inputs_layers[loaded_input.data().name] = {
+                'dataset': appConfig.dataset_params.name,
+                'split': appConfig.dataset_params.split,
+                'height': appConfig.dataset_params.height,
+                'width': appConfig.dataset_params.width,
+                'normalization': appConfig.dataset_params.normalization,
+                'augmentation_options': appConfig.dataset_params.augmentation_options,
+                'augmentation_params': appConfig.dataset_params.augmentation_params,
+                'image_data': appConfig.data_df.data,
+            };
         }
         $('#validate_model').click();
     }
@@ -628,6 +660,11 @@ $(document).ready(function () {
                 inputs_layers[cy.$(':selected').data().name] = {
                     'dataset': appConfig.dataset,
                     'split': appConfig.dataset_params.split,
+
+                    'height': params.height,
+                    'width': params.width,
+                    'normalization': params.normalization,
+
                     'augmentation_options': augmentation_options,
                     'augmentation_params': params,
                     'image_data': data.data,

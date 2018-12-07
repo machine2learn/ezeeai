@@ -1,5 +1,7 @@
 $(document).ready(function () {
     $('#close').on('click', function () {
+
+        clear_input_modal(dict_wizard);
         close_modal();
     });
 
@@ -200,12 +202,15 @@ function clear_table(id) {
 }
 
 function clear_input_modal(dict_wizard) {
+    wizard_next(1, dict_wizard);
+    wizard_next(2, dict_wizard);
     $('#image_row').empty();
     $('#image_demo').empty();
     $('#slides').empty();
 
     if (table_target_created)
         clear_table('table_targets');
+    wizard_next(3, dict_wizard);
 
     $("#height").val(0);
     $("#width").val(0);
@@ -217,12 +222,11 @@ function clear_input_modal(dict_wizard) {
     $("#list1 input").each(function () {
         this.value = null
     });
+    wizard_next(4, dict_wizard);
 
     if (table_feat_created) {
         clear_table('table_features');
-
         update_split([70, 30, 0]);
-
         $("#datasets_availables").val($("#datasets_availables option:first").val());
 
         $('#wizard4').removeClass('active show')
@@ -491,10 +495,16 @@ function create_images_targets(data) {
     });
 }
 
-function restore_features_images(aug_op, aug_param) {
+function restore_features_images(height, width, norm, aug_op, aug_param) {
     $('#image_features').removeClass('hidden');
     $('#tabular_features').addClass('hidden');
+
     wizard_next(3, dict_wizard);
+
+    $("#height").val(height);
+    $("#width").val(width);
+    $("#normalization").val(norm);
+
     $.each(aug_op, function (key, val) {
         $('#' + val).appendTo("#list2");
     });

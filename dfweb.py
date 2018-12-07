@@ -137,6 +137,7 @@ def gui():
     user_dataset = config_ops.get_datasets_and_types(APP_ROOT, username)
 
     if not sess.check_key('config_file'):
+        sess.reset_user()
         return render_template('gui.html', user=username, token=session['token'], page=1, user_dataset=user_dataset,
                                dataset_params={}, data=None, parameters=param_configs, cy_model=[],
                                model_name='new_model', num_outputs=None)
@@ -322,14 +323,9 @@ def explain():
             all_params_config.set_canned_data(sess.get_canned_data())
         result = th.explain_estimator(all_params_config, ep)
         return jsonify(explanation=hlp.explain_return(sess, request, result))
-    else:
-        params = sess.get_explain_params()
-        return render_template('explain.html', title="Explain", page=5,
-                               model=sess.get_model(),
-                               user=session['user'],
-                               token=session['token'],
-                               exp_target=sess.get_exp_target(),
-                               **params)
+    params = sess.get_explain_params()
+    return render_template('explain.html', title="Explain", page=5, model=sess.get_model(), user=session['user'],
+                           token=session['token'], exp_target=sess.get_exp_target(), **params)
 
 
 @app.route('/test', methods=['POST', 'GET'])
@@ -365,9 +361,8 @@ def data_graphs():
     if request.method == 'POST':
         sess.set_generate_df(get_generate_dataset_name(request), APP_ROOT)
         return jsonify(explanation='ok')
-    else:
-        df_as_json, norm, corr = get_norm_corr(sess.get('generated_df').copy())
-        return render_template('data_graphs.html', data=json.loads(df_as_json), norm=norm, corr=corr)
+    df_as_json, norm, corr = get_norm_corr(sess.get('generated_df').copy())
+    return render_template('data_graphs.html', data=json.loads(df_as_json), norm=norm, corr=corr)
 
 
 @app.route('/delete', methods=['POST'])
@@ -420,7 +415,8 @@ def refresh():
         config_file = sess.get_config_file()
         export_dir = config_reader.read_config(config_file).export_dir()
         checkpoints = run_utils.get_eval_results(export_dir, sess.get_writer(), config_file)
-        return jsonify(checkpoints=checkpoints, data=sess.get('log_fp').read() if sess.check_key('log_fp') else '', running=running, epochs=epochs)
+        return jsonify(checkpoints=checkpoints, data=sess.get('log_fp').read() if sess.check_key('log_fp') else '',
+                       running=running, epochs=epochs)
     except (KeyError, NoSectionError):
         return jsonify(checkpoints='', data='', running=running, epochs=epochs)
 
@@ -458,7 +454,7 @@ def show_test():
 
     if sess.get_has_targets():
         metrics = get_metrics('classification', sess.get_y_true(), sess.get_y_pred(), labels,
-                              logits=sess.get_logits()) if sess.check_key('logits') \
+                              logits=sess.get_logits()) if hlp.get_mode() == 'classification' \
             else get_metrics('regression', sess.get_y_true(), sess.get_y_pred(), labels,
                              target_len=len(hlp.get_targets()))
 
@@ -473,6 +469,12 @@ def deploy():
     all_params_config = config_reader.read_config(sess.get_config_file())
     hlp = sess.get_helper()
     export_dir = all_params_config.export_dir()
+
+    if request.method == 'POST' and 'model_name' in request.form:
+        file_path = sys_ops.export_models(export_dir, get_selected_rows(request), request.form['model_name'])
+        return send_file(file_path, mimetype='application/zip', attachment_filename=file_path.split('/')[-1],
+                         as_attachment=True)
+
     checkpoints = run_utils.ckpt_to_table(
         run_utils.get_eval_results(export_dir, sess.get_writer(), sess.get_config_file()))
     all_params_config = run_utils.create_result_parameters(request, sess, checkpoint=checkpoints['Model'].values[-1])
@@ -484,10 +486,6 @@ def deploy():
         return redirect(url_for('run'))  # flash('Deploy error.', 'error')
     example = hlp.generate_rest_call(pred)
 
-    if request.method == 'POST' and 'model_name' in request.form:
-        file_path = sys_ops.export_models(export_dir, get_selected_rows(request), get_model_name(request))
-        return send_file(file_path, mimetype='application/zip', attachment_filename=file_path.split('/')[-1],
-                         as_attachment=True)
     form = DeploymentForm()
     form.model_name.default = sess.get_model_name()
     form.process()
@@ -504,6 +502,7 @@ def explain_feature():
     all_params_config.set('PATHS', 'checkpoint_dir',
                           os.path.join(all_params_config.export_dir(), get_model(request)))
     file_path, unique_val_column = hlp.create_ice_data(request)
+
     if sess.mode_is_canned():
         all_params_config.set_canned_data(sess.get_canned_data())
     final_pred = th.predict_test_estimator(all_params_config, file_path)
