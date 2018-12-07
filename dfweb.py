@@ -338,7 +338,7 @@ def explain():
 def test():
     hlp = sess.get_helper()
     has_targets, test_filename, df_test, result = hlp.test_request(request)
-    if not has_targets:
+    if not test_filename:
         return jsonify(result=result)
 
     all_params_config = config_reader.read_config(sess.get_config_file())
@@ -354,7 +354,7 @@ def test():
     predict_file = hlp.process_test_predict(df_test, final_pred, test_filename)
     sess.set_has_targets(has_targets)
     sess.set_predict_file(predict_file)
-    store_predictions(has_targets, sess, final_pred, df_test[hlp.get_targets()].values)
+    store_predictions(has_targets, sess, final_pred, df_test[hlp.get_targets()].values if has_targets else None)
     return jsonify(result="ok")
 
 
