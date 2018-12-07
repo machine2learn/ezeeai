@@ -2,28 +2,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-
 MAX_FEATURES = 10
-
-
-# def explain_return(sess, new_features, result, targets):
-#     if result is None:
-#         return 'Model\'s structure does not match the new parameter configuration'
-#     if isinstance(sess.get_helper(), Image):
-#
-#         pass
-#     else:
-#         sess.set("new_features", {k: new_features[k] for k in new_features.keys() if k not in targets})
-#         if result.mode == 'regression':
-#             graphs, predict_table = get_reg_explain(result)
-#             sess.set('type', 'regression')
-#         else:
-#             graphs, predict_table = get_class_explain(result)
-#             sess.set('type', 'class')
-#         sess.set('dict_graphs', graphs)
-#         sess.set('dict_table', predict_table)
-#         return 'ok'
-#
 
 
 def create_graphs(k, dict_list):
@@ -97,7 +76,6 @@ def check_input(num_feat, top_labels, max_feat, max_labels):
 
 
 def generate_ice_df(request, df, file, targets, dtypes):
-
     feature_selected = request.get_json()['explain_feature']
     feature_values = request.get_json()['features_values'].copy()
     for t in targets:
@@ -108,7 +86,7 @@ def generate_ice_df(request, df, file, targets, dtypes):
         mu, sig = stats.norm.fit(df[feature_selected].values)
         min = -2 * sig
         max = 2 * sig
-        posible_values = np.linspace(min, max, num= 40).tolist()
+        posible_values = np.linspace(min, max, num=40).tolist()
         # posible_values = df[feature_selected].unique()
         # posible_values = [float(x) for x in posible_values]
         # posible_values.sort()
@@ -118,15 +96,17 @@ def generate_ice_df(request, df, file, targets, dtypes):
         posible_values.sort()
         posible_values = [str(x) for x in posible_values]
 
-
     row_n = len(posible_values)
 
     features = pd.DataFrame(pd.Series(feature_values)).transpose()
     new_df = pd.concat([features] * row_n, ignore_index=True)
     new_df[feature_selected] = posible_values
 
-    # columns = list(df.columns)
-    # new_df = new_df[columns]  # Reorder
+    for c in dtypes['none']:
+        new_df[c] = None
+
+    columns = list(df.columns)
+    new_df = new_df[columns]  # Reorder
 
     file_path = file.split('.csv')[0] + '_ice_explain.csv'
     new_df.to_csv(file_path, index=False)
@@ -139,8 +119,9 @@ def get_exp_target_prediction(targets, exp_target, final_pred, dtypes):
     # TODO
     if index is not None:
         if exp_target in dtypes['numerical']:
-            return [float(x[index]) for x in final_pred['preds']] , None
-        return final_pred['preds'][index], [[float(score) for score in scores[index]] for scores in final_pred['scores']]
+            return [float(x[index]) for x in final_pred['preds']], None
+        return final_pred['preds'][index], [[float(score) for score in scores[index]] for scores in
+                                            final_pred['scores']]
 
     if exp_target in dtypes['numerical']:
         return [float(x) for x in final_pred['preds']], None
