@@ -23,11 +23,11 @@ def reverse_zeroCenter(x):
 
 
 MEANS = np.array([123.68, 116.779, 103.939]).astype(np.float32)  # BGR
-norm_options = {"unit_lenght": lambda x: x / 255,
+norm_options = {"unit_length": lambda x: x / 255,
                 "zero_center": zeroCenter,
                 "imagenet_mean_subtraction": lambda x: x - MEANS}
 unnorm_options = {
-    "unit_lenght": lambda x: x * 255,
+    "unit_length": lambda x: x * 255,
     "zero_center": reverse_zeroCenter,
     "imagenet_mean_subtraction": lambda x: x + MEANS}
 
