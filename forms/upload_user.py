@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, PasswordField, BooleanField
+from wtforms import StringField, SubmitField,  BooleanField
 from wtforms.validators import InputRequired, Email, Length
-from wtforms import BooleanField as WTBool
+
 
 class UploadUserForm(FlaskForm):
     username = StringField("Username")

@@ -194,7 +194,7 @@ function uploadFile() {
             unfreeeze_view()
         }
     };
-
+    appConfig.handle_key.configs.push($('#generate_dataset-dataset_name').val());
     ajax.upload.addEventListener("progress", progressHandler, false);
     ajax.addEventListener("load", completeHandler, false);
     ajax.addEventListener("error", errorHandler, false);
