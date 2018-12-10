@@ -16,7 +16,6 @@ from forms.register import RegisterForm
 from forms.upload_form import UploadForm
 
 from user import User
-from utils import explain_util
 from thread_handler import ThreadHandler
 from session import Session
 from utils.request_util import *

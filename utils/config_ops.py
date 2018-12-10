@@ -26,26 +26,6 @@ def get_datasets_and_types(app_root, username):
     return data_and_type
 
 
-def generate_config_name(app_root, username, dataset_name):
-    user_configs = []
-    if os.path.isdir(os.path.join(app_root, 'user_data', username, 'datasets', dataset_name)):
-        user_configs = [a for a in os.listdir(os.path.join(app_root, 'user_data', username, 'datasets', dataset_name))
-                        if os.path.isdir(os.path.join(app_root, 'user_data', username, 'datasets', dataset_name, a))]
-    new_name = 'config_'
-    cont = 1
-    while new_name + str(cont) in user_configs:
-        cont += 1
-    return new_name + str(cont)
-
-
-def create_config(username, APP_ROOT, dataset, config_name):
-    # TODO default_config not exists, not useful
-    path = APP_ROOT + '/user_data/' + username + '/' + dataset + '/' + config_name
-    os.makedirs(path, exist_ok=True)
-    sys_ops.copyfile('config/default_config.ini', path + '/config.ini')
-    return path + '/config.ini'
-
-
 def update_config_dir(config_writer, target):
     config_writer.add_item('PATHS', 'checkpoint_dir', os.path.join(target, 'checkpoints/'))
     config_writer.add_item('PATHS', 'custom_model', os.path.join(target, 'custom'))
@@ -63,7 +43,6 @@ def create_model(username, APP_ROOT, config_name):
 
 
 def define_new_model(APP_ROOT, username, config_writer, model_name):
-    # config_name = generate_config_name(APP_ROOT, username, dataset_name)
     target = os.path.join(APP_ROOT, 'user_data', username, 'models', model_name)
     update_config_dir(config_writer, target)
     os.makedirs(target, exist_ok=True)
@@ -134,18 +113,17 @@ def new_image_dataset(app_root, username, option, file):
     if not check_zip_file(path_file):
         tree_remove(dataset_path)
         return False
-    else:
-        unzip(path_file, dataset_path)
-        try:
-            if option == 'option1':
-                find_image_files_folder_per_class(dataset_path)
-            elif option == 'option2':
-                info_file = [f for f in os.listdir(dataset_path) if f.startswith('labels.')]
-                assert len(info_file) == 1
-                find_image_files_from_file(dataset_path, os.path.join(dataset_path, info_file[0]))
-        except AssertionError:
-            tree_remove(dataset_path)
-            return False
+    unzip(path_file, dataset_path)
+    try:
+        if option == 'option1':
+            find_image_files_folder_per_class(dataset_path)
+        elif option == 'option2':
+            info_file = [f for f in os.listdir(dataset_path) if f.startswith('labels.')]
+            assert len(info_file) == 1
+            find_image_files_from_file(dataset_path, os.path.join(dataset_path, info_file[0]))
+    except AssertionError:
+        tree_remove(dataset_path)
+        return False
     return True
 
 # TODO
@@ -154,3 +132,23 @@ def new_image_dataset(app_root, username, option, file):
 #     if not os.path.isdir(path):
 #         return False
 #     return dataset_name
+
+
+# def generate_config_name(app_root, username, dataset_name):
+#     user_configs = []
+#     if os.path.isdir(os.path.join(app_root, 'user_data', username, 'datasets', dataset_name)):
+#         user_configs = [a for a in os.listdir(os.path.join(app_root, 'user_data', username, 'datasets', dataset_name))
+#                         if os.path.isdir(os.path.join(app_root, 'user_data', username, 'datasets', dataset_name, a))]
+#     new_name = 'config_'
+#     cont = 1
+#     while new_name + str(cont) in user_configs:
+#         cont += 1
+#     return new_name + str(cont)
+
+#
+# def create_config(username, APP_ROOT, dataset, config_name):
+#     # TODO default_config not exists, not useful
+#     path = APP_ROOT + '/user_data/' + username + '/' + dataset + '/' + config_name
+#     os.makedirs(path, exist_ok=True)
+#     sys_ops.copyfile('config/default_config.ini', path + '/config.ini')
+#     return path + '/config.ini'

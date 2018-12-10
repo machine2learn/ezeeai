@@ -253,7 +253,7 @@ class Tabular(Helper):
                 return False, None, None, "The file contents are not valid."
         else:
             test_filename = self._dataset.get_test_file()[0] if isinstance(self._dataset.get_test_file(),
-                                                                           list)  else self._dataset.get_test_file()  # TODO
+                                                                           list) else self._dataset.get_test_file()  # TODO
             has_targets = True
             df_test = pd.read_csv(test_filename)
         return has_targets, test_filename, df_test, None
@@ -452,15 +452,17 @@ class Image(Helper):
 
         if num_class == 2:
             predict_table['columns'] = self._dataset.get_class_names()
-            d = result.intercept[0]
-            predict_table['data'] = [float("{0:.3f}".format(1 - d)), float("{0:.3f}".format(d))]
-
+            if result.local_pred[0] >= 0:
+                predict_table['data'] = [float("{0:.3f}".format(1 - result.local_pred[0])),
+                                         float("{0:.3f}".format(result.local_pred[0]))]
         else:
-            for i in range(num_class):
-                c = self._dataset.get_class_names()[i]
-                d = result.intercept[i]
-                predict_table['columns'].append(c)
-                predict_table['data'].append(float("{0:.3f}".format(d)))
+            # class_list = self._dataset.get_class_names()
+            # predict_table['columns'] = class_list
+            # predict_table['data'] = [float("{0:.3f}".format(result.local_pred[i][0])) for i in range(len(class_list))]
+            predict_table['columns'] = [self._dataset.get_class_names()[result.top_labels[0]], 'other']
+            predict_table['data'] = [float("{0:.3f}".format(result.local_pred[0])),
+                                     float("{0:.3f}".format(1 - result.local_pred[0]))]
+
         params['predict_table'] = clean_predict_table(predict_table)
         params['graphs'] = None
         sess.set('explain_params', params)
