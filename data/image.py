@@ -23,11 +23,11 @@ def reverse_zeroCenter(x):
 
 
 MEANS = np.array([123.68, 116.779, 103.939]).astype(np.float32)  # BGR
-norm_options = {"unit_lenght": lambda x: x / 255,
+norm_options = {"unit_length": lambda x: x / 255,
                 "zero_center": zeroCenter,
                 "imagenet_mean_subtraction": lambda x: x - MEANS}
 unnorm_options = {
-    "unit_lenght": lambda x: x * 255,
+    "unit_length": lambda x: x * 255,
     "zero_center": reverse_zeroCenter,
     "imagenet_mean_subtraction": lambda x: x + MEANS}
 
@@ -60,8 +60,9 @@ def find_image_files_folder_per_class(data_dir):
     filenames = []
     class_names = []
     for f in folders:
-        matching_files = tf.gfile.Glob('%s/%s/*.jpg' % (data_dir, f))
-        matching_files += tf.gfile.Glob('%s/%s/*.jpeg' % (data_dir, f))  # TODO accept more types
+        matching_files = []
+        for ext in ['jpg', 'jpeg', 'png', 'PNG', 'JPG', 'JPEG']:
+            matching_files += tf.gfile.Glob('%s/%s/*.%s' % (data_dir, f, ext))
         n_images = len(matching_files)
         if n_images > 0:
             labels.extend([f] * n_images)
@@ -74,7 +75,9 @@ def find_image_files_folder_per_class(data_dir):
 
 def find_image_files_from_file(data_dir, info_file):
     info_file = pd.read_csv(info_file, sep=None, engine='python')
-    # TODO Structure for now: col 0 =  im name, col 1 = label
+    #TODO Structure for now: col 0 =  im name, col 1 = label
+    #TODO Regression
+    #TODO include header
 
     filenames = info_file[info_file.columns[0]].values
     if not os.path.isfile(filenames[0]):
