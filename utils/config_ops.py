@@ -96,59 +96,41 @@ def check_dataset_path(app_root, username, dataset_name):
     return dataset_name, path
 
 
-def new_image_dataset(app_root, username, option, file):
-    if isinstance(file, str):
-        return False
-    dataset_name = file.filename.split('.')[0]
-    dataset_name, dataset_path = check_dataset_path(app_root, username, dataset_name)
-    filename = secure_filename(file.filename)
-    path_file = os.path.join(dataset_path, filename)
-    file.save(path_file)
-    open(os.path.join(dataset_path, option_map[option]), 'w')
+def new_image_dataset(app_root, username, option, train_file, test_file):
+    dataset_name = train_file.filename.split('.')[0]
+    dataset_name, dataset_path_global = check_dataset_path(app_root, username, dataset_name)
 
-    if option == 'option3' and not check_numpy_file(path_file):
-        tree_remove(dataset_path)
-        return False
+    dataset_path_train = os.path.join(dataset_path_global, 'train')
+    dataset_path_test = os.path.join(dataset_path_global, 'test')
+    os.makedirs(dataset_path_train, exist_ok=True)
+    os.makedirs(dataset_path_test, exist_ok=True)
 
-    if not check_zip_file(path_file):
-        tree_remove(dataset_path)
-        return False
-    unzip(path_file, dataset_path)
-    try:
-        if option == 'option1':
-            find_image_files_folder_per_class(dataset_path)
-        elif option == 'option2':
-            info_file = [f for f in os.listdir(dataset_path) if f.startswith('labels.')]
-            assert len(info_file) == 1
-            find_image_files_from_file(dataset_path, os.path.join(dataset_path, info_file[0]))
-    except AssertionError:
-        tree_remove(dataset_path)
-        return False
+    open(os.path.join(dataset_path_global, option_map[option]), 'w')
+
+    for file, dataset_path in zip([train_file, test_file], [dataset_path_train, dataset_path_test]):
+        if isinstance(file, str):
+            break
+        filename = secure_filename(file.filename)
+        path_file = os.path.join(dataset_path, filename)
+        file.save(path_file)
+
+        if option == 'option3' and not check_numpy_file(path_file):
+            tree_remove(dataset_path)
+            return False
+
+        if not check_zip_file(path_file):
+            tree_remove(dataset_path)
+            return False
+        unzip(path_file, dataset_path)
+        try:
+            if option == 'option1':
+                find_image_files_folder_per_class(dataset_path)
+            elif option == 'option2':
+                info_file = [f for f in os.listdir(dataset_path) if f.startswith('labels.')]
+                assert len(info_file) == 1
+                find_image_files_from_file(dataset_path, os.path.join(dataset_path, info_file[0]))
+        except AssertionError:
+            tree_remove(dataset_path)
+            return False
+
     return True
-
-# TODO
-# def check_generated(dataset_name, APP_ROOT, username):
-#     path = os.path.join(APP_ROOT, 'user_data', username, 'datasets', dataset_name)
-#     if not os.path.isdir(path):
-#         return False
-#     return dataset_name
-
-
-# def generate_config_name(app_root, username, dataset_name):
-#     user_configs = []
-#     if os.path.isdir(os.path.join(app_root, 'user_data', username, 'datasets', dataset_name)):
-#         user_configs = [a for a in os.listdir(os.path.join(app_root, 'user_data', username, 'datasets', dataset_name))
-#                         if os.path.isdir(os.path.join(app_root, 'user_data', username, 'datasets', dataset_name, a))]
-#     new_name = 'config_'
-#     cont = 1
-#     while new_name + str(cont) in user_configs:
-#         cont += 1
-#     return new_name + str(cont)
-
-#
-# def create_config(username, APP_ROOT, dataset, config_name):
-#     # TODO default_config not exists, not useful
-#     path = APP_ROOT + '/user_data/' + username + '/' + dataset + '/' + config_name
-#     os.makedirs(path, exist_ok=True)
-#     sys_ops.copyfile('config/default_config.ini', path + '/config.ini')
-#     return path + '/config.ini'

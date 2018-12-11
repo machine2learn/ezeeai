@@ -42,6 +42,7 @@ class Session:
         user = self.get_session()
         self._config[user] = {}
         self._config_writer[user] = ConfigWriter()
+        self._helper = None
 
     def get_session(self):
         with self._app.app_context():

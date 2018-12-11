@@ -94,9 +94,10 @@ def read_numpy_array(path_file):
 
 
 class Image:
-    def __init__(self, dataset_path, mode, name):
+    def __init__(self, dataset_path, test_path, mode, name):
         self._name = name
         self._dataset_path = dataset_path
+        self._test_path = test_path
         self._mode = mode
         self._images = None
         self._labels = None
@@ -111,6 +112,9 @@ class Image:
         self._image_size = None
         self._augmentation_options = None
         self._augmentation_params = None
+
+    def get_test_path(self):
+        return self._test_path
 
     def set_augmentation_options(self, opts):
         self._augmentation_options = opts

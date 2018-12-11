@@ -117,7 +117,8 @@ def upload():
         elif request.form['selected'] == 'images':
             option_selected = form.selector.data['selector']
             file = form[option_selected].data['file']
-            if not config_ops.new_image_dataset(APP_ROOT, username, option_selected, file):
+            test_file = form[option_selected].data['test_file'] if 'test_file' in form[option_selected].data else None
+            if not config_ops.new_image_dataset(APP_ROOT, username, option_selected, file, test_file):
                 return 'Error'
         return 'Ok'
 
@@ -128,7 +129,6 @@ def upload():
 
 @app.route('/gui', methods=['GET', 'POST'])
 @login_required
-@check_config
 def gui():
     username = session['user']
 
@@ -186,7 +186,8 @@ def gui_select_data():
 def gui_split():
     hlp = sess.get_helper()
     hlp.set_split(get_split(request))
-    return jsonify(data=hlp.get_data())
+    data = hlp.get_data()
+    return jsonify(data=data)
 
 
 @app.route('/gui_features', methods=['POST'])
@@ -327,6 +328,14 @@ def explain():
                            token=session['token'], exp_target=sess.get_exp_target(), **params)
 
 
+@app.route('/upload_test_file', methods=['POST', 'GET'])
+@login_required
+@check_config
+def upload_test_file():
+    result = sess.get_helper().test_upload(request)
+    return jsonify(result=result)
+
+
 @app.route('/test', methods=['POST', 'GET'])
 @login_required
 @check_config
@@ -345,8 +354,10 @@ def test():
     final_pred = th.predict_test_estimator(all_params_config, test_filename)
     if final_pred is None:
         return jsonify(result='Model\'s structure does not match the new parameter configuration')
-
-    predict_file = hlp.process_test_predict(df_test, final_pred, test_filename)
+    try:
+        predict_file = hlp.process_test_predict(df_test, final_pred, test_filename)
+    except:
+        return jsonify(result='Model\'s structure does not match the new parameter configuration')
     sess.set_has_targets(has_targets)
     sess.set_predict_file(predict_file)
     store_predictions(has_targets, sess, final_pred, df_test[hlp.get_targets()].values if has_targets else None)
@@ -504,8 +515,11 @@ def explain_feature():
 
     if sess.mode_is_canned():
         all_params_config.set_canned_data(sess.get_canned_data())
-    final_pred = th.predict_test_estimator(all_params_config, file_path)
-    if final_pred is None:
+    try:
+        final_pred = th.predict_test_estimator(all_params_config, file_path)
+        if final_pred is None:
+            return jsonify(data='Error')
+    except:
         return jsonify(data='Error')
     data = hlp.process_ice_request(request, unique_val_column, final_pred)
     return jsonify(data=data)

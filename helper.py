@@ -21,7 +21,7 @@ import numpy as np
 
 def encode_image(path):
     if isinstance(path, np.ndarray):
-        pil_img = PIL.Image.fromarray(path)
+        pil_img = PIL.Image.fromarray(path.astype(np.uint8))
         buff = BytesIO()
         pil_img.save(buff, format="JPEG")
         return base64.b64encode(buff.getvalue()).decode()
@@ -187,7 +187,8 @@ class Tabular(Helper):
             'types': run_utils.get_html_types(dict_types),
             'categoricals': categoricals,
             'targets': self._dataset.get_targets(),
-            'has_test': self._dataset.get_test_file() is not None
+            'has_test': self._dataset.get_test_file() is not None,
+            'test_files': self._dataset.get_all_test_files()
         }
 
         return result, explain_disabled
@@ -241,21 +242,25 @@ class Tabular(Helper):
 
         return data
 
+    def test_upload(self, request):
+        test_file = get_filename(request)
+        try:
+            test_filename = os.path.join(self._dataset.get_base_path(), 'test', test_file)
+            df_test = sys_ops.bytestr2df(request.get_json()['file'], test_filename)
+            sys_ops.check_df(df_test, self._dataset.get_df(), self._dataset.get_targets(), test_filename)
+        except ValueError:
+            os.remove(test_filename)
+            return "The file contents are not valid."
+        return "ok"
+
     def test_request(self, request):
         if 'filename' in request.get_json():
-            test_file = get_filename(request)
-            try:
-                test_filename = os.path.join(self._dataset.get_base_path(), 'test', test_file)
-                df_test = sys_ops.bytestr2df(request.get_json()['file'], test_filename)
-                has_targets = sys_ops.check_df(df_test, self._dataset.get_df(), self._dataset.get_targets(),
-                                               test_filename)
-            except ValueError:
-                return False, None, None, "The file contents are not valid."
+            test_filename = os.path.join(self._dataset.get_base_path(), 'test', get_filename(request))
         else:
             test_filename = self._dataset.get_test_file()[0] if isinstance(self._dataset.get_test_file(),
                                                                            list) else self._dataset.get_test_file()  # TODO
-            has_targets = True
-            df_test = pd.read_csv(test_filename)
+        has_targets = True
+        df_test = pd.read_csv(test_filename)
         return has_targets, test_filename, df_test, None
 
     def process_test_predict(self, df, final_pred, test_filename):
@@ -429,7 +434,11 @@ class Image(Helper):
         pass
 
     def test_request(self, request):
-        pass
+        return "Not available yet."
+
+    def test_upload(self, request):
+        return "Not available yet."
+
 
     def write_dataset(self, data_path):
         pickle.dump(self._dataset, open(data_path, 'wb'))

@@ -128,6 +128,7 @@ function clear_tabular_form() {
 function clear_images_form() {
     $(".img-select").children("div").each(function () {
         $('#' + this.id + '-file').val('');
+        $('#' + this.id + '-test_file').val('');
         $('#progres_bar_' + this.id).val(0);
         $('#status_' + this.id).text('');
         $('#loaded_n_total_' + this.id).text('');

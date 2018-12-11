@@ -27,3 +27,11 @@ function token_session(token) {
         }
     }
 }
+//
+// $(document).ready(function () {
+//
+//     $('#sidebarCollapse').on('click', function () {
+//         $('#sidebar').toggleClass('active');
+//     });
+//
+// });

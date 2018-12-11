@@ -118,41 +118,54 @@ $(document).ready(function () {
         $('#loading_explain').addClass('hidden');
         $('#explain_button').prop('disabled', false);
         test_success('explain', data['explanation']);
-
     }
 
-
-    $("#test_from_file").click(function (e) {
-        let $input = $('#upload-file');
-        if ($input[0].files.length === 0) {
+    $("#test_button").click(function (e) {
+        let input = get_testfile_selected();
+        if (!input) {
             alert("Please select a file.")
         } else {
-            let fReader = new FileReader();
-            fReader.readAsBinaryString($input[0].files[0]);
-            fReader.onloadend = function (event) {
-                $.ajax({
-                    url: "/test",
-                    type: 'POST',
-                    dataType: 'json',
-                    contentType: 'application/json;charset=UTF-8',
-                    accepts: {
-                        json: 'application/json',
-                    },
-                    data: JSON.stringify({
-                        'file': event.target.result,
-                        'filename': document.getElementById('upload-file').files[0].name,
-                        'model': get_checkpoint_selected()
-                    }),
-                    success: function (data) {
-                        test_success('show_test', data.result);
-                    }
-                })
-            }
+            $.ajax({
+                url: "/test",
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json;charset=UTF-8',
+                accepts: {
+                    json: 'application/json',
+                },
+                data: JSON.stringify({
+                    'filename': input,
+                    'model': get_checkpoint_selected()
+                }),
+                success: function (data) {
+                    test_success('show_test', data.result);
+                }
+            })
         }
+
+    });
+
+    var inputs = document.querySelectorAll('.inputfile');
+    Array.prototype.forEach.call(inputs, function (input) {
+        var label = input.nextElementSibling,
+            labelVal = label.innerHTML;
+
+        input.addEventListener('change', function (e) {
+            var fileName = '';
+            if (this.files && this.files.length > 1)
+                fileName = (this.getAttribute('data-multiple-caption') || '').replace('{count}', this.files.length);
+            else
+                fileName = e.target.value.split('\\').pop();
+
+            if (fileName)
+                label.querySelector('span').innerHTML = fileName;
+            else
+                label.innerHTML = labelVal;
+        });
     });
 
 
-    $("#test_from_split").click(function (e) {
+    $("#button_test_from_split").click(function (e) {
         $.ajax({
             url: "/test",
             type: 'POST',
@@ -207,7 +220,8 @@ $(document).ready(function () {
             })
         }
     }, 1000);
-});
+})
+;
 
 function ConfirmDelete(elem, all) {
     let message = "Are you sure you want to delete the selected model?";
@@ -244,20 +258,28 @@ function get_checkpoint_selected() {
     return model[0][0];
 }
 
+function get_testfile_selected() {
+    let file = $('#test_table').DataTable().rows({selected: true}).data();
+    if (file[0] === undefined)
+        return false;
+    return file[0][0];
+}
+
+
 function dataURItoBlob(dataURI) {
     // convert base64/URLEncoded data component to raw binary data held in a string
-    var byteString;
+    let byteString;
     if (dataURI.split(',')[0].indexOf('base64') >= 0)
         byteString = atob(dataURI.split(',')[1]);
     else
         byteString = unescape(dataURI.split(',')[1]);
 
     // separate out the mime component
-    var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+    let mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
 
     // write the bytes of the string to a typed array
-    var ia = new Uint8Array(byteString.length);
-    for (var i = 0; i < byteString.length; i++) {
+    let ia = new Uint8Array(byteString.length);
+    for (let i = 0; i < byteString.length; i++) {
         ia[i] = byteString.charCodeAt(i);
     }
 
@@ -280,6 +302,43 @@ function completeHandler(event) {
         });
     }
 }
+
 function errorHandler(event) {
     alert('Error prediction');
+}
+
+function upload_test_file(e) {
+    let $input = $('#upload-file');
+    if ($input[0].files.length === 0) {
+        alert("Please select a file.")
+    } else {
+        let filename = document.getElementById('upload-file').files[0].name;
+        let fReader = new FileReader();
+        fReader.readAsBinaryString($input[0].files[0]);
+        fReader.onloadend = function (event) {
+            $.ajax({
+                url: "/upload_test_file",
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json;charset=UTF-8',
+                accepts: {
+                    json: 'application/json',
+                },
+                data: JSON.stringify({
+                    'file': event.target.result,
+                    'filename': filename
+                }),
+                success: function (data) {
+                    if (data.result !== 'ok')
+                        alert(data.result);
+                    else {
+                        let test_files = appConfig.handle_key.test_files.map((val) => [val]);
+                        test_files.push([filename]);
+                        $('#test_table').DataTable().clear().rows.add(test_files).draw()
+                    }
+
+                }
+            })
+        }
+    }
 }
