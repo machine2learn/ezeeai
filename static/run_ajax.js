@@ -308,6 +308,21 @@ function errorHandler(event) {
 }
 
 function upload_test_file(e) {
+
+    // var ajax = new XMLHttpRequest();
+    // ajax.onreadystatechange = function () {
+    //     if (this.readyState === 4 && this.responseText !== 'Ok') {
+    //         alert('Upload failed: invalid data format');
+    //     } else if (this.readyState === 4 && this.responseText === 'Ok') {
+    //         let test_files = appConfig.handle_key.test_files.map((val) => [val]);
+    //         test_files.push([filename]);
+    //         $('#test_table').DataTable().clear().rows.add(test_files).draw()
+    //     }
+    // };
+    // ajax.open("POST", "/upload_test_file");
+    // ajax.send(new FormData($("#predict_form")[0]));
+
+
     let $input = $('#upload-file');
     if ($input[0].files.length === 0) {
         alert("Please select a file.")

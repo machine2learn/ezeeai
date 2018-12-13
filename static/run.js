@@ -71,7 +71,7 @@ $(document).ready(function () {
 
     // TEST AND DEPLOY IMAGES NOT AVAILABLE YET
     if (handle_key.hasOwnProperty('image')) {
-        $('#selector').addClass('hidden');
+        $('#upload-file').attr('accept', '.zip');
         $('#next_button').addClass('hidden');
     }
 
@@ -190,15 +190,19 @@ function readUrl(input) {
         };
         reader.readAsDataURL(input.files[0]);
     }
-    let file = document.querySelector('input[type=file]').files[0];
-    let reader = new FileReader();
+    var file = document.querySelector('input[type=file]').files[0];
+    var reader = new FileReader();
 
     reader.onloadend = function () {
         $('.inputDnD').css('background-image', 'url("' + reader.result + '")');
     };
 
-    if (file)
-        reader.readAsDataURL(file);
-    else
-        $('.inputDnD').css('background-image""');
+    reader.readAsDataURL(input.files[0]);
+//
+//     if (file)
+//         reader.readAsDataURL(file);
+//     else
+//         $('.inputDnD').css('background-image""');
+// }
+
 }

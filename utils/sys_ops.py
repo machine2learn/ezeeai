@@ -184,6 +184,26 @@ def save_results(df, result, targets, filename, base_path):
     return predict_file
 
 
+def save_image_results(test_labels, result, targets, filenames, base_path):
+    predictions = []
+    if len(targets) == 1:
+        predictions.append('file,%s,prediction' % targets[0])
+        for f, r, t in zip(filenames, result, test_labels[targets[0]]):
+            predictions.append('%s,%s,%s' % (f.replace(base_path, ''), t, r))
+    # TODO multiple classes
+    # else:
+    #     result = np.array(result)
+    #     for i in range(len(targets)):
+    #         df['prediction-' + targets[i]] = result[:, i]
+    base_path = base_path.replace('train', 'predictions')
+    os.makedirs(base_path, exist_ok=True)
+    predict_file = os.path.join(base_path, 'prediction.txt')
+    with open(predict_file, 'w') as f:
+        for item in predictions:
+            f.write("%s\n" % item)
+    return predict_file
+
+
 def export_models(export_dir, selected_rows, model_name):
     model_name = model_name.strip().replace(" ", "_")
     tmp_dir = os.path.join(export_dir, model_name)

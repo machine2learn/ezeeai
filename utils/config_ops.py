@@ -5,7 +5,7 @@ import dill as pickle
 import os
 from werkzeug.utils import secure_filename
 
-from data.image import find_image_files_folder_per_class, find_image_files_from_file
+from data.image import find_image_files_folder_per_class, find_image_files_from_file, find_images_test_file
 from utils import upload_util, sys_ops
 from utils.sys_ops import create_split_folders, check_zip_file, unzip, tree_remove, check_numpy_file
 
@@ -96,31 +96,74 @@ def check_dataset_path(app_root, username, dataset_name):
     return dataset_name, path
 
 
-def new_image_dataset(app_root, username, option, train_file, test_file):
-    dataset_name = train_file.filename.split('.')[0]
-    dataset_name, dataset_path_global = check_dataset_path(app_root, username, dataset_name)
+#
+# def new_image_dataset(app_root, username, option, train_file, test_file):
+#     dataset_name = train_file.filename.split('.')[0]
+#     dataset_name, dataset_path_global = check_dataset_path(app_root, username, dataset_name)
+#
+#     dataset_path_train = os.path.join(dataset_path_global, 'train')
+#     dataset_path_test = os.path.join(dataset_path_global, 'test')
+#     os.makedirs(dataset_path_train, exist_ok=True)
+#     os.makedirs(dataset_path_test, exist_ok=True)
+#
+#     open(os.path.join(dataset_path_global, option_map[option]), 'w')
+#
+#     filename = secure_filename(dataset_path_train.filename)
+#     path_file = os.path.join(dataset_path_train, filename)
+#     train_file.save(path_file)
+#
+#     if option == 'option3' and not check_numpy_file(path_file):
+#         tree_remove(dataset_path_train)
+#         return False
+#
+#     if not check_zip_file(path_file):
+#         tree_remove(dataset_path_train)
+#         return False
+#     unzip(path_file, dataset_path_train)
+#     try:
+#         if option == 'option1':
+#             find_image_files_folder_per_class(dataset_path_train)
+#         elif option == 'option2':
+#             info_file = [f for f in os.listdir(dataset_path_train) if f.startswith('labels.')]
+#             assert len(info_file) == 1
+#             find_image_files_from_file(dataset_path_train, os.path.join(dataset_path_train, info_file[0]))
+#     except AssertionError:
+#         tree_remove(dataset_path_train)
+#         return False
+#
+#     filename = secure_filename(dataset_path_test.filename)
+#     path_file = os.path.join(dataset_path_test, filename)
+#     test_file.save(path_file)
+#
+#     return True
+#
 
-    dataset_path_train = os.path.join(dataset_path_global, 'train')
-    dataset_path_test = os.path.join(dataset_path_global, 'test')
-    os.makedirs(dataset_path_train, exist_ok=True)
-    os.makedirs(dataset_path_test, exist_ok=True)
+def new_image_dataset(app_root, username, option, file, test_file):
+    if isinstance(file, str):
+        return False
+    dataset_name = file.filename.split('.')[0]
+    dataset_name, dataset_path = check_dataset_path(app_root, username, dataset_name)
 
-    open(os.path.join(dataset_path_global, option_map[option]), 'w')
+    open(os.path.join(dataset_path, option_map[option]), 'w')
 
-    for file, dataset_path in zip([train_file, test_file], [dataset_path_train, dataset_path_test]):
-        if isinstance(file, str):
-            break
-        filename = secure_filename(file.filename)
-        path_file = os.path.join(dataset_path, filename)
-        file.save(path_file)
+    dataset_test_path = os.path.join(dataset_path, 'test')
+    os.makedirs(dataset_test_path, exist_ok=True)
 
-        if option == 'option3' and not check_numpy_file(path_file):
-            tree_remove(dataset_path)
-            return False
+    dataset_path = os.path.join(dataset_path, 'train')
+    os.makedirs(dataset_path, exist_ok=True)
 
-        if not check_zip_file(path_file):
-            tree_remove(dataset_path)
-            return False
+    filename = secure_filename(file.filename)
+    path_file = os.path.join(dataset_path, filename)
+    file.save(path_file)
+
+    if option == 'option3' and not check_numpy_file(path_file):
+        tree_remove(dataset_path)
+        return False
+
+    if not check_zip_file(path_file):
+        tree_remove(dataset_path)
+        return False
+    else:
         unzip(path_file, dataset_path)
         try:
             if option == 'option1':
@@ -133,4 +176,26 @@ def new_image_dataset(app_root, username, option, train_file, test_file):
             tree_remove(dataset_path)
             return False
 
+    if test_file is not '':
+        if option in ['option1', 'option2']:
+            filename = secure_filename(test_file.filename)
+            dataset_test_path = os.path.join(dataset_test_path, filename.split('.')[0])
+            path_file = os.path.join(dataset_test_path, filename)
+            os.makedirs(dataset_test_path, exist_ok=True)
+            test_file.save(path_file)
+            unzip(path_file, dataset_test_path)
+            os.remove(path_file)
+            try:
+                find_images_test_file(dataset_test_path)
+            except AssertionError:
+                try:
+                    if option == 'option1':
+                        find_image_files_folder_per_class(dataset_path)
+                    elif option == 'option2':
+                        info_file = [f for f in os.listdir(dataset_path) if f.startswith('labels.')]
+                        assert len(info_file) == 1
+                        find_image_files_from_file(dataset_path, os.path.join(dataset_path, info_file[0]))
+                except AssertionError:
+                    tree_remove(dataset_path)
+                    return False
     return True

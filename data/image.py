@@ -75,9 +75,9 @@ def find_image_files_folder_per_class(data_dir):
 
 def find_image_files_from_file(data_dir, info_file):
     info_file = pd.read_csv(info_file, sep=None, engine='python')
-    #TODO Structure for now: col 0 =  im name, col 1 = label
-    #TODO Regression
-    #TODO include header
+    # TODO Structure for now: col 0 =  im name, col 1 = label
+    # TODO Regression
+    # TODO include header
 
     filenames = info_file[info_file.columns[0]].values
     if not os.path.isfile(filenames[0]):
@@ -88,6 +88,16 @@ def find_image_files_from_file(data_dir, info_file):
 
     assert (len(filenames) > 1 and len(set(labels)) > 1)
     return filenames, labels, class_names
+
+
+def find_images_test_file(path):
+    for f in os.listdir(path):
+        if os.path.isfile(os.path.join(path, f)):
+            if os.path.splitext(os.path.join(path, f))[1] not in ['.jpg', '.jpeg', '.png', '.PNG', '.JPG', '.JPEG']:
+                return False
+        else:
+            return False
+    return True
 
 
 def read_numpy_array(path_file):
@@ -268,13 +278,16 @@ class Image:
         return dataset
 
     def test_input_fn(self, batch_size, file=None):
-        # file = file or self.get_test_file()[0] if isinstance(self.get_test_file(),
-        #                                                      list) else self.get_test_file()  # TODO
-        # csv_dataset = make_csv_dataset([file], batch_size=batch_size, shuffle=False,
-        #                                label_names=self.get_targets(), num_epochs=1,
-        #                                column_defaults=self.get_converted_defaults())
-        # return csv_dataset
-        pass
+        if self.get_mode() == 3:
+            dataset = dataset_from_array(self._test_images, self._test_labels)
+        else:
+            if file is not None:
+                dataset = dataset_from_files(file, [0]*len(file))
+            else:
+                dataset = dataset_from_files(self._test_images, self._test_labels)
+        dataset = dataset.map(self._parse_function).batch(batch_size)
+        dataset = dataset.prefetch(1)
+        return dataset
 
     def input_predict_fn(self, image):
         image = imresize(image, self.get_image_size(), interp='bilinear')
@@ -297,3 +310,9 @@ class Image:
 
     def normalize(self, image):
         return norm_options[self.get_normalization_method()](image)
+
+    def get_all_test_files(self):
+        if self.get_test_path() is not None:
+            return [name for name in os.listdir(self.get_test_path()) if
+                    os.path.isdir(os.path.join(self.get_test_path(), name))]
+        return []

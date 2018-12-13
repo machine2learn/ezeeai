@@ -49,7 +49,6 @@ def check_config(func):
             if session['token'] != request.form['token']:
                 return redirect(url_for('login'))
         return func(*args, **kwargs)
-
     return check_session
 
 
@@ -106,7 +105,7 @@ def logout():
 @app.route('/upload', methods=['GET', 'POST'])
 @login_required
 def upload():
-    sess.reset_user()  # TODO new session??
+    sess.reset_user()
     username = session['user']
     form = UploadForm()
     if form.validate_on_submit():
@@ -118,8 +117,11 @@ def upload():
             option_selected = form.selector.data['selector']
             file = form[option_selected].data['file']
             test_file = form[option_selected].data['test_file'] if 'test_file' in form[option_selected].data else None
-            if not config_ops.new_image_dataset(APP_ROOT, username, option_selected, file, test_file):
-                return 'Error'
+            try:
+                if not config_ops.new_image_dataset(APP_ROOT, username, option_selected, file, test_file):
+                    return 'Error'
+            except ValueError as e:
+                return e
         return 'Ok'
 
     examples = upload_util.get_examples()
@@ -356,11 +358,11 @@ def test():
         return jsonify(result='Model\'s structure does not match the new parameter configuration')
     try:
         predict_file = hlp.process_test_predict(df_test, final_pred, test_filename)
-    except:
+    except Exception as e:
         return jsonify(result='Model\'s structure does not match the new parameter configuration')
     sess.set_has_targets(has_targets)
     sess.set_predict_file(predict_file)
-    store_predictions(has_targets, sess, final_pred, df_test[hlp.get_targets()].values if has_targets else None)
+    store_predictions(has_targets, sess, final_pred, hlp.get_df_test(df_test, has_targets))
     return jsonify(result="ok")
 
 
