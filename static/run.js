@@ -28,8 +28,8 @@ $(document).ready(function () {
         });
 
     // create test table
-    if (appConfig.handle_key.has_test)
-        $('#test_from_split').removeClass('hidden');
+    if ((appConfig.handle_key.has_test) && (handle_key.hasOwnProperty('image')))
+        test_files.push([' <span class="glyphicon glyphicon-tasks"></span> TEST FROM SPLIT']);
 
     let test_table = $('#test_table').DataTable({
         data: test_files,
@@ -71,7 +71,7 @@ $(document).ready(function () {
 
     // TEST AND DEPLOY IMAGES NOT AVAILABLE YET
     if (handle_key.hasOwnProperty('image')) {
-        $('#upload-file').attr('accept', '.zip');
+        $('#upload-file').attr('accept', '.zip, .npz');
         $('#next_button').addClass('hidden');
     }
 
@@ -192,17 +192,9 @@ function readUrl(input) {
     }
     var file = document.querySelector('input[type=file]').files[0];
     var reader = new FileReader();
-
     reader.onloadend = function () {
         $('.inputDnD').css('background-image', 'url("' + reader.result + '")');
     };
 
     reader.readAsDataURL(input.files[0]);
-//
-//     if (file)
-//         reader.readAsDataURL(file);
-//     else
-//         $('.inputDnD').css('background-image""');
-// }
-
 }

@@ -154,10 +154,21 @@
                                     <div class="col-sm-4">
                                         <h4 title="Normalization" for="normalization">Normalization</h4>
                                         <select id="normalization">
-                                            <option value="unit_length">Unit lenght</option>
-                                            <option value="zero_center">Zero center</option>
-                                            <option value="imagenet_mean_subtraction">ImageNet Mean Subtraction</option>
+                                            <option value="unit_length" data-toggle="tooltip"
+                                                    title="Unit lenght  :  x' = x / 255 ">Unit lenght
+                                            </option>
+                                            <option value="per_image" data-toggle="tooltip"
+                                                    title="Per image standardization : x' = (x - mean) / stddev ">Per image standardization
+                                            </option>
+                                            <option value="zero_center" data-toggle="tooltip"
+                                                    title="Zero center : x' = 2 * ( x / 255. - 0.5)">Zero center
+                                            </option>
+                                            <option value="imagenet_mean_subtraction" data-toggle="tooltip"
+                                                    title=" ImageNet mean :  x' = x - [123.68, 116.779, 103.939] ">ImageNet mean
+                                                subtraction
+                                            </option>
                                         </select>
+                                        <div id="normalization_explain"></div>
                                     </div>
                                 </div>
                                 <br>
@@ -262,11 +273,20 @@
                                                 <br>
                                                 <hr class="collapse-aug collapse-quality">
                                                 <label class="collapse-aug collapse-quality"> From</label>
-                                                <input id="from_quality" type="number" step="any" min="0" max="100"
+                                                <input id="from_quality" type="number" step="1" min="0" max="100"
                                                        class="collapse-aug collapse-quality">
                                                 <label class="collapse-aug collapse-quality"> To </label>
-                                                <input id="to_quality" type="number" step="any" min="0" max="100"
+                                                <input id="to_quality" type="number" step="1" min="0" max="100"
                                                        class="collapse-aug collapse-quality">
+                                            </a>
+
+                                            <a class="list-group-item" id="zoom"><b> Zoom </b>
+                                                <input type="checkbox" class="pull-right">
+                                                <br>
+                                                <hr class="collapse-aug collapse-zoom">
+                                                <label class="collapse-aug collapse-zoom"> Fraction</label>
+                                                <input id="fraction_zoom" type="number" step="any" min="0" max="1"
+                                                       class="collapse-aug collapse-zoom">
                                             </a>
                                         </div>
                                     </div>

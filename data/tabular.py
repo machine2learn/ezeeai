@@ -315,7 +315,8 @@ class Tabular:
         train_df, val_df = train_test_split(df, test_size=val_frac, stratify=stratify, random_state=42)
 
         if percent[2] != 0:
-            test_file = file.replace(basename, f'test/{basename}')
+            pre = file.replace(basename, f'test/{basename}').split('.')
+            test_file = f'{pre[0]}_split_test.{pre[1]}'
             test_size = int(round((percent[2] / 100) * len(df)))
             if len(targets) == 1 and self.get_df()[targets[0]].dtype == 'object':
                 counts = train_df[targets[0]].value_counts()

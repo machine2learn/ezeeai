@@ -44,9 +44,7 @@ def check_numpy_file(path_file):
         assert len(y.shape) == 1 or len(y.shape) == 2
 
         assert x.shape[0] == y.shape[0]
-
         return True
-
     except:
         return False
 
@@ -187,14 +185,15 @@ def save_results(df, result, targets, filename, base_path):
 def save_image_results(test_labels, result, targets, filenames, base_path):
     predictions = []
     if len(targets) == 1:
-        predictions.append('file,%s,prediction' % targets[0])
-        for f, r, t in zip(filenames, result, test_labels[targets[0]]):
-            predictions.append('%s,%s,%s' % (f.replace(base_path, ''), t, r))
+        if test_labels is None:
+            predictions.append('file,prediction')
+            for f, r in zip(filenames, result):
+                predictions.append('%s,%s' % (f.replace(base_path, ''), r))
+        else:
+            predictions.append('file,%s,prediction' % targets[0])
+            for f, r, t in zip(filenames, result, test_labels[targets[0]]):
+                predictions.append('%s,%s,%s' % (f.replace(base_path, ''), t, r))
     # TODO multiple classes
-    # else:
-    #     result = np.array(result)
-    #     for i in range(len(targets)):
-    #         df['prediction-' + targets[i]] = result[:, i]
     base_path = base_path.replace('train', 'predictions')
     os.makedirs(base_path, exist_ok=True)
     predict_file = os.path.join(base_path, 'prediction.txt')

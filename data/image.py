@@ -15,21 +15,36 @@ def zeroCenter(x):
     return x
 
 
-def reverse_zeroCenter(x):
-    x /= 2.
-    x += 0.5
-    x *= 255
-    return x
+def mean_std(x):
+    def relu(v):
+        return max(0, v)
+
+    image_mean = np.mean(x)
+    num_pixels = x.size
+    variance = (np.mean(np.square(x)) - np.square(image_mean))
+    variance = relu(variance)
+    stddev = np.sqrt(variance)
+    min_stddev = 1 / np.sqrt(num_pixels)
+    pixel_value_scale = np.maximum(stddev, min_stddev)
+    pixel_value_offset = image_mean
+    return pixel_value_offset, pixel_value_scale
+
+
+def per_image_standardization(x):
+    mean, adjusted_stddev = mean_std(x)
+    return (x - mean) / adjusted_stddev
 
 
 MEANS = np.array([123.68, 116.779, 103.939]).astype(np.float32)  # BGR
 norm_options = {"unit_length": lambda x: x / 255,
+                "per_image": per_image_standardization,
                 "zero_center": zeroCenter,
                 "imagenet_mean_subtraction": lambda x: x - MEANS}
-unnorm_options = {
-    "unit_length": lambda x: x * 255,
-    "zero_center": reverse_zeroCenter,
-    "imagenet_mean_subtraction": lambda x: x + MEANS}
+
+norm_tf_options = {"unit_length": lambda x: x / 255,
+                   "per_image": tf.image.per_image_standardization,
+                   "zero_center": zeroCenter,
+                   "imagenet_mean_subtraction": lambda x: x - MEANS}
 
 
 def dataset_from_files(filenames, labels):
@@ -54,6 +69,7 @@ def dataset_from_array(array, labels):
 
 
 def find_image_files_folder_per_class(data_dir):
+    print(data_dir)
     folders = [d for d in os.listdir(data_dir) if os.path.isdir(os.path.join(data_dir, d))]
 
     labels = []
@@ -218,7 +234,8 @@ class Image:
     def get_sample(self):
         if self.get_mode() == 3:
             return self._images[0]
-        return cv2.imread(self._images[0])
+        img = cv2.imread(self._images[0])
+        return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     def get_num_outputs(self):
         num_classes = len(self.get_class_names())
@@ -250,9 +267,42 @@ class Image:
             image_string = tf.read_file(image)
             image = tf.image.decode_jpeg(image_string)
         image_decoded = tf.cast(image, tf.float32)
-        # TODO normalization
-        image_decoded = norm_options[self.get_normalization_method()](image_decoded)
         return tf.image.resize_images(image_decoded, self.get_image_size().copy()), label
+
+    def _norm_function(self, image, label):
+        image = norm_tf_options[self.get_normalization_method()](image)
+        return image, label
+
+    def _parse_augmentation_options(self, image, label):
+        params = self.get_augmentation_params()
+        options = self.get_augmentation_options()
+
+        if 'flip' in options:
+            if params['horizontal_flip']:
+                image = tf.image.random_flip_left_right(image)
+            if params['vertical_flip']:
+                image = tf.image.random_flip_up_down(image)
+        if 'rotation' in options:
+            interpolation = 'NEAREST' if params['interpolation_rotation_nearest'] else 'BILINEAR'
+            angle = tf.random_uniform([], minval=int(params['angle_from_rotation']),
+                                      maxval=int(params['angle_to_rotation']))
+            image = tf.contrib.image.rotate(image, angle, interpolation=interpolation)
+        if 'saturation' in options:
+            image = tf.image.random_saturation(image, float(params['from_saturation']), float(params['to_saturation']))
+        if 'contrast' in options:
+            image = tf.image.random_contrast(image, float(params['from_contrast']), float(params['to_contrast']))
+        if 'brightness' in options:
+            image = tf.image.random_brightness(image, float(params['max_delta_brightness']))
+        if 'randomhue' in options:
+            image = tf.image.random_hue(image, float(params['max_delta_randomhue']))
+        if 'quality' in options:
+            image = tf.image.random_jpeg_quality(image, int(params['from_quality']), int(params['to_quality']))
+
+        if 'zoom' in options:
+            image = tf.image.central_crop(image, float(params['fraction_zoom']))
+            image = tf.image.resize_images(image, self.get_image_size().copy())
+
+        return image, label
 
     def train_input_fn(self, batch_size, num_epochs):
         if self.get_mode() == 3:
@@ -260,12 +310,10 @@ class Image:
         else:
             dataset = dataset_from_files(self._train_images, self._train_labels)
 
-        dataset = dataset.shuffle(len(self._train_images)).repeat(num_epochs).map(self._parse_function).batch(
-            batch_size)
+        dataset = dataset.shuffle(len(self._train_images)).repeat(num_epochs).map(self._parse_function).map(
+            self._parse_augmentation_options).map(self._norm_function).batch(batch_size)
 
-        # dataset = dataset.map(self._parse_function)
         dataset = dataset.prefetch(1)
-        # TODO DATA AUGMENTATION
         return dataset
 
     def validation_input_fn(self, batch_size):
@@ -273,7 +321,7 @@ class Image:
             dataset = dataset_from_array(self._val_images, self._val_labels)
         else:
             dataset = dataset_from_files(self._val_images, self._val_labels)
-        dataset = dataset.map(self._parse_function).batch(batch_size)
+        dataset = dataset.map(self._parse_function).map(self._norm_function).batch(batch_size)
         dataset = dataset.prefetch(1)
         return dataset
 
@@ -282,10 +330,10 @@ class Image:
             dataset = dataset_from_array(self._test_images, self._test_labels)
         else:
             if file is not None:
-                dataset = dataset_from_files(file, [0]*len(file))
+                dataset = dataset_from_files(file, [0] * len(file))
             else:
                 dataset = dataset_from_files(self._test_images, self._test_labels)
-        dataset = dataset.map(self._parse_function).batch(batch_size)
+        dataset = dataset.map(self._parse_function).map(self._norm_function).batch(batch_size)
         dataset = dataset.prefetch(1)
         return dataset
 
@@ -305,14 +353,18 @@ class Image:
         return tf.estimator.export.ServingInputReceiver(receiver_tensors=receiver_tensors,
                                                         features=receiver_tensors)
 
-    def unnormalize(self, image):
-        return unnorm_options[self.get_normalization_method()](image)
-
     def normalize(self, image):
         return norm_options[self.get_normalization_method()](image)
 
     def get_all_test_files(self):
-        if self.get_test_path() is not None:
-            return [name for name in os.listdir(self.get_test_path()) if
-                    os.path.isdir(os.path.join(self.get_test_path(), name))]
-        return []
+        test_path = self.get_dataset_path().replace('train', 'test')
+        try:
+            return [name for name in os.listdir(test_path) if os.path.isdir(os.path.join(test_path, name))]
+        except ValueError:
+            return []
+
+    def get_test_split_images(self):
+        return self._test_images
+
+    def get_test_split_labels(self):
+        return self._test_labels

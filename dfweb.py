@@ -49,6 +49,7 @@ def check_config(func):
             if session['token'] != request.form['token']:
                 return redirect(url_for('login'))
         return func(*args, **kwargs)
+
     return check_session
 
 
@@ -116,12 +117,8 @@ def upload():
         elif request.form['selected'] == 'images':
             option_selected = form.selector.data['selector']
             file = form[option_selected].data['file']
-            test_file = form[option_selected].data['test_file'] if 'test_file' in form[option_selected].data else None
-            try:
-                if not config_ops.new_image_dataset(APP_ROOT, username, option_selected, file, test_file):
-                    return 'Error'
-            except ValueError as e:
-                return e
+            if not config_ops.new_image_dataset(APP_ROOT, username, option_selected, file):
+                return 'Error'
         return 'Ok'
 
     examples = upload_util.get_examples()
@@ -343,7 +340,11 @@ def upload_test_file():
 @check_config
 def test():
     hlp = sess.get_helper()
-    has_targets, test_filename, df_test, result = hlp.test_request(request)
+    try:
+        has_targets, test_filename, df_test, result = hlp.test_request(request)
+    except Exception as e:
+        return jsonify(result='Test\'s file structure is not correct')
+
     if not test_filename:
         return jsonify(result=result)
 
@@ -463,7 +464,6 @@ def show_test():
                      'columns': [{'title': v} for v in df.columns.values.tolist()]}
     labels = hlp.get_target_labels()
     metrics = None
-
     if sess.get_has_targets():
         metrics = get_metrics('classification', sess.get_y_true(), sess.get_y_pred(), labels,
                               logits=sess.get_logits()) if hlp.get_mode() == 'classification' \

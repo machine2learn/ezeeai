@@ -4,7 +4,7 @@ body {
 
 .gui_container {
     max-width: none !important;
-    max-height: 70vh;
+    max-height: 74vh;
     font-size: small;
     display: flex;
     background-color: white;
@@ -27,7 +27,6 @@ h1 {
     font-size: 1em;
     font-weight: bold;
 }
-
 
 #cy {
     height: 70vh;
@@ -183,6 +182,8 @@ input:invalid + span:after {
     z-index: 9999;
     padding: 0.25em;
     pointer-events: none;
+    font-size: 16px;
+
 }
 
 .icon_layer {
@@ -209,11 +210,6 @@ input:invalid + span:after {
 .btn-valid {
     background-color: #eeeeee !important;
     color: #0c910c !important;
-
-}
-
-.popper-div {
-    font-size: 18px;
 
 }
 
@@ -634,6 +630,18 @@ img.demo {
     margin-left: 0;
     width: 33%;
 }
-.modal{
+
+.modal {
     overflow-y: auto;
+}
+
+#submitform {
+    margin-top: 1vh;
+}
+
+#normalization_explain{
+    margin-top: 5px;
+    color: dimgrey;
+    font-size: 12px;
+     font-style: italic;
 }

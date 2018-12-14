@@ -164,25 +164,6 @@ $(document).ready(function () {
         });
     });
 
-
-    $("#button_test_from_split").click(function (e) {
-        $.ajax({
-            url: "/test",
-            type: 'POST',
-            dataType: 'json',
-            contentType: 'application/json;charset=UTF-8',
-            accepts: {
-                json: 'application/json',
-            },
-            data: JSON.stringify({
-                'model': get_checkpoint_selected()
-            }),
-            success: function (data) {
-                test_success('show_test', data.result);
-            }
-        })
-    });
-
     function set_epochs(val) {
         if (val !== null) {
             let str = val.toString().padStart(6, "0");
@@ -259,10 +240,12 @@ function get_checkpoint_selected() {
 }
 
 function get_testfile_selected() {
-    let file = $('#test_table').DataTable().rows({selected: true}).data();
-    if (file[0] === undefined)
+    let file = $('#test_table').DataTable().rows({selected: true}).data()[0];
+    if (file === undefined)
         return false;
-    return file[0][0];
+    if (file[0].indexOf('TEST FROM SPLIT') > 0)
+        return 'TEST FROM SPLIT';
+    return file[0];
 }
 
 
@@ -308,52 +291,67 @@ function errorHandler(event) {
 }
 
 function upload_test_file(e) {
-
-    // var ajax = new XMLHttpRequest();
-    // ajax.onreadystatechange = function () {
-    //     if (this.readyState === 4 && this.responseText !== 'Ok') {
-    //         alert('Upload failed: invalid data format');
-    //     } else if (this.readyState === 4 && this.responseText === 'Ok') {
-    //         let test_files = appConfig.handle_key.test_files.map((val) => [val]);
-    //         test_files.push([filename]);
-    //         $('#test_table').DataTable().clear().rows.add(test_files).draw()
-    //     }
-    // };
-    // ajax.open("POST", "/upload_test_file");
-    // ajax.send(new FormData($("#predict_form")[0]));
-
-
     let $input = $('#upload-file');
     if ($input[0].files.length === 0) {
         alert("Please select a file.")
     } else {
-        let filename = document.getElementById('upload-file').files[0].name;
-        let fReader = new FileReader();
-        fReader.readAsBinaryString($input[0].files[0]);
-        fReader.onloadend = function (event) {
-            $.ajax({
-                url: "/upload_test_file",
-                type: 'POST',
-                dataType: 'json',
-                contentType: 'application/json;charset=UTF-8',
-                accepts: {
-                    json: 'application/json',
-                },
-                data: JSON.stringify({
-                    'file': event.target.result,
-                    'filename': filename
-                }),
-                success: function (data) {
-                    if (data.result !== 'ok')
-                        alert(data.result);
-                    else {
-                        let test_files = appConfig.handle_key.test_files.map((val) => [val]);
-                        test_files.push([filename]);
-                        $('#test_table').DataTable().clear().rows.add(test_files).draw()
-                    }
-
-                }
-            })
-        }
+        let $input = $('#upload-file');
+        if (handle_key.hasOwnProperty('image'))
+            uploadZipFile($input); //zip images
+        else
+            uploadCSVFile($input); //tabular data
     }
+}
+
+
+function uploadZipFile($input) {
+    let filename = document.getElementById('upload-file').files[0].name.split('.')[0];
+    let f = new FormData();
+    f.append('input_file', $input[0].files[0], $input[0].files[0].name);
+    ajax = new XMLHttpRequest();
+    ajax.onreadystatechange = function () {
+        if (this.readyState === 4 && JSON.parse(this.response).result !== 'ok')
+            alert('Upload failed: invalid data format');
+        else if (this.readyState === 4 && JSON.parse(this.response).result === 'ok')
+            upload_test_table(filename)
+    };
+    ajax.open("POST", "/upload_test_file");
+    ajax.send(f);
+}
+
+
+function uploadCSVFile($input) {
+    let filename = document.getElementById('upload-file').files[0].name;
+    let fReader = new FileReader();
+    fReader.readAsBinaryString($input[0].files[0]);
+    fReader.onloadend = function (event) {
+        $.ajax({
+            url: "/upload_test_file",
+            type: 'POST',
+            dataType: 'json',
+            contentType: 'application/json;charset=UTF-8',
+            accepts: {
+                json: 'application/json',
+            },
+            data: JSON.stringify({
+                'file': event.target.result,
+                'filename': filename
+            }),
+            success: function (data) {
+                if (data.result !== 'ok')
+                    alert(data.result);
+                else
+                    upload_test_table(filename);
+            }
+        })
+    }
+}
+
+function upload_test_table(filename) {
+    let test_files = appConfig.handle_key.test_files.map((val) => [val]);
+    test_files.push([' <span class="glyphicon glyphicon-tasks"></span> TEST FROM SPLIT']);
+    test_files.push([filename]);
+    appConfig.handle_key.test_files.push(filename);
+    $('#test_table').DataTable().clear().rows.add(test_files).draw()
+
 }

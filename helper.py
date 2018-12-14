@@ -1,25 +1,22 @@
-import zipfile
-from io import StringIO, BytesIO
-
-import PIL.Image
-from skimage.segmentation import mark_boundaries
-import cv2
 from abc import ABCMeta, abstractmethod
+
+from scipy.misc import imresize
 
 from data import tabular, image
 from data.image import find_image_files_folder_per_class, find_image_files_from_file, find_images_test_file
+from io import BytesIO
+from skimage.segmentation import mark_boundaries
 from utils.explain_util import get_reg_explain, get_class_explain, clean_predict_table
 from utils.request_util import *
 from utils import feature_util, preprocessing, param_utils, run_utils, explain_util, sys_ops
-
+from utils.sys_ops import unzip, tree_remove, check_numpy_file
 import os
 import pandas as pd
 import dill as pickle
-
+import cv2
 import base64
 import numpy as np
-
-from utils.sys_ops import unzip, tree_remove
+import PIL.Image
 
 
 def encode_image(path):
@@ -104,6 +101,14 @@ class Helper(metaclass=ABCMeta):
 
     @abstractmethod
     def process_test_predict(self, df, final_pred, test_filename):
+        pass
+
+    @abstractmethod
+    def test_upload(self, request):
+        pass
+
+    @abstractmethod
+    def write_dataset(self, data_path):
         pass
 
 
@@ -258,10 +263,8 @@ class Tabular(Helper):
 
     def test_request(self, request):
         if 'filename' in request.get_json():
-            # Test from file
             test_filename = os.path.join(self._dataset.get_base_path(), 'test', get_filename(request))
         else:
-            # Test from split TODO
             test_filename = self._dataset.get_test_file()[0] if isinstance(self._dataset.get_test_file(),
                                                                            list) else self._dataset.get_test_file()
         has_targets = True
@@ -295,6 +298,7 @@ class Tabular(Helper):
             params['type'] = 'class'
         params['graphs'] = graphs
         params['predict_table'] = predict_table
+
         sess.set('explain_params', params)
         return 'ok'
 
@@ -307,6 +311,8 @@ class Image(Helper):
         if not isinstance(dataset, image.Image):
             raise TypeError(f'dataset must be Image, not {dataset.__class__}')
         super().__init__(dataset)
+
+        self._example_image = None
 
     @staticmethod
     def extract_dataset(option, file_path):
@@ -326,11 +332,17 @@ class Image(Helper):
             pass
         return True
 
-    def get_num_outputs(self):
-        return self._dataset.get_num_outputs()
-
     def get_input_shape(self):
         pass
+
+    def process_targets_request(self, request):
+        pass
+
+    def generate_rest_call(self, pred):
+        pass
+
+    def get_num_outputs(self):
+        return self._dataset.get_num_outputs()
 
     def get_dataset_params(self):
         return self._dataset.get_params()
@@ -397,9 +409,6 @@ class Image(Helper):
         self._dataset.set_augmentation_options(augmentation_options)
         return data
 
-    def process_targets_request(self, request):
-        pass
-
     def get_default_data_example(self):
         # TODO
         example = self._dataset._val_images[np.random.choice(np.arange(len(self._dataset._val_images)))]
@@ -428,6 +437,9 @@ class Image(Helper):
         top_labels = get_top_labels(request)
 
         sel_target = get_sel_target(request)
+
+        self._example_image = new_features
+
         ep = {
             'features': new_features,
             'num_features': num_feat,
@@ -436,78 +448,107 @@ class Image(Helper):
         }
         return ep
 
-    def generate_rest_call(self, pred):
-        pass
-
     def process_test_predict(self, df, final_pred, test_filenames):
         assert len(test_filenames) == len(final_pred['preds'])
         return sys_ops.save_image_results(df, final_pred['preds'], self._dataset.get_targets(), test_filenames,
-                                          self._dataset.get_dataset_path().replace('train',''))
+                                          self._dataset.get_dataset_path().replace('train', ''))
 
     def test_request(self, request):
-        if 'filename' in request.get_json():
-            # Test from file
-            test_path = os.path.join(self._dataset.get_dataset_path().replace('train', 'test'), get_filename(request))
-            labels = []
-            if not os.path.isdir(os.path.join(test_path, os.listdir(test_path)[0])):
-                labels_file = [os.path.join(test_path, t) for t in os.listdir(test_path) if
-                               t.endswith('.txt') or t.endswith('.csv')]
-                if len(labels_file) > 0:
-                    test_filename, labels, _ = find_image_files_from_file(test_path, labels_file[0])
-                else:
-                    test_filename = [os.path.join(test_path, t) for t in os.listdir(test_path) if not t.startswith('.')]
-                    labels += ['not_found'] * int(len(test_filename))
-            else:
-                test_filename = []
-                labels = []
-                for cl in os.listdir(test_path):
-                    list_files = [os.path.join(test_path, cl, f) for f in os.listdir(os.path.join(test_path, cl)) if
-                                  not f.startswith('.')]
-                    test_filename += list_files
-                    labels += [cl] * len(list_files)
-            df_test = {self._dataset.get_targets()[0]: labels}
-        else:
-            # Test from split
-            test_filename = self._dataset._test_images
-            df_test = {self._dataset.get_targets()[0]: self._dataset._test_labels}
-
-        print(test_filename, df_test)
         has_targets = True
-        return has_targets, test_filename, df_test, None
+        df_test = {}
+        test_filename = []
+        labels = []
+        if 'filename' in request.get_json():
+            if get_filename(request) == 'TEST FROM SPLIT':
+                test_filename = self._dataset.get_test_split_images()
+                df_test = {self._dataset.get_targets()[0]: self._dataset.get_test_split_labels()}
+            else:
+                test_path = os.path.join(self._dataset.get_dataset_path().replace('train', 'test'),
+                                         get_filename(request))
+                option = [f for f in os.listdir(test_path) if f.startswith('.option')][0]
+
+                if option == '.option0':
+                    # TODO is not tested
+                    data = np.load(test_path)
+                    test_filename, labels = data['x'], data['y']
+
+                elif option == '.option1':
+                    test_filename = [os.path.join(test_path, t) for t in os.listdir(test_path) if not t.startswith('.')]
+                    return False, test_filename, None, None
+
+                elif option == '.option2':
+                    all_classes = [c for c in os.listdir(test_path) if not c.startswith('.')]
+                    for cl in all_classes:
+                        list_files = [os.path.join(test_path, cl, f) for f in os.listdir(os.path.join(test_path, cl)) if
+                                      not f.startswith('.')]
+                        test_filename += list_files
+                        labels += [cl] * len(list_files)
+
+                elif option == '.option3':
+                    labels_file = [os.path.join(test_path, t) for t in os.listdir(test_path) if
+                                   t.endswith('.txt') or t.endswith('.csv')]
+                    test_filename, labels, _ = find_image_files_from_file(test_path, labels_file[0])
+                df_test[self._dataset.get_targets()[0]] = labels
+            return has_targets, test_filename, df_test, None
+        return False
 
     def test_upload(self, request):
-        # test_file = get_filename(request)
-        #
-        # fp = StringIO(request.get_json()['file'])
-        # zfp = zipfile.ZipFile(fp, "r")
-        #
-        # try:
-        #     path = os.path.join(self._dataset.get_test_path(), test_file.split('.')[0])
-        #     test_filename = os.path.join(path, test_file)
-        #     os.makedirs(path, exist_ok=True)
-        #     test_file.save(test_filename)
-        #
-        #     unzip(test_filename, path)
-        #     os.remove(test_filename)
-        #     find_images_test_file(path)
-        # except ValueError:
-        #     tree_remove(path)
-        #     return "The file contents are not valid."
-        # return "ok"
-        return "The file contents are not valid."
+        test_file = request.files['input_file']
+        filename = test_file.filename
+
+        dataset_test_path = os.path.join(self._dataset.get_dataset_path().replace('train', 'test'),
+                                         filename.split('.')[0])
+        path_file = os.path.join(dataset_test_path, filename)
+        os.makedirs(dataset_test_path, exist_ok=True)
+
+        test_file.save(path_file)
+
+        try:
+            if check_numpy_file(path_file):
+                open(os.path.join(dataset_test_path, '.option0'), 'w')  # NUMPY FILE
+                return 'ok'
+
+            unzip(path_file, dataset_test_path)
+            os.remove(path_file)
+
+            if find_images_test_file(dataset_test_path):
+                open(os.path.join(dataset_test_path, '.option1'), 'w')  # ONLY IMAGES
+            else:
+                try:
+                    f, n, c = find_image_files_folder_per_class(dataset_test_path)
+                    assert len(c) == len(self.get_target_labels())
+                    open(os.path.join(dataset_test_path, '.option2'), 'w')  # FOLDER PER CLASS
+                except AssertionError:
+                    try:
+                        info_file = [f for f in os.listdir(dataset_test_path) if f.startswith('labels.')]
+                        assert len(info_file) == 1
+                        f, n, c = find_image_files_from_file(dataset_test_path,
+                                                             os.path.join(dataset_test_path, info_file[0]))
+                        assert len(c) == len(self.get_target_labels())
+                        open(os.path.join(dataset_test_path, '.option3'), 'w')  # LABELS.TXT
+                    except AssertionError:
+                        tree_remove(dataset_test_path)
+                        return "The file contents are not valid."
+        except ValueError:
+            tree_remove(dataset_test_path)
+            return "The file contents are not valid."
+        return 'ok'
 
     def write_dataset(self, data_path):
         pickle.dump(self._dataset, open(data_path, 'wb'))
 
-    def explain_return(self, sess, request, result):
-        if result is None:
+    def explain_return(self, sess, request, results):
+        if results is None:
             return 'Model\'s structure does not match the new parameter configuration'
+
+        result, probs = results
         params = {}
         label = result.top_labels[0]
         num_features = get_num_feat(request)
         temp, mask = result.get_image_and_mask(label, positive_only=False, num_features=num_features, hide_rest=False)
 
-        image = mark_boundaries(self._dataset.unnormalize(temp).astype(np.uint8), mask)
+        image = mark_boundaries(temp.astype(np.uint8), mask)
+
         params['data_type'] = 'image'
         params['type'] = 'class'
         params['features'] = encode_image((image * 255).astype(np.uint8))
@@ -521,12 +562,8 @@ class Image(Helper):
                 predict_table['data'] = [float("{0:.3f}".format(1 - result.local_pred[0])),
                                          float("{0:.3f}".format(result.local_pred[0]))]
         else:
-            # class_list = self._dataset.get_class_names()
-            # predict_table['columns'] = class_list
-            # predict_table['data'] = [float("{0:.3f}".format(result.local_pred[i][0])) for i in range(len(class_list))]
-            predict_table['columns'] = [self._dataset.get_class_names()[result.top_labels[0]], 'other']
-            predict_table['data'] = [float("{0:.3f}".format(result.local_pred[0])),
-                                     float("{0:.3f}".format(1 - result.local_pred[0]))]
+            predict_table['columns'] = self._dataset.get_class_names()
+            predict_table['data'] = probs.tolist()
 
         params['predict_table'] = clean_predict_table(predict_table)
         params['graphs'] = None
@@ -534,5 +571,6 @@ class Image(Helper):
         return 'ok'
 
     def get_df_test(self, df_test, has_targets):
-        # TODO MULTI CLASS
+        if not has_targets:
+            return None
         return np.array([[f] for f in df_test[self.get_targets()[0]]])

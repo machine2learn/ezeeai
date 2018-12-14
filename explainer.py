@@ -65,15 +65,28 @@ class ImageExplainer:
 
     def explain_instance(self, model, features, num_features=5, top_labels=3, sel_target=None):
         def predict_fn(x):
+            x = x.astype(np.float32)
+            x = np.apply_along_axis(self._dataset.normalize, 0, x)
             predict_input_fn = tf.estimator.inputs.numpy_input_fn(x=x, y=None, num_epochs=1, shuffle=False)
             probabilities = list(model.predict(input_fn=predict_input_fn))
             return np.array([x['probabilities'] for x in probabilities])
 
         features = imresize(features, self._dataset.get_image_size(), interp='bilinear')
+        # features = features.astype(np.float32)
+
+        # features = self._dataset.normalize(features)
+
+        explain_result = self._explainer.explain_instance(features, predict_fn, batch_size=100,
+                                                          num_features=num_features,
+                                                          labels=self._dataset.get_class_names(),
+                                                          top_labels=len(self._dataset.get_class_names()))
+
         features = features.astype(np.float32)
 
         features = self._dataset.normalize(features)
 
-        return self._explainer.explain_instance(features, predict_fn, batch_size=100, num_features=num_features,
-                                                labels=self._dataset.get_class_names(),
-                                                top_labels=len(self._dataset.get_class_names()))
+        predict_input_fn = tf.estimator.inputs.numpy_input_fn(x=features[np.newaxis, ...], y=None, num_epochs=1,
+                                                              shuffle=False)
+        predictions = list(model.predict(input_fn=predict_input_fn))
+
+        return explain_result, predictions[0]['probabilities']

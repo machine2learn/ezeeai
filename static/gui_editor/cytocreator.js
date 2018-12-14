@@ -343,10 +343,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 let edges = loss_node.connectedEdges();
                 let loss_function = loss_node.data('content')['function'].value;
                 cy.remove(loss_node);
-                let models = create_json_model(sort_nodes(cy));
-                cy.add(loss_node);
-                cy.add(edges);
-                await tf_load_model(sort_nodes(cy), models, loss_function, cy.json(), cy, loss_node);
+                try {
+                    let models = create_json_model(sort_nodes(cy));
+                    cy.add(loss_node);
+                    cy.add(edges);
+                    await tf_load_model(sort_nodes(cy), models, loss_function, cy.json(), cy, loss_node);
+                } catch (e) {
+                    cy.add(loss_node);
+                    cy.add(edges);
+                }
                 event.preventDefault();
             }
             else {
@@ -405,13 +410,18 @@ function show_params_config(prop, param, saved_config) {
         }
         Object.keys(config).forEach(function (key) {
             append_after(key, config[key], prop); //param, config, parent
-
         });
     }
 }
 
 
 $(document).ready(function () {
+    $("#normalization").change(function () {
+        $("#normalization option:selected").each(function () {
+            $("#normalization_explain").html(this.title);
+        });
+    });
+
     wizard_next(1, dict_wizard);
 
     // Load model -> modal window
@@ -632,7 +642,14 @@ $(document).ready(function () {
         });
         $('#list2 input[type="number"]').each(function () {
             let id_input = $(this)[0].id;
-            params[id_input] = $('#' + id_input).val();
+            if ($('#' + id_input).val() !== '')
+                params[id_input] = $('#' + id_input).val();
+            else {
+                alert('Missing parameter value');
+                throw 'Missing parameter value';
+            }
+
+
         });
         $('#list2 input:checkbox, #list2 input[type="radio"]').each(function () {
             let id_input = $(this)[0].id;

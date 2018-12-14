@@ -220,19 +220,32 @@ function create_layer_config(content) {
     let layer_config = {};
     Object.keys(content).map(function (param) {
         if (param !== 'class_name') {
-            layer_config[param] = ly_dic[content[param]['type']](content[param]['value']);
+            try {
+                layer_config[param] = ly_dic[content[param]['type']](content[param]['value']);
+            } catch (e) {
+                alert('Invalid value for parameter ' + param + ' in ' + content.name.value);
+                throw 'Model could not be validated.'
+            }
             if (content[param].hasOwnProperty('config')) {
                 layer_config[param] = {};
                 var class_name = content[param]['value'];
                 layer_config[param]['class_name'] = get_class_name(class_name);
                 layer_config[param]['config'] = {};
                 Object.keys(content[param]['config']).forEach(function (key) {
-                    let type = get_param_type(content[param]['value'], key);
-                    layer_config[param]['config'][key] = ly_dic[type](content[param]['config'][key]);
+                    try {
+                        let type = get_param_type(content[param]['value'], key);
+                        layer_config[param]['config'][key] = ly_dic[type](content[param]['config'][key]);
+                    } catch (e) {
+                        alert('Invalid value for parameter ' + param + '/' + key + ' in ' + content.name.value);
+                        throw 'Model could not be validated.'
+                    }
                 });
+
             }
         }
     });
+
+
     return layer_config;
 }
 
