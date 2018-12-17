@@ -15,6 +15,13 @@ import numpy as np
 import json
 
 
+def rename(path_from, path_to):
+    for f in os.listdir(path_from):
+        if not f.startswith('.'):
+            shutil.move(os.path.join(path_from, f), path_to)
+    shutil.rmtree(path_from)
+
+
 def tree_remove(path):
     shutil.rmtree(path)
 
@@ -34,22 +41,30 @@ def check_zip_file(path_file):
         return True
 
 
-def check_numpy_file(path_file, requires_y=True):
-    try:
-        data = np.load(path_file)
-        x= data['x']
-        assert len(x.shape) == 3 or len(x.shape) == 4
+def find_dataset_from_numpy(path_file, requires_y=True):
+    data = np.load(path_file)
+    if 'y_train' in data:
+        data['x'] = data.pop('x_train') if 'x_train' in data else data.pop('X_train')
+        data['y'] = data.pop('y_train')
 
-        if requires_y:
-            assert 'y' in data
+    x = data['x']
+    assert len(x.shape) == 3 or len(x.shape) == 4
 
-        if 'y' in data:
-            y = data['y']
-            assert len(y.shape) == 1 or len(y.shape) == 2
-            assert x.shape[0] == y.shape[0]
-        return True
-    except:
-        return False
+    if requires_y:
+        assert 'y' in data
+    y = None
+    if 'y' in data:
+        y = data['y']
+        assert len(y.shape) == 1 or len(y.shape) == 2
+        assert x.shape[0] == y.shape[0]
+
+    test_data = None
+    if 'y_test' in data:
+        x_test = data['x_test'] if 'x_test' in data else data['X_test']
+        y_test = data['y_test']
+        test_data = (x_test, y_test)
+
+    return (x, y), test_data
 
 
 def unzip(path_to_zip_file, directory_to_extract_to):

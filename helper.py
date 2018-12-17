@@ -9,7 +9,7 @@ from skimage.segmentation import mark_boundaries
 from utils.explain_util import get_reg_explain, get_class_explain, clean_predict_table
 from utils.request_util import *
 from utils import feature_util, preprocessing, param_utils, run_utils, explain_util, sys_ops
-from utils.sys_ops import unzip, tree_remove, check_numpy_file
+from utils.sys_ops import unzip, tree_remove, find_dataset_from_numpy
 import os
 import pandas as pd
 import dill as pickle
@@ -488,8 +488,7 @@ class Image(Helper):
                         labels += [cl] * len(list_files)
 
                 elif option == '.option3':
-                    labels_file = [os.path.join(test_path, t) for t in os.listdir(test_path) if
-                                   t.endswith('.txt') or t.endswith('.csv')]
+                    labels_file = [os.path.join(test_path, t) for t in os.listdir(test_path) if t.startswith('labels.')]
                     test_filename, labels, _ = find_image_files_from_file(test_path, labels_file[0])
                 df_test[self._dataset.get_targets()[0]] = labels
             return has_targets, test_filename, df_test, None
@@ -507,7 +506,7 @@ class Image(Helper):
         test_file.save(path_file)
 
         try:
-            if check_numpy_file(path_file, requires_y=False):
+            if find_dataset_from_numpy(path_file, requires_y=False):
                 open(os.path.join(dataset_test_path, '.option0'), 'w')  # NUMPY FILE
                 return 'ok'
 

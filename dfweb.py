@@ -345,9 +345,6 @@ def test():
     except Exception as e:
         return jsonify(result='Test\'s file structure is not correct')
 
-    # if not test_filename:
-    #     return jsonify(result=result)
-
     all_params_config = config_reader.read_config(sess.get_config_file())
     all_params_config.set('PATHS', 'checkpoint_dir', os.path.join(all_params_config.export_dir(), get_model(request)))
 

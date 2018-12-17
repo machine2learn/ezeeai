@@ -56,7 +56,7 @@ def dataset_from_files(filenames, labels=None):
 
     filenames = tf.constant(filenames)
 
-    if labels:
+    if labels is not None:
         # `labels[i]` is the label for the image in `filenames[i].
         labels = tf.constant(labels)
 
@@ -68,12 +68,12 @@ def dataset_from_files(filenames, labels=None):
 
 
 def dataset_from_array(array, labels=None):
-    if labels:
+    if labels is not None:
         return tf.data.Dataset.from_tensor_slices((array, labels))
     return tf.data.Dataset.from_tensor_slices(array)
 
 
-def find_image_files_folder_per_class(data_dir):
+def find_image_files_folder_per_class(data_dir, require_all=True):
     print(data_dir)
     folders = [d for d in os.listdir(data_dir) if os.path.isdir(os.path.join(data_dir, d))]
 
@@ -89,12 +89,14 @@ def find_image_files_folder_per_class(data_dir):
             labels.extend([f] * n_images)
             class_names.append(f)
             filenames.extend(matching_files)
-    assert (len(filenames) > 1 and len(set(labels)) > 1)
+
+    if require_all:
+        assert (len(filenames) > 1 and len(set(labels)) > 1)
 
     return filenames, labels, class_names
 
 
-def find_image_files_from_file(data_dir, info_file):
+def find_image_files_from_file(data_dir, info_file, require_all=True):
     info_file = pd.read_csv(info_file, sep=None, engine='python')
     # TODO Structure for now: col 0 =  im name, col 1 = label
     # TODO Regression
@@ -106,8 +108,8 @@ def find_image_files_from_file(data_dir, info_file):
     class_names = list(info_file[info_file.columns[1]].unique())
     labels = info_file[info_file.columns[1]].values
     labels = labels.astype('object')
-
-    assert (len(filenames) > 1 and len(set(labels)) > 1)
+    if require_all:
+        assert (len(filenames) > 1 and len(set(labels)) > 1)
     return filenames, labels, class_names
 
 
@@ -273,13 +275,13 @@ class Image:
             image = tf.image.decode_jpeg(image_string)
         image_decoded = tf.cast(image, tf.float32)
 
-        if label:
+        if label is not None:
             return tf.image.resize_images(image_decoded, self.get_image_size().copy()), label
         return tf.image.resize_images(image_decoded, self.get_image_size().copy())
 
     def _norm_function(self, image, label=None):
         image = norm_tf_options[self.get_normalization_method()](image)
-        if label:
+        if label is not None:
             return image, label
         return image
 
