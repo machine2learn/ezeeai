@@ -349,7 +349,8 @@ function uploadCSVFile($input) {
 
 function upload_test_table(filename) {
     let test_files = appConfig.handle_key.test_files.map((val) => [val]);
-    test_files.push([' <span class="glyphicon glyphicon-tasks"></span> TEST FROM SPLIT']);
+    if (appConfig.handle_key.has_test)
+        test_files.push([' <span class="glyphicon glyphicon-tasks"></span> TEST FROM SPLIT']);
     test_files.push([filename]);
     appConfig.handle_key.test_files.push(filename);
     $('#test_table').DataTable().clear().rows.add(test_files).draw()

@@ -468,10 +468,13 @@ class Image(Helper):
                 option = [f for f in os.listdir(test_path) if f.startswith('.option')][0]
 
                 if option == '.option0':
-                    # TODO is not tested
+                    test_path = os.path.join(test_path, get_filename(request) + '.npz')
                     data = np.load(test_path)
-                    test_filename, labels = data['x'], data['y']
-
+                    test_filename = data['x']
+                    if 'y' in data:
+                        labels = data['y']
+                    else:
+                        return False, test_filename, None, None
                 elif option == '.option1':
                     test_filename = [os.path.join(test_path, t) for t in os.listdir(test_path) if not t.startswith('.')]
                     return False, test_filename, None, None
@@ -504,7 +507,7 @@ class Image(Helper):
         test_file.save(path_file)
 
         try:
-            if check_numpy_file(path_file):
+            if check_numpy_file(path_file, requires_y=False):
                 open(os.path.join(dataset_test_path, '.option0'), 'w')  # NUMPY FILE
                 return 'ok'
 

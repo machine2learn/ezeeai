@@ -34,16 +34,19 @@ def check_zip_file(path_file):
         return True
 
 
-def check_numpy_file(path_file):
+def check_numpy_file(path_file, requires_y=True):
     try:
         data = np.load(path_file)
-        # assert isinstance(data, (list, tuple, np.ndarray)) and len(data) == 2
-        x, y = data['x'], data['y']
-
+        x= data['x']
         assert len(x.shape) == 3 or len(x.shape) == 4
-        assert len(y.shape) == 1 or len(y.shape) == 2
 
-        assert x.shape[0] == y.shape[0]
+        if requires_y:
+            assert 'y' in data
+
+        if 'y' in data:
+            y = data['y']
+            assert len(y.shape) == 1 or len(y.shape) == 2
+            assert x.shape[0] == y.shape[0]
         return True
     except:
         return False
@@ -184,6 +187,9 @@ def save_results(df, result, targets, filename, base_path):
 
 def save_image_results(test_labels, result, targets, filenames, base_path):
     predictions = []
+    if isinstance(filenames, np.ndarray):
+        filenames = [str(x) for x in np.arange(0, len(filenames))]
+
     if len(targets) == 1:
         if test_labels is None:
             predictions.append('file,prediction')
@@ -193,7 +199,8 @@ def save_image_results(test_labels, result, targets, filenames, base_path):
             predictions.append('file,%s,prediction' % targets[0])
             for f, r, t in zip(filenames, result, test_labels[targets[0]]):
                 predictions.append('%s,%s,%s' % (f.replace(base_path, ''), t, r))
-    # TODO multiple classes
+
+    # TODO multiple outputs
     base_path = base_path.replace('train', 'predictions')
     os.makedirs(base_path, exist_ok=True)
     predict_file = os.path.join(base_path, 'prediction.txt')

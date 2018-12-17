@@ -47,7 +47,7 @@ norm_tf_options = {"unit_length": lambda x: x / 255,
                    "imagenet_mean_subtraction": lambda x: x - MEANS}
 
 
-def dataset_from_files(filenames, labels):
+def dataset_from_files(filenames, labels=None):
     '''
     :param filenames: list of strings
     :param labels: list of integers
@@ -56,16 +56,21 @@ def dataset_from_files(filenames, labels):
 
     filenames = tf.constant(filenames)
 
-    # `labels[i]` is the label for the image in `filenames[i].
-    labels = tf.constant(labels)
+    if labels:
+        # `labels[i]` is the label for the image in `filenames[i].
+        labels = tf.constant(labels)
 
-    dataset = tf.data.Dataset.from_tensor_slices((filenames, labels))
-    # dataset = dataset.map(_parse_function)
+        dataset = tf.data.Dataset.from_tensor_slices((filenames, labels))
+        # dataset = dataset.map(_parse_function)
+    else:
+        dataset = tf.data.Dataset.from_tensor_slices(filenames)
     return dataset
 
 
-def dataset_from_array(array, labels):
-    return tf.data.Dataset.from_tensor_slices((array, labels))
+def dataset_from_array(array, labels=None):
+    if labels:
+        return tf.data.Dataset.from_tensor_slices((array, labels))
+    return tf.data.Dataset.from_tensor_slices(array)
 
 
 def find_image_files_folder_per_class(data_dir):
@@ -262,16 +267,21 @@ class Image:
     def get_train_size(self):
         return self._train_size
 
-    def _parse_function(self, image, label):
+    def _parse_function(self, image, label=None):
         if self.get_mode() != 3:
             image_string = tf.read_file(image)
             image = tf.image.decode_jpeg(image_string)
         image_decoded = tf.cast(image, tf.float32)
-        return tf.image.resize_images(image_decoded, self.get_image_size().copy()), label
 
-    def _norm_function(self, image, label):
+        if label:
+            return tf.image.resize_images(image_decoded, self.get_image_size().copy()), label
+        return tf.image.resize_images(image_decoded, self.get_image_size().copy())
+
+    def _norm_function(self, image, label=None):
         image = norm_tf_options[self.get_normalization_method()](image)
-        return image, label
+        if label:
+            return image, label
+        return image
 
     def _parse_augmentation_options(self, image, label):
         params = self.get_augmentation_params()
@@ -327,10 +337,14 @@ class Image:
 
     def test_input_fn(self, batch_size, file=None):
         if self.get_mode() == 3:
-            dataset = dataset_from_array(self._test_images, self._test_labels)
+            if file is not None:
+                dataset = dataset_from_array(file)
+            else:
+                dataset = dataset_from_array(self._test_images, self._test_labels)
+
         else:
             if file is not None:
-                dataset = dataset_from_files(file, [0] * len(file))
+                dataset = dataset_from_files(file)
             else:
                 dataset = dataset_from_files(self._test_images, self._test_labels)
         dataset = dataset.map(self._parse_function).map(self._norm_function).batch(batch_size)
