@@ -148,6 +148,7 @@ class Image:
         self._image_size = None
         self._augmentation_options = None
         self._augmentation_params = None
+        self._n_channels = 3
 
     def get_test_path(self):
         return self._test_path
@@ -237,6 +238,7 @@ class Image:
                 self._train_images, self._train_labels, test_size=test_size, stratify=self._train_labels,
                 random_state=42)
         self._train_size = len(self._train_images)
+        _, _, self._n_channels = self.get_sample().shape
 
     def get_sample(self):
         if self.get_mode() == 3:
@@ -364,8 +366,7 @@ class Image:
         return tf.estimator.inputs.numpy_input_fn(x=image, y=None, num_epochs=1, shuffle=False)
 
     def serving_input_receiver_fn(self):
-        h, w, c = self.get_sample().shape
-        receiver_tensors = tf.placeholder(tf.float32, [None, None, None, c])
+        receiver_tensors = tf.placeholder(tf.float32, [None, None, None, self._n_channels])
         return tf.estimator.export.ServingInputReceiver(receiver_tensors=receiver_tensors,
                                                         features=receiver_tensors)
 
