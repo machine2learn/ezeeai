@@ -41,22 +41,27 @@ def check_zip_file(path_file):
         return True
 
 
-def find_dataset_from_numpy(path_file, requires_y=True):
-    data = np.load(path_file)
-    if 'y_train' in data:
-        data['x'] = data.pop('x_train') if 'x_train' in data else data.pop('X_train')
-        data['y'] = data.pop('y_train')
+def find_dataset_from_numpy(path_file, requires_y=True, only_test=False):
+    np_data = np.load(path_file)
+    data = {}
+    for k in np_data:
+        data[k] = np_data[k]
 
-    x = data['x']
-    assert len(x.shape) == 3 or len(x.shape) == 4
+    x, y = None, None
 
-    if requires_y:
-        assert 'y' in data
-    y = None
-    if 'y' in data:
-        y = data['y']
-        assert len(y.shape) == 1 or len(y.shape) == 2
-        assert x.shape[0] == y.shape[0]
+    if not only_test:
+        if 'y_train' in data:
+            data['x'] = data.pop('x_train') if 'x_train' in data else data.pop('X_train')
+            data['y'] = data.pop('y_train')
+
+        x = data['x']
+        assert len(x.shape) == 3 or len(x.shape) == 4
+        if requires_y:
+            assert 'y' in data
+        if 'y' in data:
+            y = data['y']
+            assert len(y.shape) == 1 or len(y.shape) == 2
+            assert x.shape[0] == y.shape[0]
 
     test_data = None
     if 'y_test' in data:
@@ -68,25 +73,30 @@ def find_dataset_from_numpy(path_file, requires_y=True):
 
 
 def unzip(path_to_zip_file, directory_to_extract_to):
-    zip_ref = zipfile.ZipFile(path_to_zip_file, 'r')
-    zip_ref.extractall(directory_to_extract_to)
-    zip_ref.close()
+    try:
+        zip_ref = zipfile.ZipFile(path_to_zip_file, 'r')
+        zip_ref.extractall(directory_to_extract_to)
+        zip_ref.close()
 
-    dirs = [f for f in os.listdir(directory_to_extract_to) if os.path.isdir(os.path.join(directory_to_extract_to, f))]
-    filtered_dir = dirs.copy()
-    for d in dirs:
-        if d.startswith('__'):
-            tree_remove(os.path.join(directory_to_extract_to, d))
-            del filtered_dir[filtered_dir.index(d)]
+        dirs = [f for f in os.listdir(directory_to_extract_to) if
+                os.path.isdir(os.path.join(directory_to_extract_to, f))]
+        filtered_dir = dirs.copy()
+        for d in dirs:
+            if d.startswith('__'):
+                tree_remove(os.path.join(directory_to_extract_to, d))
+                del filtered_dir[filtered_dir.index(d)]
 
-    if len(filtered_dir) == 1:
-        source = os.path.join(directory_to_extract_to, filtered_dir[0])
-        dest1 = directory_to_extract_to
+        if len(filtered_dir) == 1:
+            source = os.path.join(directory_to_extract_to, filtered_dir[0])
+            dest1 = directory_to_extract_to
 
-        files = os.listdir(source)
-        for f in files:
-            shutil.move(os.path.join(source, f), dest1)
-        os.removedirs(source)
+            files = os.listdir(source)
+            for f in files:
+                shutil.move(os.path.join(source, f), dest1)
+            os.removedirs(source)
+        return True
+    except shutil.Error:
+        return False
 
 
 def mkdir_recursive(path):

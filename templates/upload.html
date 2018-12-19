@@ -67,36 +67,44 @@
                                 <div id="option1">
                                     <label> Format:</label>
                                     <pre class="prettyprint">
-my-images/
-├── cat/
-│   ├── 1.jpg
-│   └── 2.jpg
-└── dog/
-    ├── 1.jpg
-    └── 2.jpg </pre>
+                                my-images/              my-images/
+                                ├── cat/                ├── train/
+                                │   ├── 1.jpg           │   ├── cat/
+                                │   └── 2.jpg           │   │   ├── 1.jpg
+                                └── dog/                │   │   └── 2.jpg
+                                    ├── 1.jpg           │   └── dog/
+                                    └── 2.jpg           │       ├── 1.jpg
+                                                        │       └── 2.jpg
+                                                        └── test/
+                                                            ├── cat/
+                                                            │   ├── 1.jpg
+                                                            │   └── 2.jpg
+                                                            └── dog/
+                                                                ├── 1.jpg
+                                                                └── 2.jpg
+                                    </pre>
                                     {{ render_option_field(form.option1) }}
                                 </div>
                                 <div id="option2" class="hidden">
                                     <label> Format:</label>
                                     <pre class="prettyprint">
-my-images/
-├── 1.jpg
-├── 2.jpg
-├── 3.jpg
-└── labels.txt
-
-or
-
-my-images/
-├── images/
-│   ├── 1.jpg
-│   └── 2.jpg
-└── labels.txt</pre>
+                    my-images/               my-images/             my-images/
+                    ├── 1.jpg                ├── images/             ├── 1.jpg
+                    ├── 2.jpg                │   ├── 1.jpg           ├── 2.jpg
+                    ├── 3.jpg                │   └── 2.jpg           ├── 3.jpg
+                    └── labels.txt           └── labels.txt          ├── train.txt
+                                                                     └── test.txt
+                                </pre>
                                     {{ render_option_field(form.option2) }}
                                 </div>
                                 <div id="option3" class="hidden">
                                 <pre class="prettyprint">
-Save your data with np.savez(filename, x=images, y=labels)                   </pre>
+Save your data with :
+  np.savez(filename, x=images, y=labels)
+  or
+  np.savez(filename, x_train=images_train, y_train=labels_train,
+                     x_test=images_test,   y_test=labels_test)
+                                </pre>
                                     {{ render_option_field(form.option3) }}
                                 </div>
                             </div>

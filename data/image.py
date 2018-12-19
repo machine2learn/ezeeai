@@ -74,7 +74,6 @@ def dataset_from_array(array, labels=None):
 
 
 def find_image_files_folder_per_class(data_dir, require_all=True):
-    print(data_dir)
     folders = [d for d in os.listdir(data_dir) if os.path.isdir(os.path.join(data_dir, d))]
 
     labels = []

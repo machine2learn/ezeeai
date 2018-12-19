@@ -677,7 +677,6 @@ $(document).ready(function () {
                 inputs_layers[cy.$(':selected').data().name] = {
                     'dataset': appConfig.dataset,
                     'split': appConfig.dataset_params.split,
-
                     'height': params.height,
                     'width': params.width,
                     'normalization': params.normalization,

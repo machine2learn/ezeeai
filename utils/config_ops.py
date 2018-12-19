@@ -119,18 +119,19 @@ def new_image_dataset(app_root, username, option, file):
     if option == 'option3':
         try:
             train_data, test_data = find_dataset_from_numpy(path_file)
-            np.savez(path_file, x=train_data[0], y=train_data[1])
+            np.savez(os.path.join(train_path, filename), x=train_data[0], y=train_data[1])
             if test_data:
                 os.makedirs(os.path.join(dataset_test_path, dataset_name), exist_ok=True)
                 np.savez(os.path.join(dataset_test_path, dataset_name, dataset_name + '.npz'), x=test_data[0],
                          y=test_data[1])
+                open(os.path.join(dataset_test_path, dataset_name, '.option0'), 'w')  # NUMPY FILE
             return True
         except:
-            tree_remove(train_path)
+            tree_remove(dataset_path)
             return False
 
     if not check_zip_file(path_file):
-        tree_remove(train_path)
+        tree_remove(dataset_path)
         return False
 
     unzip(path_file, train_path)
@@ -168,8 +169,9 @@ def new_image_dataset(app_root, username, option, file):
                 for f in filenames:
                     os.rename(f, os.path.join(dataset_test_path, os.path.basename(f)))
                 os.rename(os.path.join(train_path, info_test_file[0]), os.path.join(dataset_test_path, 'labels.txt'))
+                open(os.path.join(dataset_test_path, '.option3'), 'w')  # NUMPY FILE
 
     except AssertionError:
-        tree_remove(train_path)
+        tree_remove(dataset_path)
         return False
     return True

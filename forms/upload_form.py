@@ -63,17 +63,17 @@ class NewImageFileForm(FlaskForm):
 
 
 class NewImageOption1(FlaskForm):
-    file = ZipFileFieldWithAccept(label='Train zip images',
+    file = ZipFileFieldWithAccept(label='Zip images',
                                   validators=[FileAllowed(['zip'], message="Please enter zip .")])
 
 
 class NewImageOption2(FlaskForm):
-    file = ZipFileFieldWithAccept(label='Train zip images',
+    file = ZipFileFieldWithAccept(label='Zip images',
                                   validators=[FileAllowed(['zip'], message="Please enter zip .")])
 
 
 class NewImageOption3(FlaskForm):
-    file = NumpyFileFieldWithAccept(label='Train numpy file',
+    file = NumpyFileFieldWithAccept(label='Numpy file',
                                     validators=[FileAllowed(['npy', 'npz'], message="Please enter numpy file.")])
 
 

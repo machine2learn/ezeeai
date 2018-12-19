@@ -1,3 +1,4 @@
+import shutil
 from abc import ABCMeta, abstractmethod
 
 from scipy.misc import imresize
@@ -471,8 +472,10 @@ class Image(Helper):
                     test_path = os.path.join(test_path, get_filename(request) + '.npz')
                     data = np.load(test_path)
                     test_filename = data['x']
+
                     if 'y' in data:
                         labels = data['y']
+                        assert len(data['y'].shape) < 3  # TODO
                     else:
                         return False, test_filename, None, None
                 elif option == '.option1':
@@ -506,31 +509,45 @@ class Image(Helper):
         test_file.save(path_file)
 
         try:
-            if find_dataset_from_numpy(path_file, requires_y=False):
-                open(os.path.join(dataset_test_path, '.option0'), 'w')  # NUMPY FILE
-                return 'ok'
-
-            unzip(path_file, dataset_test_path)
-            os.remove(path_file)
-
-            if find_images_test_file(dataset_test_path):
-                open(os.path.join(dataset_test_path, '.option1'), 'w')  # ONLY IMAGES
-            else:
+            if path_file.endswith('.npz'):
                 try:
-                    f, n, c = find_image_files_folder_per_class(dataset_test_path)
-                    assert len(c) == len(self.get_target_labels())
-                    open(os.path.join(dataset_test_path, '.option2'), 'w')  # FOLDER PER CLASS
-                except AssertionError:
-                    try:
-                        info_file = [f for f in os.listdir(dataset_test_path) if f.startswith('labels.')]
-                        assert len(info_file) == 1
-                        f, n, c = find_image_files_from_file(dataset_test_path,
-                                                             os.path.join(dataset_test_path, info_file[0]))
-                        assert len(c) == len(self.get_target_labels())
-                        open(os.path.join(dataset_test_path, '.option3'), 'w')  # LABELS.TXT
-                    except AssertionError:
+                    _, test_data = find_dataset_from_numpy(path_file, requires_y=False, only_test=True)
+                    if test_data is None:
                         tree_remove(dataset_test_path)
-                        return "The file contents are not valid."
+                        return 'The file contents are not valid.'
+                    np.savez(path_file, x=test_data[0], y=test_data[1])
+                    open(os.path.join(dataset_test_path, '.option0'), 'w')  # NUMPY FILE
+                    return 'ok'
+                except KeyError:
+                    tree_remove(dataset_test_path)
+                    return "The file contents are not valid."
+            else:
+                if not unzip(path_file, dataset_test_path):
+                    return "The file contents already exists."
+
+                os.remove(path_file)
+
+                if find_images_test_file(dataset_test_path):
+                    open(os.path.join(dataset_test_path, '.option1'), 'w')  # ONLY IMAGES
+                else:
+                    try:
+                        f, n, c = find_image_files_folder_per_class(dataset_test_path, require_all=False)
+                        assert len(c) == len(self.get_target_labels())
+                        open(os.path.join(dataset_test_path, '.option2'), 'w')  # FOLDER PER CLASS
+                    except AssertionError:
+                        try:
+                            info_file = [f for f in os.listdir(dataset_test_path) if
+                                         f.startswith('test.') or f.startswith('labels.')]
+                            assert len(info_file) == 1
+                            info_path = os.path.join(dataset_test_path, info_file[0])
+                            f, n, c = find_image_files_from_file(dataset_test_path, info_path, require_all=False)
+                            assert len(c) == len(self.get_target_labels())
+                            open(os.path.join(dataset_test_path, '.option3'), 'w')  # LABELS.TXT
+                            os.rename(info_path, os.path.join(dataset_test_path, 'labels.txt'))
+
+                        except AssertionError:
+                            tree_remove(dataset_test_path)
+                            return "The file contents are not valid."
         except ValueError:
             tree_remove(dataset_test_path)
             return "The file contents are not valid."

@@ -228,16 +228,16 @@ function clear_input_modal(dict_wizard) {
         clear_table('table_features');
         update_split([70, 30, 0]);
         $("#datasets_availables").val($("#datasets_availables option:first").val());
-
-        $('#wizard4').removeClass('active show')
-            .parent().removeClass('active');
-        $('#targets').removeClass('active in show');
-
-        $('#wizard1').removeClass('disabled')
-            .addClass('active show')
-            .parent().addClass('active');
-        $('#' + dict_wizard[1]).addClass('active in show');
     }
+    $('#wizard4').removeClass('active show')
+        .parent().removeClass('active');
+    $('#targets').removeClass('active in show');
+
+    $('#wizard1').removeClass('disabled')
+        .addClass('active show')
+        .parent().addClass('active');
+    $('#' + dict_wizard[1]).addClass('active in show');
+
 }
 
 function createMenu(selected, ...items) {

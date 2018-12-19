@@ -34,7 +34,9 @@ $(document).ready(function () {
     }
 
     $("#predict_button").click(function (e) {
-
+        let $loading = $('#loading_predict');
+        $("#predict_button").attr('disabled', true);
+        $loading.removeClass('hidden');
         if ($("#image_upload").hasClass("hidden")) {
             $.ajax({
                 url: "/predict",
@@ -42,6 +44,9 @@ $(document).ready(function () {
                 dataType: 'json',
                 data: serialize_form(),
                 success: function (data) {
+                    $("#predict_button").attr('disabled', false);
+                    $loading.addClass('hidden');
+
                     if ('error' in data) {
                         alert('Model\'s structure does not match the new parameter configuration');
                     } else {
@@ -122,9 +127,12 @@ $(document).ready(function () {
 
     $("#test_button").click(function (e) {
         let input = get_testfile_selected();
+        let $loading = $('#loading_test');
+        $("#test_button").attr('disabled', true);
         if (!input) {
             alert("Please select a file.")
         } else {
+            $loading.removeClass('hidden');
             $.ajax({
                 url: "/test",
                 type: 'POST',
@@ -139,19 +147,21 @@ $(document).ready(function () {
                 }),
                 success: function (data) {
                     test_success('show_test', data.result);
+                    $loading.addClass('hidden');
+                    $("#test_button").attr('disabled', false);
                 }
             })
         }
 
     });
 
-    var inputs = document.querySelectorAll('.inputfile');
+    let inputs = document.querySelectorAll('.inputfile');
     Array.prototype.forEach.call(inputs, function (input) {
-        var label = input.nextElementSibling,
+        let label = input.nextElementSibling,
             labelVal = label.innerHTML;
 
         input.addEventListener('change', function (e) {
-            var fileName = '';
+            let fileName = '';
             if (this.files && this.files.length > 1)
                 fileName = (this.getAttribute('data-multiple-caption') || '').replace('{count}', this.files.length);
             else
@@ -270,6 +280,9 @@ function dataURItoBlob(dataURI) {
 }
 
 function completeHandler(event) {
+    $("#predict_button").attr('disabled', false);
+    $("#loading_predict").addClass('hidden');
+
     let data = JSON.parse(event.target.responseText);
     if ('error' in data) {
         alert('Model\'s structure does not match the new parameter configuration');
@@ -288,6 +301,8 @@ function completeHandler(event) {
 
 function errorHandler(event) {
     alert('Error prediction');
+    $("#predict_button").attr('disabled', false);
+    $("#loading_predict").addClass('hidden');
 }
 
 function upload_test_file(e) {

@@ -75,6 +75,7 @@ $(document).ready(function () {
         $('#next_button').addClass('hidden');
     }
 
+
 });
 
 function hide_show() {
