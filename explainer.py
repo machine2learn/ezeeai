@@ -39,7 +39,8 @@ class TabularExplainer:
 
             predict_input_fn = tf.estimator.inputs.numpy_input_fn(x=local_features,
                                                                   y=None, num_epochs=1, shuffle=False)
-            predictions = list(model.predict(input_fn=predict_input_fn))
+            with tf.device('/cpu:0'):  #TODO maybe check if gpu is free
+                predictions = list(model.predict(input_fn=predict_input_fn))
 
             if self._mode == 'classification':
                 return np.array([x['probabilities'] for x in predictions])
@@ -68,7 +69,8 @@ class ImageExplainer:
             x = x.astype(np.float32)
             x = np.apply_along_axis(self._dataset.normalize, 0, x)
             predict_input_fn = tf.estimator.inputs.numpy_input_fn(x=x, y=None, num_epochs=1, shuffle=False)
-            probabilities = list(model.predict(input_fn=predict_input_fn))
+            with tf.device('/cpu:0'):  # TODO maybe check if gpu is free
+                probabilities = list(model.predict(input_fn=predict_input_fn))
             return np.array([x['probabilities'] for x in probabilities])
 
         features = imresize(features, self._dataset.get_image_size(), interp='bilinear')
@@ -87,6 +89,7 @@ class ImageExplainer:
 
         predict_input_fn = tf.estimator.inputs.numpy_input_fn(x=features[np.newaxis, ...], y=None, num_epochs=1,
                                                               shuffle=False)
-        predictions = list(model.predict(input_fn=predict_input_fn))
+        with tf.device('/cpu:0'):  # TODO maybe check if gpu is free
+            predictions = list(model.predict(input_fn=predict_input_fn))
 
         return explain_result, predictions[0]['probabilities']

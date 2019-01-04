@@ -5,7 +5,7 @@ import dill as pickle
 import os
 from werkzeug.utils import secure_filename
 
-from data.image import find_image_files_folder_per_class, find_image_files_from_file, find_images_test_file
+from data.utils.image import find_image_files_folder_per_class, find_image_files_from_file, find_images_test_file
 from utils import upload_util, sys_ops
 from utils.sys_ops import create_split_folders, check_zip_file, unzip, tree_remove, find_dataset_from_numpy, rename
 import pandas as pd

@@ -71,10 +71,13 @@ class AbstractEstimator(metaclass=ABCMeta):
         save_checkpoints_steps = self.params[SAVE_CHECKPOINTS_STEPS]
         save_summary_steps = self.params[SAVE_SUMMARY_STEPS]
         keep_checkpoint_max = self.params[KEEP_CHECKPOINT_MAX]
+        config = tf.ConfigProto()
+        config.gpu_options.allow_growth = True
         self.runConfig = tf.estimator.RunConfig(model_dir=self.checkpoint_dir,
                                                 save_checkpoints_steps=save_checkpoints_steps,
                                                 save_summary_steps=save_summary_steps,
-                                                keep_checkpoint_max=keep_checkpoint_max)
+                                                keep_checkpoint_max=keep_checkpoint_max,
+                                                session_config=config)
 
     def _create_model(self):
         mb = ModelBuilder()
@@ -111,7 +114,8 @@ class AbstractEstimator(metaclass=ABCMeta):
         shutil.rmtree(self.checkpoint_dir, ignore_errors=True)
 
     def predict(self, features, all=False):
-        predictions = list(self.model.predict(input_fn=self.dataset.input_predict_fn(features)))
+        with tf.device('/cpu:0'): #TODO maybe check if gpu is free
+            predictions = list(self.model.predict(input_fn=self.dataset.input_predict_fn(features)))
         if all:
             return predictions
         if 'predictions' in predictions[0].keys():
@@ -121,7 +125,9 @@ class AbstractEstimator(metaclass=ABCMeta):
     def predict_test(self, test_file):
         self.test_file = test_file
         dict_results = {}
-        predictions = list(self.model.predict(input_fn=self._test_input_fn))
+        #TODO maybe check if gpu is free
+        with tf.device('/cpu:0'):
+            predictions = list(self.model.predict(input_fn=self._test_input_fn))
         if 'predictions' in predictions[0].keys():
             preds = [x['predictions'][0] for x in predictions]
             dict_results['preds'] = preds
@@ -145,6 +151,7 @@ class AbstractEstimator(metaclass=ABCMeta):
 
     def explain(self, **params):
         explainer = self._create_explainer()
+        # TODO explain on cpu, maybe check if gpu is free
 
         return explainer.explain_instance(self.model, **params)
 

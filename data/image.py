@@ -1,131 +1,9 @@
-import tensorflow as tf
-import os
-import pandas as pd
-import numpy as np
 import cv2
+
+from data.utils.image import *
 from utils import args
 from sklearn.model_selection import train_test_split
 from scipy.misc import imresize
-
-
-def zeroCenter(x):
-    x /= 255.
-    x -= 0.5
-    x *= 2.
-    return x
-
-
-def mean_std(x):
-    def relu(v):
-        return max(0, v)
-
-    image_mean = np.mean(x)
-    num_pixels = x.size
-    variance = (np.mean(np.square(x)) - np.square(image_mean))
-    variance = relu(variance)
-    stddev = np.sqrt(variance)
-    min_stddev = 1 / np.sqrt(num_pixels)
-    pixel_value_scale = np.maximum(stddev, min_stddev)
-    pixel_value_offset = image_mean
-    return pixel_value_offset, pixel_value_scale
-
-
-def per_image_standardization(x):
-    mean, adjusted_stddev = mean_std(x)
-    return (x - mean) / adjusted_stddev
-
-
-MEANS = np.array([123.68, 116.779, 103.939]).astype(np.float32)  # BGR
-norm_options = {"unit_length": lambda x: x / 255,
-                "per_image": per_image_standardization,
-                "zero_center": zeroCenter,
-                "imagenet_mean_subtraction": lambda x: x - MEANS}
-
-norm_tf_options = {"unit_length": lambda x: x / 255,
-                   "per_image": tf.image.per_image_standardization,
-                   "zero_center": zeroCenter,
-                   "imagenet_mean_subtraction": lambda x: x - MEANS}
-
-
-def dataset_from_files(filenames, labels=None):
-    '''
-    :param filenames: list of strings
-    :param labels: list of integers
-    :return: tf.data.Dataset
-    '''
-
-    filenames = tf.constant(filenames)
-
-    if labels is not None:
-        # `labels[i]` is the label for the image in `filenames[i].
-        labels = tf.constant(labels)
-
-        dataset = tf.data.Dataset.from_tensor_slices((filenames, labels))
-        # dataset = dataset.map(_parse_function)
-    else:
-        dataset = tf.data.Dataset.from_tensor_slices(filenames)
-    return dataset
-
-
-def dataset_from_array(array, labels=None):
-    if labels is not None:
-        return tf.data.Dataset.from_tensor_slices((array, labels))
-    return tf.data.Dataset.from_tensor_slices(array)
-
-
-def find_image_files_folder_per_class(data_dir, require_all=True):
-    folders = [d for d in os.listdir(data_dir) if os.path.isdir(os.path.join(data_dir, d))]
-
-    labels = []
-    filenames = []
-    class_names = []
-    for f in folders:
-        matching_files = []
-        for ext in ['jpg', 'jpeg', 'png', 'PNG', 'JPG', 'JPEG']:
-            matching_files += tf.gfile.Glob('%s/%s/*.%s' % (data_dir, f, ext))
-        n_images = len(matching_files)
-        if n_images > 0:
-            labels.extend([f] * n_images)
-            class_names.append(f)
-            filenames.extend(matching_files)
-
-    if require_all:
-        assert (len(filenames) > 1 and len(set(labels)) > 1)
-
-    return filenames, labels, class_names
-
-
-def find_image_files_from_file(data_dir, info_file, require_all=True):
-    info_file = pd.read_csv(info_file, sep=None, engine='python')
-    # TODO Structure for now: col 0 =  im name, col 1 = label
-    # TODO Regression
-    # TODO include header
-
-    filenames = info_file[info_file.columns[0]].values
-    if not os.path.isfile(filenames[0]):
-        filenames = [os.path.join(data_dir, f) for f in filenames]
-    class_names = list(info_file[info_file.columns[1]].unique())
-    labels = info_file[info_file.columns[1]].values
-    labels = labels.astype('object')
-    if require_all:
-        assert (len(filenames) > 1 and len(set(labels)) > 1)
-    return filenames, labels, class_names
-
-
-def find_images_test_file(path):
-    for f in os.listdir(path):
-        if os.path.isfile(os.path.join(path, f)):
-            if os.path.splitext(os.path.join(path, f))[1] not in ['.jpg', '.jpeg', '.png', '.PNG', '.JPG', '.JPEG']:
-                return False
-        else:
-            return False
-    return True
-
-
-def read_numpy_array(path_file):
-    data = np.load(path_file)
-    x, y = data['x'], data['y']
-    return x, [str(i) for i in y], [str(i) for i in np.unique(y)]
 
 
 class Image:
@@ -312,7 +190,7 @@ class Image:
             image = tf.image.random_jpeg_quality(image, int(params['from_quality']), int(params['to_quality']))
 
         if 'zoom' in options:
-            image = tf.image.central_crop(image, float(params['fraction_zoom']))
+            image = random_central_crop(image, float(params['from_zoom']), float(params['to_zoom']))
             image = tf.image.resize_images(image, self.get_image_size().copy())
 
         return image, label
