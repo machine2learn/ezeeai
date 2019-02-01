@@ -25,7 +25,6 @@ lark==0.0.4
 mock==2.0.0
 pytest==4.1.1
 reader==0.4
-secrets==1.0.2
 skimage==0.0
 scikit_learn==0.20.2
 typing==3.6.6
