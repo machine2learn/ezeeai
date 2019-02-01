@@ -193,6 +193,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     let field = i.id.split('-')[1];
                     cy_element.content[param]['config'][field] = i.value;
                 });
+
             } else {
                 cy_element.content[new_value_id]['value'] = e.target.value;
                 if (cy_element.content[new_value_id].hasOwnProperty('config'))
@@ -331,11 +332,23 @@ document.addEventListener('DOMContentLoaded', function () {
             let canned_nodes = cy.nodes().filter((node) => (node.data().class_name in corelayers["Canned Models"]));
             let canned_length = canned_nodes.length;
             if (canned_length === 1) {
-                var loss = canned_nodes.successors().filter((node) => (node.data().hasOwnProperty('class_name') && node.data()['class_name'] === 'Loss')).data().content.function.value;
-                $('#submit').removeClass('hidden')
-                    .prop('disabled', false);
-                $('#validate_model').addClass('hidden');
-                send_canned(canned_nodes, cy.json(), loss);
+                let input_canned = cy.filter(function (element, i) {
+                    if (element.isNode() && 'name' in element.data())
+                        if (element.data().class_name.includes('InputLayer') && element.data().content.input_shape.value !== undefined)
+                            return element.data();
+                    return false;
+                });
+                let is_image = input_canned.data().content.input_shape.value.split(',').length ===3;
+                if (!is_image) {
+                    var loss = canned_nodes.successors().filter((node) => (node.data().hasOwnProperty('class_name') && node.data()['class_name'] === 'Loss')).data().content.function.value;
+                    $('#submit').removeClass('hidden')
+                        .prop('disabled', false);
+                    $('#validate_model').addClass('hidden');
+                    send_canned(canned_nodes, cy.json(), loss);
+
+                } else {
+                    alert('Canned Models can not be use with Image Input');
+                }
 
 
             } else if (canned_length === 0) {

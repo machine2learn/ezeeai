@@ -233,6 +233,7 @@ function ConfirmDelete(elem, all) {
                 en_disable_objs(true);
                 data = get_rows(data.checkpoints);
                 $('#checkp_table').DataTable().clear().rows.add(data).draw();
+                $("#iter-number").text("000,000");
             }
         })
     }
