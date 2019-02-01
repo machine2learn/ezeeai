@@ -112,7 +112,7 @@ def create_output(features, params, mode):
         return dnn(features, params, mode), label_vocabulary
 
     if params['mode'] == 'canned_linear':
-        return linear(features, params['feature_columns'], params), label_vocabulary
+        return linear(features,  dataset.get_feature_columns(), params), label_vocabulary
 
     raise ValueError('invalid mode ' + params['mode'] + ', should be custom or canned')
 
