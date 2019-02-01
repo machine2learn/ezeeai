@@ -130,7 +130,7 @@ def find_free_port(low=55500, high=55600):
         with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
             s.bind(('0.0.0.0', p))
             return str(s.getsockname()[1])
-    return -1
+    raise ValueError('free port not found')
 
 
 def save_filename(target, dataset_form_field, dataset_name):
