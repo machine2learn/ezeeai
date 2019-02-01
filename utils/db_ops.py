@@ -22,7 +22,10 @@ def get_email_by_username(username):
 def create_user_path(username):
     if not os.path.exists(os.path.join('user_data/', username)):
         os.mkdir(os.path.join('user_data/', username))
-
+    if not os.path.exists(os.path.join('user_data/', username, 'datasets')):
+        os.mkdir(os.path.join('user_data/', username,'datasets'))
+    if not os.path.exists(os.path.join('user_data/', username, 'models')):
+        os.mkdir(os.path.join('user_data/', username,'models'))
 
 def checklogin(form, login_user, session, sess):
     username = form.username.data
