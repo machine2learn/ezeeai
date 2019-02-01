@@ -41,6 +41,9 @@ class ThreadHandler:
     def run_tensor_board(self, username, config_file):
         if not username + '_' + config_file in self._ports.keys():
             port = find_free_port()
+            if port < 0:
+                logging.error('No free port found.')
+                return
             self.add_port(username, config_file, port)
             name = 'tensorboard-' + str(port)
             tboard_thread = threading.Thread(name=name,
