@@ -40,13 +40,17 @@ class ThreadHandler:
 
     def run_tensor_board(self, username, config_file):
         if not username + '_' + config_file in self._ports.keys():
-            port = find_free_port()
-            self.add_port(username, config_file, port)
-            name = 'tensorboard-' + str(port)
-            tboard_thread = threading.Thread(name=name,
-                                             target=lambda: self.tensor_board_thread(config_file, port))
-            tboard_thread.setDaemon(True)
-            tboard_thread.start()
+            try:
+                port = find_free_port()
+
+                self.add_port(username, config_file, port)
+                name = 'tensorboard-' + str(port)
+                tboard_thread = threading.Thread(name=name,
+                                                 target=lambda: self.tensor_board_thread(config_file, port))
+                tboard_thread.setDaemon(True)
+                tboard_thread.start()
+            except ValueError:
+                logging.error('No free port found.')
 
     def run_thread(self, all_params_config):
         runner = self._get_runner(all_params_config)

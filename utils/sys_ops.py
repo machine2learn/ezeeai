@@ -125,10 +125,12 @@ def abs_path_of(rel_path):
     return os.path.join(os.path.dirname(__file__), rel_path)
 
 
-def find_free_port():
-    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
-        s.bind(('0.0.0.0', 0))
-        return str(s.getsockname()[1])
+def find_free_port(low=55500, high=55600):
+    for p in range(low, high):
+        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
+            s.bind(('0.0.0.0', p))
+            return str(s.getsockname()[1])
+    raise ValueError('free port not found')
 
 
 def save_filename(target, dataset_form_field, dataset_name):
