@@ -26,7 +26,9 @@ $(document).ready(function () {
     $('#table_models tbody').on('click', 'tr', function (e) {
         if (load_table.row(this, {selected: true}).any())
             $('#submit_load').prop('disabled', true);
+        else if (load_table.page.info().recordsDisplay === 0 ){$('#submit_load').prop('disabled', true);}
         else $("#submit_load").prop('disabled', false);
+
     });
 
     $('#form_load').submit(function () {
