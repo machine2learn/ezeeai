@@ -381,11 +381,11 @@ class Image(Helper):
         labels = self._dataset.get_labels() if isinstance(self._dataset.get_labels(),
                                                           list) else self._dataset.get_labels().tolist()
         for c in class_names:
-            data[c] = {}
+            data[str(c)] = {}
             im_path = self._dataset._images[labels.index(c)]
-            data[c]['img'] = encode_image(im_path)
+            data[str(c)]['img'] = encode_image(im_path)
             if self._dataset.get_mode() != 3:
-                data[c]['extension'] = im_path.split('.')[-1]
+                data[str(c)]['extension'] = im_path.split('.')[-1]
         return data
 
     def process_features_request(self, request):
