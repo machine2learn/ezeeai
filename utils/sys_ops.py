@@ -127,9 +127,12 @@ def abs_path_of(rel_path):
 
 def find_free_port(low=55500, high=55600):
     for p in range(low, high):
-        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
-            s.bind(('0.0.0.0', p))
-            return str(s.getsockname()[1])
+        try:
+            with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
+                s.bind(('0.0.0.0', p))
+                return str(s.getsockname()[1])
+        except OSError:
+            pass
     raise ValueError('free port not found')
 
 
