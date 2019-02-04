@@ -7,7 +7,9 @@ import numpy as np
 import logging
 import os
 
-import pandas as pd
+import inspect
+
+from GPUtil import GPUtil
 
 from data.tabular import Tabular
 from model_builder import ModelBuilder
@@ -71,8 +73,15 @@ class AbstractEstimator(metaclass=ABCMeta):
         save_checkpoints_steps = self.params[SAVE_CHECKPOINTS_STEPS]
         save_summary_steps = self.params[SAVE_SUMMARY_STEPS]
         keep_checkpoint_max = self.params[KEEP_CHECKPOINT_MAX]
-        config = tf.ConfigProto()
-        config.gpu_options.allow_growth = True
+
+        gpu_options = tf.GPUOptions(allow_growth=True)
+        config = tf.ConfigProto(gpu_options=gpu_options)
+        f = [s.function for s in inspect.stack() if
+             s.filename.split('/')[-1] == 'dfweb.py' and s.function != 'check_session'][-1]
+
+        if f == 'predict' or (f != 'run' and len(GPUtil.getAvailable()) == 0):
+            config.device_count.update({'GPU': 0})
+
         self.runConfig = tf.estimator.RunConfig(model_dir=self.checkpoint_dir,
                                                 save_checkpoints_steps=save_checkpoints_steps,
                                                 save_summary_steps=save_summary_steps,
@@ -114,8 +123,8 @@ class AbstractEstimator(metaclass=ABCMeta):
         shutil.rmtree(self.checkpoint_dir, ignore_errors=True)
 
     def predict(self, features, all=False):
-        with tf.device('/cpu:0'): #TODO maybe check if gpu is free
-            predictions = list(self.model.predict(input_fn=self.dataset.input_predict_fn(features)))
+
+        predictions = list(self.model.predict(input_fn=self.dataset.input_predict_fn(features)))
         if all:
             return predictions
         if 'predictions' in predictions[0].keys():
@@ -125,9 +134,9 @@ class AbstractEstimator(metaclass=ABCMeta):
     def predict_test(self, test_file):
         self.test_file = test_file
         dict_results = {}
-        #TODO maybe check if gpu is free
-        with tf.device('/cpu:0'):
-            predictions = list(self.model.predict(input_fn=self._test_input_fn))
+        # TODO maybe check if gpu is free
+
+        predictions = list(self.model.predict(input_fn=self._test_input_fn))
         if 'predictions' in predictions[0].keys():
             preds = [x['predictions'][0] for x in predictions]
             dict_results['preds'] = preds
