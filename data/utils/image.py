@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from tensorflow.python import ops, array_ops, math_ops
 from tensorflow.python.ops.image_ops_impl import _AssertAtLeast3DImage
-
+from utils.preprocessing import has_header
 import tensorflow as tf
 
 
@@ -15,8 +15,6 @@ def random_central_crop(image, minval, maxval):
         if (minval < 0 or maxval < 0 or
                 minval > 1 or maxval > 1):
             raise ValueError('crop ratio range must be between 0 and 1.')
-
-
 
         _AssertAtLeast3DImage(image)
         rank = image.get_shape().ndims
@@ -171,10 +169,11 @@ def find_image_files_folder_per_class(data_dir, require_all=True):
 
 
 def find_image_files_from_file(data_dir, info_file, require_all=True):
-    info_file = pd.read_csv(info_file, sep=None, engine='python')
-    # TODO Structure for now: col 0 =  im name, col 1 = label
-    # TODO Regression
-    # TODO include header
+    args = {}
+    if not has_header(info_file):
+        args['header'] = None
+
+    info_file = pd.read_csv(info_file, sep=None, engine='python', **args)
 
     filenames = info_file[info_file.columns[0]].values
     if not os.path.isfile(filenames[0]):

@@ -2,6 +2,7 @@ import os
 import itertools
 from sklearn.model_selection import train_test_split
 import pandas as pd
+import csv
 
 
 # TODO Perhaps to handle big files you can change this, to work with the filename instead
@@ -13,7 +14,7 @@ def split_train_test(percent, dataset_file, targets, dataframe):
     percent = percent.split(',')
     percent = (int(percent[0]), int(percent[1]), int(percent[2]))
     if percent[2] == 0:
-        test_size = percent[1]/100
+        test_size = percent[1] / 100
         if len(targets) == 1:
             target = targets[0]
             counts = dataframe[target].value_counts()
@@ -30,7 +31,7 @@ def split_train_test(percent, dataset_file, targets, dataframe):
         return train_file, validation_file, ""
     else:
         test_file = "{}-test.csv".format(removed_ext.replace('/train/', '/test/'))
-        test_size = (100-percent[0])/100
+        test_size = (100 - percent[0]) / 100
         if len(targets) == 1:
             target = targets[0]
             counts = dataframe[target].value_counts()
@@ -41,14 +42,14 @@ def split_train_test(percent, dataset_file, targets, dataframe):
                 test_len = int(round((percent[2] / 100) * len(test_df)))
                 target = targets[0]
                 target = test_df[[target]]
-                val_df, test_df = train_test_split(test_df, test_size=test_len, stratify=target,  random_state=42)
+                val_df, test_df = train_test_split(test_df, test_size=test_len, stratify=target, random_state=42)
             else:
                 train_df, test_df = train_test_split(dataframe, test_size=test_size, random_state=42)
                 test_len = int(round((percent[2] / 100) * len(test_df)))
                 val_df, test_df = train_test_split(test_df, test_size=test_len, random_state=42)
         else:
             train_df, test_df = train_test_split(dataframe, test_size=test_size, random_state=42)
-            test_len = int(round((percent[2]/100)*len(test_df)))
+            test_len = int(round((percent[2] / 100) * len(test_df)))
             val_df, test_df = train_test_split(test_df, test_size=test_len, random_state=42)
 
         train_df.to_csv(train_file, index=False)
@@ -72,13 +73,23 @@ def insert_data(df, categories, unique_values, default_list, frequent_values2fre
 
 
 def clean_field_names(filename):
-    df = pd.read_csv(filename, sep=None, engine='python')
-    df.columns = df.columns.str.strip().str.lower().str.replace(' ', '_').str.replace('(', '').str.replace(')', '').str.replace('.', '_')
+    args = {}
+    if not has_header(filename):
+        args['header'] = None
+    df = pd.read_csv(filename, sep=None, engine='python', **args)
+    df.columns = df.columns.astype(str)
+    df.columns = df.columns.str.strip().str.lower().str.replace(' ', '_').str.replace('(', '').str.replace(')',
+                                                                                                           '').str.replace(
+        '.', '_')
     df.to_csv(filename, index=False)
 
 
 def clean_field_names_df(file, filename):
-    df = pd.read_csv(file, sep=None, engine='python')
+    args = {}
+    if not has_header(file):
+        args['header'] = None
+    df = pd.read_csv(file, sep=None, engine='python', **args)
+    df.columns = df.columns.astype(str)
     df.columns = df.columns.str.strip().str.lower().str.replace(' ', '_').str.replace('(', '').str.replace(')', '')
     df.to_csv(filename, index=False)
     return df
@@ -93,3 +104,12 @@ def check_train(train_file, targets):
             return False
     return True
 
+
+def has_header(csvfile):
+    if isinstance(csvfile, str):
+        csvfile = open(csvfile, 'r')
+
+    sniffer = csv.Sniffer()
+    has_header = sniffer.has_header(csvfile.read(2048))
+    csvfile.close()
+    return has_header

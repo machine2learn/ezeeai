@@ -112,7 +112,7 @@ def create_output(features, params, mode):
         return dnn(features, params, mode), label_vocabulary
 
     if params['mode'] == 'canned_linear':
-        return linear(features,  dataset.get_feature_columns(), params), label_vocabulary
+        return linear(features, dataset.get_feature_columns(), params), label_vocabulary
 
     raise ValueError('invalid mode ' + params['mode'] + ', should be custom or canned')
 
@@ -166,24 +166,12 @@ def classifier(features, labels, mode, params):
                                                 k=params['n_classes'],
                                                 name='mean_average_precision')
 
-        precision = tf.metrics.precision_at_k(labels=label_ids,
-                                              predictions=probs,
-                                              k=params['n_classes'],
-                                              name='mean_precision')
-        recall = tf.metrics.recall_at_k(labels=label_ids,
-                                        predictions=probs,
-                                        k=params['n_classes'],
-                                        name='mean_recall')
         metrics = {
             'accuracy': accuracy,
-            'mean_average_precision': map,
-            'mean_precision': precision,
-            'mean_recall': recall
+            'mean_average_precision': map
         }
         tf.summary.scalar('accuracy', accuracy[0])
         tf.summary.scalar('mean_average_precision', map[0])
-        tf.summary.scalar('mean_precision', precision[0])
-        tf.summary.scalar('mean_recall', recall[0])
         return tf.estimator.EstimatorSpec(mode, loss=loss, eval_metric_ops=metrics)
 
     train_op = create_train_op(loss, params, mode)

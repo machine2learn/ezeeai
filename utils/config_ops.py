@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 
 from data.utils.image import find_image_files_folder_per_class, find_image_files_from_file, find_images_test_file
 from utils import upload_util, sys_ops
+from utils.preprocessing import has_header
 from utils.sys_ops import create_split_folders, check_zip_file, unzip, tree_remove, find_dataset_from_numpy, rename
 import pandas as pd
 import numpy as np
@@ -160,7 +161,11 @@ def new_image_dataset(app_root, username, option, file):
                 dataset_test_path = os.path.join(dataset_test_path, dataset_name)
                 os.makedirs(dataset_test_path, exist_ok=True)
 
-                df = pd.read_csv(os.path.join(train_path, info_test_file[0]), sep=None, engine='python')
+                args = {}
+                if not has_header(info_file):
+                    args['header'] = None
+
+                df = pd.read_csv(os.path.join(train_path, info_test_file[0]), sep=None, engine='python',  **args)
 
                 filenames = df[df.columns[0]].values
                 if not os.path.isfile(filenames[0]):
