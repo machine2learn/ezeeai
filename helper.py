@@ -283,8 +283,6 @@ class Tabular(Helper):
         return self._dataset.get_mode()
 
     def explain_return(self, sess, request, result):
-        if result is None:
-            return 'Model\'s structure does not match the new parameter configuration'
 
         new_features = self.get_new_features(request)
         targets = self.get_targets()
@@ -301,7 +299,6 @@ class Tabular(Helper):
         params['predict_table'] = predict_table
 
         sess.set('explain_params', params)
-        return 'ok'
 
     def get_df_test(self, df_test, has_targets):
         return df_test[self.get_targets()].values if has_targets else None
@@ -557,8 +554,6 @@ class Image(Helper):
         pickle.dump(self._dataset, open(data_path, 'wb'))
 
     def explain_return(self, sess, request, results):
-        if results is None:
-            return 'Model\'s structure does not match the new parameter configuration'
 
         result, probs = results
         params = {}
@@ -587,7 +582,6 @@ class Image(Helper):
         params['predict_table'] = clean_predict_table(predict_table)
         params['graphs'] = None
         sess.set('explain_params', params)
-        return 'ok'
 
     def get_df_test(self, df_test, has_targets):
         if not has_targets:

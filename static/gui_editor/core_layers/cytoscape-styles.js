@@ -223,5 +223,20 @@ var cyto_styles = [
         style: {
             'opacity': 0
         }
+    },
+    {
+        selector: ':parent',
+        style: {
+            'background-opacity': 0.333,
+            "background-color": '#e29a47'
+        }
+    },
+
+    {
+        selector: "node.cy-expand-collapse-collapsed-node",
+        style: {
+            "background-color": '#e29a47',
+            'height': 90
+        }
     }
 ];

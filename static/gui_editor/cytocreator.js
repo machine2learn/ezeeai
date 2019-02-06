@@ -14,12 +14,33 @@ document.addEventListener('DOMContentLoaded', function () {
         elements: appConfig.cy_model.elements,
         style: cyto_styles
     });
+    var expandCollapse_defaults = {
+        layoutBy: null,
+        fisheye: false,
+        animate: false,
+        ready: function () {
+        },
+        undoable: true, // and if undoRedoExtension exists,
+        cueEnabled: true, // Whether cues are enabled
+        expandCollapseCuePosition: 'top-left', // default cue position is top left you can specify a function per node too
+        expandCollapseCueSize: 18, // size of expand-collapse cue
+        expandCollapseCueLineSize: 1, // size of lines used for drawing plus-minus icons
+        expandCueImage: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAb1BMVEUAAABxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXEyJiWEAAAAJHRSTlMAAgMEBQgODxIdIygwMTs/QEZKVWJokZSVq7TDzNze5Obz9/th0slBAAAAkUlEQVQoz83SywJCUBhF4YXklmsohGi//zM2aKLT0diafqOz/wPgxFnxXZ4GfCoXWep8gEb2nj5EUh9i5pUvddBqdLBUSgGzapvhSSlSYUWk/B8WB8WHuV2ywZ9h8w0m5slOR37nHq6q9jBj0M1qoRRzlS4Wc3otDu4k3StjoaIepRI4T/Z/2wDgXofVlLmNgDdGVyVbqNQxVwAAAABJRU5ErkJggg==', // image of expand icon if undefined draw regular expand cue
+        collapseCueImage: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAb1BMVEUAAABxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXEyJiWEAAAAJHRSTlMAAgMEBQgODxIdIygwMTs/QEZKVWJokZSVq7TDzNze5Obz9/th0slBAAAApklEQVQokc3SSRLCMAwF0Q4zBLDDEOa5739GFlAhCWbP31mvtLAkgGwyj82E2ZBXipuJ7PoA6xSp1z6MdT+inW7xcAelp+zLgEKHXFxVhV7IP706Q2NVCPpp1dDA2MT4p3hszy6v4ddgQw3z16ZKfa+s98///IV3F9U791jHOQc3pDLSCUudJizbe8vonHW7aB11XJ20AAbn9N2uAegsD/e2XMox8AQnVCppI6CYIwAAAABJRU5ErkJggg==', // image of collapse icon if undefined draw regular collapse cue
+        expandCollapseCueSensitivity: 2 // sensitivity of expand-collapse cues
+    };
+    cy.expandCollapse(expandCollapse_defaults);
+    let api = cy.expandCollapse('get');
+    let collapsed = [];
+
+
     add_icons_nodes();
 
     //Update counters (nodes names)
     cy.nodes().forEach(function (node) {
         counters[node.data().name.split('_')[0]] = parseInt(node.data().name.split('_')[1]);
     });
+    counters['block'] = 0;
 
 
     let edge_bending_options = {
@@ -66,6 +87,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     target.remove();
                     $('#' + target.id()).remove();
                     disable_submit_button();
+                    clean_blocks();
                 },
                 disabled: false, // Whether the item will be created as disabled
                 hasTrailingDivider: true, // Whether the item will have a trailing divider
@@ -81,13 +103,59 @@ document.addEventListener('DOMContentLoaded', function () {
                     add_new_node(event);
 
                 }
+            },
+            {
+                id: 'group-nodes',
+                content: 'group nodes',
+                tooltipText: 'group selected nodes',
+                selector: 'node',
+                coreAsWell: true,
+                disabled: false,
+                onClickFunction: function (event) {
+                    group_selected_nodes(event);
+                    disable_submit_button();
+                    add_icons_nodes();
+
+                }
+            },
+            {
+                id: 'ungroup-nodes',
+                content: 'ungroup nodes',
+                tooltipText: 'ungroup selected nodes',
+                selector: 'node',
+                coreAsWell: true,
+                disabled: false,
+                onClickFunction: function (event) {
+                    let target = event.target || event.cyTarget;
+                    target.children().forEach(function (c) {
+                        c.move({'parent': null});
+                    });
+                    target.remove();
+                    disable_submit_button();
+                    add_icons_nodes();
+
+
+                }
             }
         ]
     };
-    cy.contextMenus(options);
-    cy.edgehandles({snap: true});
+    let instances = cy.contextMenus(options);
+    instances.hideMenuItem('group-nodes');
+    instances.hideMenuItem('ungroup-nodes');
+
+    let eh = cy.edgehandles({snap: true});
     let ur = cy.undoRedo({undoableDrag: false});
     cy.clipboard();
+
+    function deleteEles(eles) {
+        return eles.remove();
+    }
+
+    function restoreEles(eles) {
+        return eles.restore();
+    }
+
+    ur.action("deleteEles", deleteEles, restoreEles);
 
 
     document.addEventListener("keydown", function (e) {
@@ -102,18 +170,35 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             disable_submit_button()
         } else if (e.which === 46 || e.which === 8) { // + Remove
+
             if ($(":focus").length === 0) {
-                let node = cy.nodes().filter((node) => (node.selected()));
-                if (inputs_layers.hasOwnProperty(node.data().name))
-                    delete inputs_layers[node.data().name];
-                node.remove();
-                $('#' + node.id()).remove();
-                let selected_edge = cy.edges().filter((edge) => (edge.selected()));
-                selected_edge.remove();
-                disable_submit_button();
-                clear_input_modal(dict_wizard)
+                    let node = cy.nodes().filter((node) => (node.selected()));
+                    if (node.length > 0) {
+                        if (inputs_layers.hasOwnProperty(node.data().name))
+                            delete inputs_layers[node.data().name];
+                        $('#' + node.id()).remove();
+                        disable_submit_button();
+                    }
+                ur.do("deleteEles", cy.$(":selected"));
+                clean_blocks();
             }
+
+
         }
+    });
+    document.addEventListener("click", function (e) {
+        let selected = cy.nodes().filter((node) => (node.selected()));
+        instances.hideMenuItem('ungroup-nodes');
+        if (selected.length > 1) {
+            instances.showMenuItem('group-nodes');
+        } else {
+            instances.hideMenuItem('group-nodes');
+            if (selected.length === 1 && selected[0].data().class_name === 'block') {
+                instances.showMenuItem('ungroup-nodes');
+            }
+
+        }
+
     });
 
 
@@ -163,20 +248,48 @@ document.addEventListener('DOMContentLoaded', function () {
             add_new_node(event);
     });
 
+
     cy.on('tap', 'node', function (evt) {
         clear_properties();
         show_properties(evt.target.data().content, evt.target.id());
     });
 
     cy.on('ehcomplete', (event, sourceNode, targetNode, addedEles) => {
-        if (targetNode.data().name.includes('InputLayer')) {
+        if (targetNode.data().root === 'Input Layers') {
             addedEles.remove();
-        } else if (targetNode.indegree() > 1 && !(targetNode.data().name in corelayers['Merge Layers'])) {
+        } else if (targetNode.indegree() > 1 && !(targetNode.data().root === 'Merge Layers')) {
             addedEles.remove();
-        } else if (sourceNode.data().name.includes('Loss')) {
+        } else if (sourceNode.data().root === 'Loss Functions') {
+            addedEles.remove();
+        } else if (targetNode.data().class_name === 'block' || sourceNode.data().class_name === 'block') {
             addedEles.remove();
         }
         disable_submit_button();
+    });
+    cy.on('drag', 'node', function (e) {
+        add_icons_nodes();
+
+    });
+    cy.on('expandcollapse', function (e) {
+        add_icons_nodes();
+    });
+    cy.on('expandcollapse.beforecollapse', function (e) {
+        e.target.children().filter((n) => (n.isNode())).forEach(function (n) {
+            var div = document.getElementById(n.id());
+            if (div) {
+                div.style.display = "none";
+            }
+
+        });
+    });
+    cy.on('expandcollapse.afterexpand', function (e) {
+        e.target.children().filter((n) => (n.isNode())).forEach(function (n) {
+            var div = document.getElementById(n.id());
+            if (div) {
+                div.style.display = "block";
+            }
+
+        });
     });
 
 
@@ -201,7 +314,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (e.target.id === 'name') {
                     cy_element.name = e.target.value;
                     add_icons_nodes();
-                    zoom(cy, 0.00000001); //find better way
                 }
             }
 
@@ -224,6 +336,42 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             show_params_config(prop, param, config)
         });
+
+    function group_selected_nodes(event) {
+        let nodes = cy.nodes().filter((node) => (node.selected()));
+        var content = {}
+        content['name'] = {'type': 'text'};
+        content['name']['value'] = "block_" + counters['block'].toString();
+        let grp = cy.add({
+            data: {
+                name: "block_" + counters['block'].toString(),
+                class_name: 'block',
+                root: 'block',
+                content: content
+
+            }
+        });
+        counters['block'] += 1;
+
+        //create parent node
+        nodes.forEach(function (node) {
+            node.move({parent: grp.data().id});
+        });
+        clean_blocks();
+
+
+    }
+
+
+    function clean_blocks() {
+        let blocks = cy.nodes().filter((node) => (node.data().class_name === 'block' && node.children().length < 2));
+        blocks.forEach(function (n) {
+            n.children().forEach(function (c) {
+                c.move({'parent': null});
+            });
+        });
+        cy.remove(blocks);
+    }
 
 
     function add_new_node(event) {
@@ -290,6 +438,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             })
         );
+        zoom(cy, -0.000001);
     }
 
     function check_input_output() {
@@ -338,7 +487,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             return element.data();
                     return false;
                 });
-                let is_image = input_canned.data().content.input_shape.value.split(',').length ===3;
+                let is_image = input_canned.data().content.input_shape.value.split(',').length === 3;
                 if (!is_image) {
                     var loss = canned_nodes.successors().filter((node) => (node.data().hasOwnProperty('class_name') && node.data()['class_name'] === 'Loss')).data().content.function.value;
                     $('#submit').removeClass('hidden')
@@ -352,18 +501,29 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
             } else if (canned_length === 0) {
+                let enodes = api.expandableNodes();
+                api.expandAll();
+
                 let loss_node = cy.nodes().filter((node) => (node.data('name').includes('Loss')));
                 let edges = loss_node.connectedEdges();
                 let loss_function = loss_node.data('content')['function'].value;
+
                 cy.remove(loss_node);
+
                 try {
-                    let models = create_json_model(sort_nodes(cy));
+                    let nodes = cy.nodes().filter((node) => (node.data().class_name !== 'block'));
+                    let models = create_json_model(sort_nodes(nodes));
+
                     cy.add(loss_node);
                     cy.add(edges);
-                    await tf_load_model(sort_nodes(cy), models, loss_function, cy.json(), cy, loss_node);
+
+                    await tf_load_model(sort_nodes(nodes), models, loss_function, cy.json(), cy, loss_node);
+                    api.collapse(enodes);
+
                 } catch (e) {
                     cy.add(loss_node);
                     cy.add(edges);
+                    api.collapse(enodes);
                 }
                 event.preventDefault();
             }
@@ -542,8 +702,10 @@ $(document).ready(function () {
         let td = $(this).parent('td');
         let cell = $('#table_features').DataTable().cell(td);
         let k = $(this);
-        k.find(`option[value= ${$(cell.data()).val()}]`).attr('selected', false);
-        k.find(`option[value= ${$(this).val()}]`).attr('selected', true);
+        k.find(`
+    option[value = ${$(cell.data()).val()}]`).attr('selected', false);
+        k.find(`
+    option[value = ${$(this).val()}]`).attr('selected', true);
         cell.data(k.prop('outerHTML'));
     });
 
@@ -720,7 +882,7 @@ function center_layout(cy) {
     cy.center();
 }
 
-function sort_nodes(cy) {
+function sort_nodes(nodes) {
     let s = [];
     let explored = [];
 
@@ -733,7 +895,7 @@ function sort_nodes(cy) {
         s.push(node);
     }
 
-    let input_nodes = cy.nodes().filter((node) => 'name' in node.data()).roots();
+    let input_nodes = nodes.filter((node) => 'name' in node.data()).roots();
     input_nodes.forEach(node => {
         if (explored.indexOf(node) < 0)
             dfs(node, explored, s);
@@ -741,7 +903,7 @@ function sort_nodes(cy) {
     s.reverse().forEach(function (el, idx) {
         el.data()['depth'] = idx;
     });
-    return cy.nodes().sort(function (a, b) {
+    return nodes.sort(function (a, b) {
         return a.data('depth') - b.data('depth');
     });
 }

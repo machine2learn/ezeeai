@@ -197,7 +197,8 @@ function addCytoscapeListeners() {
     var node = e.target;
 
     if (!node.same(_this.handleNode)) {
-      _this.show(node);
+      if (!node.data().hasOwnProperty('parent'))
+        _this.show(node);
     }
   });
 
@@ -219,7 +220,8 @@ function addCytoscapeListeners() {
     } else if (_this.drawMode) {
       _this.start(node);
     } else if (node.same(_this.sourceNode)) {
-      _this.hide();
+      _this.stop();
+
     }
   });
 

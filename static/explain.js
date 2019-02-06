@@ -56,6 +56,10 @@ $(document).ready(function () {
 
 
         $('#labels_ice').change(function (e) {
+            if ('error' in handle_key){
+                alert(handle_key.error);
+                return;
+            }
             if ('data' in handle_key) {
                 let feature_selected = $("#features option:selected").text();
                 let cluster = $("#labels_ice option:selected").text();

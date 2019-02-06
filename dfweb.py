@@ -303,8 +303,8 @@ def predict():
     new_features = hlp.get_new_features(request, default_features=False)
     if sess.mode_is_canned():
         all_params_config.set_canned_data(sess.get_canned_data())
-    final_pred = th.predict_estimator(all_params_config, new_features)
-    return jsonify(error=True) if final_pred is None else jsonify(
+    final_pred, success = th.predict_estimator(all_params_config, new_features)
+    return jsonify(error=final_pred) if not success else jsonify(
         run_utils.get_predictions(hlp.get_targets(), final_pred))
 
 
@@ -320,8 +320,10 @@ def explain():
             return jsonify(**ep)
         if sess.mode_is_canned():
             all_params_config.set_canned_data(sess.get_canned_data())
-        result = th.explain_estimator(all_params_config, ep)
-        return jsonify(explanation=hlp.explain_return(sess, request, result))
+        result, success = th.explain_estimator(all_params_config, ep)
+        if success:
+            hlp.explain_return(sess, request, result)
+        return jsonify(error=result) if not success else jsonify({})
     params = sess.get_explain_params()
     return render_template('explain.html', title="Explain", page=5, model=sess.get_model(), user=session['user'],
                            token=session['token'], exp_target=sess.get_exp_target(), **params)
@@ -351,13 +353,13 @@ def test():
     if sess.mode_is_canned():
         all_params_config.set_canned_data(sess.get_canned_data())
 
-    final_pred = th.predict_test_estimator(all_params_config, test_filename)
-    if final_pred is None:
-        return jsonify(result='Model\'s structure does not match the new parameter configuration')
+    final_pred, success = th.predict_test_estimator(all_params_config, test_filename)
+    if not success:
+        return jsonify(error=final_pred)
     try:
         predict_file = hlp.process_test_predict(df_test, final_pred, test_filename)
     except Exception as e:
-        return jsonify(result='Model\'s structure does not match the new parameter configuration')
+        return jsonify(error=str(e))
     sess.set_has_targets(has_targets)
     sess.set_predict_file(predict_file)
     store_predictions(has_targets, sess, final_pred, hlp.get_df_test(df_test, has_targets))
@@ -515,11 +517,11 @@ def explain_feature():
     if sess.mode_is_canned():
         all_params_config.set_canned_data(sess.get_canned_data())
     try:
-        final_pred = th.predict_test_estimator(all_params_config, file_path)
-        if final_pred is None:
-            return jsonify(data='Error')
+        final_pred, success = th.predict_test_estimator(all_params_config, file_path)
+        if not success:
+            return jsonify(error=final_pred)
     except:
-        return jsonify(data='Error')
+        return jsonify(error=final_pred)
     data = hlp.process_ice_request(request, unique_val_column, final_pred)
     return jsonify(data=data)
 

@@ -15,7 +15,7 @@
 
             //Global variables to hold x and y coordinates in case of pasting
             var mouseX, mouseY;
-            cy.on('mousemove', function onmousemove (e) {
+            cy.on('mousemove', function onmousemove(e) {
                 var pos = e.position || e.cyPosition;
                 mouseX = pos.x;
                 mouseY = pos.y;
@@ -35,7 +35,7 @@
 
             function getScratch() {
                 if (!cy.scratch("_clipboard")) {
-                    cy.scratch("_clipboard", { });
+                    cy.scratch("_clipboard", {});
 
                 }
                 return cy.scratch("_clipboard");
@@ -76,6 +76,9 @@
                     var id = getCloneId();
                     oldIdToNewId[jsonFirst.data.id] = id;
                     jsonFirst.data.id = id;
+                    counters[jsonFirst.data.class_name] += 1;
+                    jsonFirst.data.name = jsonFirst.data.class_name + '_' + counters[jsonFirst.data.class_name].toString();
+
                 }
 
                 //Paste the elements centered at the mouse location
@@ -84,8 +87,7 @@
                 var centerX, centerY;
                 var diffX, diffY;
                 //Checks only for nodes
-                if (jsons[0] !== undefined && jsons[0].position.x)
-                {
+                if (jsons[0] !== undefined && jsons[0].position.x) {
                     topLeftX = jsons[0].position.x;
                     topLeftY = jsons[0].position.y;
                     bottomRightX = jsons[0].position.x;
@@ -107,10 +109,10 @@
                             bottomRightY = ele.position.y;
                         }
                     }
-                    centerX = (topLeftX+bottomRightX)/2;
-                    centerY = (topLeftY+bottomRightY)/2;
+                    centerX = (topLeftX + bottomRightX) / 2;
+                    centerY = (topLeftY + bottomRightY) / 2;
 
-                    diffX = mouseX -centerX;
+                    diffX = mouseX - centerX;
                     diffY = mouseY - centerY;
                 }
 
@@ -153,11 +155,11 @@
                         var nodes = eles.nodes().union(descs).filter(":visible");
                         var edges = nodes.edgesWith(nodes).filter(":visible");
 
-                        if(options.beforeCopy) {
+                        if (options.beforeCopy) {
                             options.beforeCopy(nodes.union(edges));
                         }
                         clipboard[id] = {nodes: nodes.jsons(), edges: edges.jsons()};
-                        if(options.afterCopy) {
+                        if (options.afterCopy) {
                             options.afterCopy(clipboard[id]);
                         }
                         return id;
@@ -165,7 +167,7 @@
                     paste: function (_id, pasteAtMouseLoc) {
                         var id = _id ? _id : getItemId(true);
                         var res = cy.collection();
-                        if(options.beforePaste) {
+                        if (options.beforePaste) {
                             options.beforePaste(clipboard[id]);
                         }
                         if (clipboard[id]) {
@@ -178,7 +180,7 @@
                             });
 
                         }
-                        if(options.afterPaste) {
+                        if (options.afterPaste) {
                             options.afterPaste(res);
                         }
                         cy.trigger('pasteClonedElements');

@@ -9,6 +9,7 @@ var fa_corelayers = {
     'Recurrent Layers': 'fas fa-server',
     'Loss Functions': 'fas fa-arrow-left',
     'Canned Models': 'fas fa-layer-group',
+    'block': 'fas fa-box'
 };
 
 var initializers = {
@@ -82,7 +83,7 @@ var corelayers = {
         "Activation": {
             "activation": {
                 "type": "select",
-                "options": ["elu", "hardSigmoid", "linear", "relu", "relu6", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh"],
+                "options": ["elu", "hardSigmoid", "linear", "relu", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh"],
                 "value": "relu"
             }, "class_name": "Activation"
         },
@@ -92,7 +93,7 @@ var corelayers = {
             "units": {"type": "integer", "value": 100, "min": 1},
             "activation": {
                 "type": "select",
-                "options": ["elu", "hardSigmoid", "linear", "relu", "relu6", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
+                "options": ["elu", "hardSigmoid", "linear", "relu", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
                 "value": "relu"
             },
             "use_bias": {"type": "boolean", "value": true},
@@ -198,7 +199,7 @@ var corelayers = {
 
             "activation": {
                 "type": "select",
-                "options": ["elu", "hardSigmoid", "linear", "relu", "relu6", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
+                "options": ["elu", "hardSigmoid", "linear", "relu", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
                 "value": "relu"
             },
             "use_bias": {"type": "boolean", "value": true},
@@ -238,7 +239,7 @@ var corelayers = {
 
             "activation": {
                 "type": "select",
-                "options": ["elu", "hardSigmoid", "linear", "relu", "relu6", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
+                "options": ["elu", "hardSigmoid", "linear", "relu", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
                 "value": "relu"
             },
             "use_bias": {"type": "boolean", "value": true},
@@ -279,7 +280,7 @@ var corelayers = {
 
             "activation": {
                 "type": "select",
-                "options": ["elu", "hardSigmoid", "linear", "relu", "relu6", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
+                "options": ["elu", "hardSigmoid", "linear", "relu", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
                 "value": "relu"
             },
             "use_bias": {"type": "boolean", "value": true},
@@ -320,7 +321,7 @@ var corelayers = {
 
             "activation": {
                 "type": "select",
-                "options": ["elu", "hardSigmoid", "linear", "relu", "relu6", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
+                "options": ["elu", "hardSigmoid", "linear", "relu", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
                 "value": "relu"
             },
             "use_bias": {"type": "boolean", "value": true},
@@ -545,12 +546,12 @@ var corelayers = {
             "units": {"type": "integer", "value": 100, "min": 1},
             "activation": {
                 "type": "select",
-                "options": ["elu", "hardSigmoid", "linear", "relu", "relu6", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
+                "options": ["elu", "hardSigmoid", "linear", "relu", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
                 "value": "relu"
             },
             "recurrent_activation": {
                 "type": "select",
-                "options": ["elu", "hardSigmoid", "linear", "relu", "relu6", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
+                "options": ["elu", "hardSigmoid", "linear", "relu", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
                 "value": "hardSigmoid"
             },
             "use_bias": {"type": "boolean", "value": true},
@@ -603,12 +604,12 @@ var corelayers = {
             "units": {"type": "integer", "value": 100, "min": 1},
             "activation": {
                 "type": "select",
-                "options": ["elu", "hardSigmoid", "linear", "relu", "relu6", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
+                "options": ["elu", "hardSigmoid", "linear", "relu", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
                 "value": "relu"
             },
             "recurrent_activation": {
                 "type": "select",
-                "options": ["elu", "hardSigmoid", "linear", "relu", "relu6", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
+                "options": ["elu", "hardSigmoid", "linear", "relu", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
                 "value": "hardSigmoid"
             },
             "use_bias": {"type": "boolean", "value": true},
@@ -655,12 +656,12 @@ var corelayers = {
             "units": {"type": "integer", "value": 100, "min": 1},
             "activation": {
                 "type": "select",
-                "options": ["elu", "hardSigmoid", "linear", "relu", "relu6", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
+                "options": ["elu", "hardSigmoid", "linear", "relu", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
                 "value": "relu"
             },
             "recurrent_activation": {
                 "type": "select",
-                "options": ["elu", "hardSigmoid", "linear", "relu", "relu6", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
+                "options": ["elu", "hardSigmoid", "linear", "relu", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
                 "value": "hard_sigmoid"
             },
             "use_bias": {"type": "boolean", "value": true},
@@ -712,12 +713,12 @@ var corelayers = {
             "units": {"type": "integer", "value": 100, "min": 1},
             "activation": {
                 "type": "select",
-                "options": ["elu", "hardSigmoid", "linear", "relu", "relu6", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
+                "options": ["elu", "hardSigmoid", "linear", "relu", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
                 "value": "relu"
             },
             "recurrent_activation": {
                 "type": "select",
-                "options": ["elu", "hardSigmoid", "linear", "relu", "relu6", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
+                "options": ["elu", "hardSigmoid", "linear", "relu", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
                 "value": "hard_sigmoid"
             },
             "use_bias": {"type": "boolean", "value": true},
@@ -772,7 +773,7 @@ var corelayers = {
             "units": {"type": "integer", "value": 100, "min": 1},
             "activation": {
                 "type": "select",
-                "options": ["elu", "hardSigmoid", "linear", "relu", "relu6", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
+                "options": ["elu", "hardSigmoid", "linear", "relu", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
                 "value": "relu"
             },
             "use_bias": {"type": "boolean", "value": true},
@@ -824,7 +825,7 @@ var corelayers = {
             "units": {"type": "integer", "value": 100, "min": 1},
             "activation": {
                 "type": "select",
-                "options": ["elu", "hardSigmoid", "linear", "relu", "relu6", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
+                "options": ["elu", "hardSigmoid", "linear", "relu", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
                 "value": "relu"
             },
             "use_bias": {"type": "boolean", "value": true},
@@ -870,7 +871,7 @@ var corelayers = {
             "units": {"type": "integer", "value": 100, "min": 1},
             "activation": {
                 "type": "select",
-                "options": ["elu", "hardSigmoid", "linear", "relu", "relu6", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
+                "options": ["elu", "hardSigmoid", "linear", "relu", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
                 "value": "relu"
             },
             "use_bias": {"type": "boolean", "value": true},
@@ -973,7 +974,7 @@ var corelayers = {
             "hidden_layers": {"type": "integer_list", "value": "[100]"},
             "activation_fn": {
                 "type": "select",
-                "options": ["elu", "relu", "relu6", "selu", "sigmoid", "softmax", "softsign", "tanh", null],
+                "options": ["elu", "relu", "selu", "sigmoid", "softmax", "softsign", "tanh", null],
                 "value": "relu"
             },
             "kernel_initializer": {

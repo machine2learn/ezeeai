@@ -47,8 +47,8 @@ $(document).ready(function () {
                     $("#predict_button").attr('disabled', false);
                     $loading.addClass('hidden');
 
-                    if ('error' in data) {
-                        alert('Model\'s structure does not match the new parameter configuration');
+                    if (data.hasOwnProperty('error')) {
+                        alert(data.error);
                     } else {
                         $('#predict_val').empty();
 
@@ -78,9 +78,10 @@ $(document).ready(function () {
 
     });
 
-    function test_success(href, result) {
-        if (result !== 'ok')
-            alert(result);
+    function test_success(href, data) {
+        console.log(data);
+        if (data.hasOwnProperty('error'))
+            alert(data.error);
         else
             $("<a>").attr({"href": href, "target": '_blank'})[0].click();
     }
@@ -97,7 +98,7 @@ $(document).ready(function () {
                 success: function (data) {
                     $('#loading_explain').addClass('hidden');
                     $('#explain_button').prop('disabled', false);
-                    test_success('explain', data.explanation);
+                    test_success('explain', data);
                 }
             })
         } else {
@@ -122,7 +123,7 @@ $(document).ready(function () {
     function explain_success(data) {
         $('#loading_explain').addClass('hidden');
         $('#explain_button').prop('disabled', false);
-        test_success('explain', data['explanation']);
+        test_success('explain', data);
     }
 
     $("#test_button").click(function (e) {
@@ -146,7 +147,7 @@ $(document).ready(function () {
                     'model': get_checkpoint_selected()
                 }),
                 success: function (data) {
-                    test_success('show_test', data.result);
+                    test_success('show_test', data);
                     $loading.addClass('hidden');
                     $("#test_button").attr('disabled', false);
                 }
@@ -286,7 +287,7 @@ function completeHandler(event) {
 
     let data = JSON.parse(event.target.responseText);
     if ('error' in data) {
-        alert('Model\'s structure does not match the new parameter configuration');
+        alert(data.error);
     } else {
         $('#predict_val').empty();
 

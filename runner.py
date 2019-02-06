@@ -33,31 +33,41 @@ class Runner:
         try:
             self.get_estimator().run()
         # except tf.errors.NotFoundError:
-        except (InvalidArgumentError, NotFoundError):
+        except (InvalidArgumentError, NotFoundError) as err:
+            if err.message.split('.')[0] != 'Restoring from checkpoint failed':
+                raise err
             self.get_estimator().clear_checkpoint()
             self.get_estimator().run()
 
     def predict(self, features, all=False):
         try:
-            result = self.get_estimator().predict(features, all)
-        except (InvalidArgumentError, NotFoundError):
-            result = None
-        return result
+            return self.get_estimator().predict(features, all), True
+        except (InvalidArgumentError, NotFoundError) as err:
+            if err.message.split('.')[0] != 'Restoring from checkpoint failed':
+                return err.message, False
+            return 'Model\'s structure does not match the new parameter configuration', False
+        except Exception as err:
+            return str(err), False
 
     def predict_test(self, test_file):
         try:
-            result = self.get_estimator().predict_test(test_file)
-        except (InvalidArgumentError, NotFoundError):
-            result = None
-        return result
+            return self.get_estimator().predict_test(test_file), True
+        except (InvalidArgumentError, NotFoundError) as err:
+            if err.message.split('.')[0] != 'Restoring from checkpoint failed':
+                return err.message, False
+            return 'Model\'s structure does not match the new parameter configuration', False
+        except Exception as err:
+            return str(err), False
 
     def explain(self, params):
         try:
             if not isinstance(self.get_estimator(), MultOutEstimator):
                 del params['sel_target']
-            result = self.get_estimator().explain(**params)
+            return self.get_estimator().explain(**params), True
 
-        except (InvalidArgumentError, NotFoundError):
-            result = None
-        return result
-
+        except (InvalidArgumentError, NotFoundError) as err:
+            if err.message.split('.')[0] != 'Restoring from checkpoint failed':
+                return err.message, False
+            return 'Model\'s structure does not match the new parameter configuration', False
+        except Exception as err:
+            return str(err), False
