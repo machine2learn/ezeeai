@@ -633,6 +633,7 @@ img.demo {
 
 .modal {
     overflow-y: auto;
+    z-index: 9999;
 }
 
 #submitform {
@@ -645,3 +646,47 @@ img.demo {
     font-size: 12px;
      font-style: italic;
 }
+#slider-div{
+    display: block;
+    margin: 0;
+
+}
+.modal .btn-primary{
+    float: right;
+    margin-bottom: 10px;
+
+}
+.modal .btn-block{
+    margin-top: 10px;
+}
+
+.input-group > .form-control, .input-group > .custom-select, .input-group > .custom-file {
+    margin: 0;
+}
+
+/*.close {*/
+  /*float: right;*/
+  /*font-size: 1.5rem;*/
+  /*font-weight: 700;*/
+  /*line-height: 1;*/
+  /*color: #000;*/
+  /*text-shadow: 0 1px 0 #fff;*/
+  /*opacity: .5;*/
+/*}*/
+
+/*.close:hover, .close:focus {*/
+  /*color: #000;*/
+  /*text-decoration: none;*/
+  /*opacity: .75;*/
+/*}*/
+
+/*.close:not(:disabled):not(.disabled) {*/
+  /*cursor: pointer;*/
+/*}*/
+
+/*button.close {*/
+  /*padding: 0;*/
+  /*background-color: transparent;*/
+  /*border: 0;*/
+  /*-webkit-appearance: none;*/
+/*}*/

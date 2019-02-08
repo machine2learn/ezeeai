@@ -3,8 +3,11 @@ $(document).ready(function () {
     var dataset_rows = get_rows(appConfig.handle_key.datasets);
     var table_datasets = $('#table_datasets').DataTable({
         data: dataset_rows,
-        columns: [{title: 'Dataset'}, {title: '', width: "3%"}],
-        'select': 'single'
+        columns: [{title: 'Dataset'}, {title: 'Type'}, {title: '', width: "3%"}],
+        searching: true,
+        'select': false,
+        "lengthChange": false,
+
     });
     var models_rows = get_rows_model(appConfig.handle_key.parameters);
     var models_table = $('#table_models').DataTable({
@@ -13,15 +16,28 @@ $(document).ready(function () {
             title: '',
             width: "5%"
         }],
-        'select': 'single',
-        fixedHeader: false
+        'select': false,
+        fixedHeader: false,
+        searching: true,
+        "lengthChange": false,
     });
+    $('#data_search').keyup(function () {
+        table_datasets.search($(this).val()).draw();
+
+    });
+    $('#model_search').keyup(function () {
+        models_table.search($(this).val()).draw();
+
+
+    });
+
+
 });
 
 function get_rows(datasets) {
     let dataset_rows = [];
     datasets.forEach(function (d) {
-        let conf_row = [d, '<a data-id=' + d + ' onclick="ConfirmDelete(this, false)" ><i class="fas fa-times"></i></a>'];
+        let conf_row = [d[0], d[1], '<a data-id=' + d[0] + ' onclick="ConfirmDelete(this, false)" ><i class="fi flaticon-trash"></i></a>'];
         dataset_rows.push(conf_row)
     });
     return dataset_rows;
@@ -37,7 +53,7 @@ function get_rows_model(models) {
             loss = models[key]["loss"];
         }
         let row = [key, models[key]["dataset"], prf, loss,
-            '<a data-id=' + key + ' onclick="ConfirmModelDelete(this, false)" ><i class="fas fa-times"></i></i></a>'];
+            '<a data-id=' + key + ' onclick="ConfirmModelDelete(this, false)" ><i class="fi flaticon-trash"></i></i></a>'];
         models_rows.push(row);
     });
     return models_rows;

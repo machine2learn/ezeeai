@@ -19,6 +19,18 @@ def get_datasets(app_root, username):
     return [x for x in os.listdir(os.path.join(app_root, 'user_data', username, 'datasets')) if x[0] != '.']
 
 
+def get_datasets_type(app_root, username):
+    datasets = []
+    for dataset in os.listdir(os.path.join(app_root, 'user_data', username, 'datasets')):
+        if dataset[0] == '.':
+            continue
+        dt_type = [x for x in os.listdir(os.path.join(app_root, 'user_data', username, 'datasets', dataset)) if
+                   x[0] == '.']
+        dt_type = 'Tabular' if 'tabular' in dt_type[0] else 'Image'
+        datasets.append([dataset, dt_type])
+    return datasets
+
+
 def get_datasets_and_types(app_root, username):
     data_and_type = {}
     datasets = get_datasets(app_root, username)
@@ -165,7 +177,7 @@ def new_image_dataset(app_root, username, option, file):
                 if not has_header(info_file):
                     args['header'] = None
 
-                df = pd.read_csv(os.path.join(train_path, info_test_file[0]), sep=None, engine='python',  **args)
+                df = pd.read_csv(os.path.join(train_path, info_test_file[0]), sep=None, engine='python', **args)
 
                 filenames = df[df.columns[0]].values
                 if not os.path.isfile(filenames[0]):

@@ -1,36 +1,35 @@
 function create_layers(corelayers) {
-    Object.keys(corelayers).forEach(function (key) {
-        let card = $('<div></div>').attr('id', 'card-' + key);
-        $('#accordion').append(card);
-        $(`#card-${key}`).addClass('card');
 
-        let card_header = $('<div></div>').attr('id', `card-header-${key}`);
+
+    Object.keys(corelayers).forEach(function (key) {
+        var key_np = key.replace(/ +/g, "");
+        let card = $('<div></div>').attr('id', 'card-' + key_np);
+        card.addClass('card');
+        $('#accordion').append(card);
+
+        let card_header = $('<div></div>').attr('id', 'card-header-' + key_np);
         card.append(card_header);
 
         let button = $('<button></button>');
+        button.addClass('collapsed');
         button
-            .attr('data-toggle', 'collapse')
-            .attr('data-target', "#collapse-" + key)
+            .attr('href', '#collapse-' + key_np)
+            .attr('data-toggle', "collapse")
             .attr('aria-expanded', 'false')
             .attr('aria-controls', 'collapse-' + key)
-            .attr('data-parent', "#accordion")
-            .attr('id', key);
+            .attr('data-parent', "#accordion");
         let i = $('<i class="' + fa_corelayers[key] + '"></i><br>');
-
-        $(`[id='card-header-${key}']`).append(button);
-        $(`[id='${key}']`)
+        button
             .append(i)
             .append(key);
+        card_header.append(button);
 
-        // COLLAPSE
         let collapsible = $('<div></div>');
         collapsible
-            .attr('id', 'collapse-' + key)
-            .attr('aria-labelledby', 'card-header-' + key)
-            .attr('data-parent', "#accordion");
+            .attr("id", 'collapse-' + key_np)
+            .attr('aria-labelledby', 'card-header-' + key_np);
+        collapsible.addClass('collapse card-body');
 
-        $(`[id='card-${key}']`).append(collapsible);
-        collapsible.addClass('collapse show card-body');
 
         Object.keys(corelayers[key]).forEach(function (val) {
 
@@ -47,8 +46,8 @@ function create_layers(corelayers) {
             collapsible.append(label);
 
         });
+        card.append(collapsible);
     });
-    $('.collapse').collapse();
 }
 
 

@@ -13,8 +13,15 @@ $(document).ready(function () {
             {title: 'Perf'},
             {title: 'Loss'}],
         'select': 'single',
+        "lengthChange": false,
         fixedHeader: false,
         deferRender: false,
+
+    });
+
+    $('#model_search').keyup(function () {
+        load_table.search($(this).val()).draw();
+
 
     });
 
@@ -26,7 +33,9 @@ $(document).ready(function () {
     $('#table_models tbody').on('click', 'tr', function (e) {
         if (load_table.row(this, {selected: true}).any())
             $('#submit_load').prop('disabled', true);
-        else if (load_table.page.info().recordsDisplay === 0 ){$('#submit_load').prop('disabled', true);}
+        else if (load_table.page.info().recordsDisplay === 0) {
+            $('#submit_load').prop('disabled', true);
+        }
         else $("#submit_load").prop('disabled', false);
 
     });
@@ -127,13 +136,13 @@ function wizard_next(number, dict_wizard) {
 function create_features_table(data, category_list, dict_wizard) {
     wizard_next(3, dict_wizard);
 
-    $('#tabular_features').removeClass('hidden');
-    $('#image_features').addClass('hidden');
+    $('#tabular_features').removeAttr('hidden');
+    $('#image_features').attr('hidden', '');
 
     if (table_feat_created) {
         $('#table_features').DataTable().clear().rows.add(get_feature_rows(data, category_list)).draw();
     } else {
-        $('#table_features').DataTable({
+        var table_features = $('#table_features').DataTable({
             data: get_feature_rows(data, category_list),
             columns: [{title: 'Features', name: 'Features'},
                 {title: 'Category', name: 'Category'},
@@ -144,7 +153,12 @@ function create_features_table(data, category_list, dict_wizard) {
             fixedHeader: false,
             deferRender: true,
             scrollX: true,
-            scroller: true
+            scroller: true,
+            "lengthChange": false
+        });
+        $('#feature_search').keyup(function () {
+            table_features.search($(this).val()).draw();
+
         });
     }
     return true;
@@ -153,8 +167,8 @@ function create_features_table(data, category_list, dict_wizard) {
 
 function create_image_feature(data, dict_wizard) {
     wizard_next(3, dict_wizard);
-    $('#tabular_features').addClass('hidden');
-    $('#image_features').removeClass('hidden');
+    $('#tabular_features').attr('hidden', '');
+    $('#image_features').removeAttr('hidden');
     $('#height').val(data.height);
     $('#width').val(data.width);
     return true;
@@ -169,13 +183,13 @@ function update_split(values) {
 
 function create_target_table(data, category_list, targets, dict_wizard) {
     wizard_next(4, dict_wizard);
-    $('#tabular_target').removeClass('hidden');
-    $('#image_target').addClass('hidden');
+    $('#tabular_target').removeAttr('hidden');
+    $('#image_target').attr('hidden', '');
     var $target_table = $('#table_targets');
     if (table_target_created) {
         $target_table.DataTable().clear().rows.add(get_target_rows(data, category_list)).draw();
     } else {
-        $target_table.DataTable({
+        var target_table = $target_table.DataTable({
             data: get_target_rows(data, category_list),
             columns: [{title: 'Features'}, {title: 'Category', name: 'Category'}, {title: '#Unique Values'},
                 {title: '(Most frequent, Frequency)'}, {title: 'Defaults'}, {title: 'Sample 1'},
@@ -184,8 +198,13 @@ function create_target_table(data, category_list, targets, dict_wizard) {
             fixedHeader: false,
             deferRender: true,
             scrollX: true,
-            scroller: true
-        })
+            scroller: true,
+            "lengthChange": false,
+        });
+        $('#target_search').keyup(function () {
+            target_table.search($(this).val()).draw();
+
+        });
     }
     $target_table.DataTable().rows().every(function () {
         var data = this.data()[0];
@@ -324,8 +343,9 @@ function get_target_rows(data, category_list) {
 
 function close_modal() {
     clear_input_modal(dict_wizard);
-    $('#modal').addClass('fade')
-        .removeClass('show');
+    $('#modal').addClass('fade');
+    $('#modal').hide();
+
 }
 
 function modal_add_input_select(label_name, options) {
@@ -438,8 +458,8 @@ function showSlides(n) {
 
 function create_images_targets(data) {
     wizard_next(4, dict_wizard);
-    $('#tabular_target').addClass('hidden');
-    $('#image_target').removeClass('hidden');
+    $('#tabular_target').attr('hidden', '');
+    $('#image_target').removeAttr('hidden');
     $('#image_row').empty();
     $('#image_demo').empty();
     $('#slides').empty();
@@ -498,8 +518,8 @@ function create_images_targets(data) {
 }
 
 function restore_features_images(height, width, norm, aug_op, aug_param) {
-    $('#image_features').removeClass('hidden');
-    $('#tabular_features').addClass('hidden');
+    $('#image_features').removeAttr('hidden');
+    $('#tabular_features').attr('hidden', '');
 
     wizard_next(3, dict_wizard);
 

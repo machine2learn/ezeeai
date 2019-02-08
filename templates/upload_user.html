@@ -3,57 +3,108 @@
 
 {% block styles %}
     {{ super() }}
+    <link href="{{ url_for('.static', filename='base/css/tables.css') }}" rel="stylesheet">
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css"
-          integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
-    <link rel="stylesheet" type="text/css"
-          href="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.css"/>
-
-{% endblock %}
-
-{% block title %}
-    Profile
 {% endblock %}
 
 {% block content %}
-    <div class="container signup-section">
-        <div class="section-content bs-callout bs-callout-profile ">
-            <form class="form-signin" method="POST" action="/user_data">
-                <h2 class="form-signin-heading"> Profile</h2>
-                {{ form.hidden_tag() }}
-                {{ wtf.form_field(form.username) }}
-                {{ wtf.form_field(form.email) }}
-{#                {{ wtf.form_field(form.send_mail) }}#}
-                <button class="btn btn-default btn-next" type="submit"><i class="fas fa-save"></i> Save</button>
-            </form>
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">YOU ARE HERE</li>
+        <li class="breadcrumb-item active">My Account</li>
+    </ol>
+    <div class="row">
+        <div class="col-lg-12">
+            <section class="widget">
+                <header>
+                    <h5>
+                        Your <span class="fw-semi-bold">Profile</span>
+                    </h5>
+                </header>
+                <div class="widget-body">
+                    <form class="form-signin" method="POST" action="/user_data">
+                        {{ form.hidden_tag() }}
+                        {{ wtf.form_field(form.username) }}
+                        {{ wtf.form_field(form.email) }}
+                        {{ wtf.form_field(form.send_mail) }}
+                        <div class="clearfix">
+                            <div class="float-right">
+                                <button class="btn btn-default btn-next" type="submit">
+                                    Save
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </section>
         </div>
-
     </div>
-    <div class="container">
+    <div class="row">
+        <div class="col-lg-6">
+            <section class="widget">
+                <header>
+                    <h5>
+                        Your <span class="fw-semi-bold">Datasets</span>
+                    </h5>
+                </header>
 
-        <h3 class="form-signin-heading"><i class="fas fa-cogs"></i> Your models </h3>
-        <table id="table_models" class="ui celled table" style="width:100%">
-            <tfoot align="right">
-            <tr>
-                <td colspan="5">Clear all models <a data-id=all onclick="ConfirmModelDelete(this, true)">
-                    <i class="fas fa-trash"></i></a>
-                </td>
-            </tr>
-            </tfoot>
-        </table>
+                <div class="table-responsive">
+                    <div class="navbar-form" role="search">
+                        <div class="form-group">
+                            <div class="input-group input-group-no-border">
+                                <input id="data_search" class="form-control" type="text" placeholder="Search Dataset">
+                                <span class="input-group-append">
+                                        <span class="input-group-text">
+                                            <i class="la la-search"></i>
+                                        </span>
+                            </span>
+                            </div>
+                        </div>
+                    </div>
+                    <table id="table_datasets" class="table table-hover table-striped" style="width:100%">
+                        <tfoot align="right">
+                        <tr>
+                            <td colspan="3">Clear all <a data-id=all onclick="ConfirmDelete(this, true)">
+                                <i class="fi flaticon-trash"></i></a>
+                            </td>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </section>
+        </div>
+        <div class="col-lg-6">
+            <section class="widget">
+                <header>
+                    <h5>
+                        Your <span class="fw-semi-bold">Models</span>
+                    </h5>
+                </header>
 
-        <h3 class="form-signin-heading"><i class="fas fa-coins"></i> Your datasets </h3>
-        <table id="table_datasets" class="ui celled table" style="width:100%">
-            <tfoot align="right">
-            <tr>
-                <td colspan="2">Clear all datasets <a data-id=all onclick="ConfirmDelete(this, true)">
-                    <i class="fas fa-trash"></i></a>
-                </td>
-            </tr>
-            </tfoot>
-        </table>
-
+                <div class="table-responsive">
+                    <div class="navbar-form" role="search">
+                        <div class="form-group">
+                            <div class="input-group input-group-no-border">
+                                <input id="model_search" class="form-control" type="text" placeholder="Search Model">
+                                <span class="input-group-append">
+                                        <span class="input-group-text">
+                                            <i class="la la-search"></i>
+                                        </span>
+                            </span>
+                            </div>
+                        </div>
+                    </div>
+                    <table id="table_models" class="table table-hover table-striped" style="width:100%">
+                        <tfoot align="right">
+                        <tr>
+                            <td colspan="5">Clear all <a data-id=all onclick="ConfirmModelDelete(this, true)">
+                                <i class="fi flaticon-trash"></i></a>
+                            </td>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </section>
+        </div>
     </div>
 {% endblock %}
 

@@ -172,13 +172,13 @@ document.addEventListener('DOMContentLoaded', function () {
         } else if (e.which === 46 || e.which === 8) { // + Remove
 
             if ($(":focus").length === 0) {
-                    let node = cy.nodes().filter((node) => (node.selected()));
-                    if (node.length > 0) {
-                        if (inputs_layers.hasOwnProperty(node.data().name))
-                            delete inputs_layers[node.data().name];
-                        $('#' + node.id()).remove();
-                        disable_submit_button();
-                    }
+                let node = cy.nodes().filter((node) => (node.selected()));
+                if (node.length > 0) {
+                    if (inputs_layers.hasOwnProperty(node.data().name))
+                        delete inputs_layers[node.data().name];
+                    $('#' + node.id()).remove();
+                    disable_submit_button();
+                }
                 ur.do("deleteEles", cy.$(":selected"));
                 clean_blocks();
             }
@@ -204,8 +204,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     cy.on('doubleTap', 'node', function (event) {
         if (event.target.data().class_name.includes('InputLayer')) {
-            $('#modal').removeClass('fade')
-                .addClass('show');
+            $('#modal').removeClass('fade');
+
             disable_submit_button();
             if (inputs_layers.hasOwnProperty(event.target.data().name)) {
                 let name = event.target.data().name;
@@ -221,6 +221,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     create_images_targets(inputs_layers[name]['image_data']);
                 }
             }
+            $('#modal').show();
         }
     });
 
@@ -364,7 +365,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     function clean_blocks() {
-        let blocks = cy.nodes().filter((node) => (node.data().class_name === 'block' && node.children().length < 2));
+        let blocks = cy.nodes().filter((node) => (node.data().class_name === 'block' && node.children().length === 1));
         blocks.forEach(function (n) {
             n.children().forEach(function (c) {
                 c.move({'parent': null});
@@ -490,9 +491,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 let is_image = input_canned.data().content.input_shape.value.split(',').length === 3;
                 if (!is_image) {
                     var loss = canned_nodes.successors().filter((node) => (node.data().hasOwnProperty('class_name') && node.data()['class_name'] === 'Loss')).data().content.function.value;
-                    $('#submit').removeClass('hidden')
+                    $('#submit').removeAttr('hidden')
                         .prop('disabled', false);
-                    $('#validate_model').addClass('hidden');
+                    $('#validate_model').attr('hidden', '');
                     send_canned(canned_nodes, cy.json(), loss);
 
                 } else {
@@ -554,6 +555,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return element.data('name');
         return false;
     });
+    load_model_input();
 
 });
 
@@ -589,52 +591,6 @@ function show_params_config(prop, param, saved_config) {
 
 
 $(document).ready(function () {
-    $("#normalization").change(function () {
-        $("#normalization option:selected").each(function () {
-            $("#normalization_explain").html(this.title);
-        });
-    });
-
-    wizard_next(1, dict_wizard);
-
-    // Load model -> modal window
-    if (appConfig.data_df !== null) {
-        update_split(appConfig.dataset_params.split.split(','));
-        wizard_next(2, dict_wizard);
-        if ('category_list' in appConfig.dataset_params) {
-            table_feat_created = create_features_table(appConfig.data_df, appConfig.dataset_params.category_list, dict_wizard);
-            table_target_created = create_target_table(appConfig.data_df, appConfig.dataset_params.category_list, appConfig.dataset_params.targets, dict_wizard);
-            $('#normalize').prop('checked', appConfig.dataset_params.normalize);
-
-            let input_nodes = cy.nodes().filter((node) => 'name' in node.data()).roots();
-            input_nodes.forEach(node => {
-                inputs_layers[node.data('name')] = {
-                    'dataset': appConfig.parameters[appConfig.m_name].dataset,
-                    'split': appConfig.dataset_params.split,
-                    'df': appConfig.data_df,
-                    'category_list': appConfig.dataset_params.category_list,
-                    'normalize': appConfig.dataset_params.normalize,
-                    'targets': appConfig.dataset_params.targets
-                };
-            });
-        } else {
-            create_image_feature(appConfig.data_df, dict_wizard);
-            restore_features_images(appConfig.dataset_params.augmentation_options, appConfig.dataset_params.augmentation_params);
-            create_images_targets(appConfig.data_df.data);
-            // Supposed one input
-            inputs_layers[loaded_input.data().name] = {
-                'dataset': appConfig.dataset_params.name,
-                'split': appConfig.dataset_params.split,
-                'height': appConfig.dataset_params.height,
-                'width': appConfig.dataset_params.width,
-                'normalization': appConfig.dataset_params.normalization,
-                'augmentation_options': appConfig.dataset_params.augmentation_options,
-                'augmentation_params': appConfig.dataset_params.augmentation_params,
-                'image_data': appConfig.data_df.data,
-            };
-        }
-        $('#validate_model').click();
-    }
 
 
     $('#select_continue').click(function (e) {
@@ -710,7 +666,7 @@ $(document).ready(function () {
     });
 
     $('#targetContinue').click(function (e) {
-        if ($('#tabular_target').hasClass('hidden')) {
+        if ($('#tabular_target').attr('hidden')) {
             close_modal();
             return true;
         }
@@ -772,8 +728,8 @@ $(document).ready(function () {
     });
 
     function tabular_features_continue() {
-        $('#image_target').addClass('hidden');
-        $('#tabular_target').removeClass('hidden');
+        $('#image_target').attr('hidden', '');
+        $('#tabular_target').removeAttr('hidden');
         let table = $('#table_features').DataTable();
         let cat_column = table.column('Category:name').data().map(b => $(b).val());
         let default_features = table.column('Features:name').data();
@@ -803,8 +759,8 @@ $(document).ready(function () {
     }
 
     function image_features_continue() {
-        $('#image_target').removeClass('hidden');
-        $('#tabular_target').addClass('hidden');
+        $('#image_target').removeAttr('hidden');
+        $('#tabular_target').attr('hidden', '');
         let augmentation_options = [];
         let params = {
             'height': $('#height').val(),
@@ -967,9 +923,9 @@ async function tf_load_model(nodes, models, loss_function, cy_json, cy, loss_nod
                     disable_submit_button();
                     return false;
                 }
-                $('#submit').removeClass('hidden')
+                $('#submit').removeAttr('hidden')
                     .prop('disabled', false);
-                $('#validate_model').addClass('hidden');
+                $('#validate_model').attr('hidden', '');
 
             }
         });
@@ -981,11 +937,12 @@ async function tf_load_model(nodes, models, loss_function, cy_json, cy, loss_nod
 }
 
 function disable_submit_button() {
-    $('#submit').addClass('hidden')
-        .prop('disabled', true);
+    $('#submit').attr('hidden', '');
+
+    $('#submit').prop('disabled', true);
     let $validate_model = $('#validate_model');
     $validate_model
-        .removeClass('hidden')
+        .removeAttr('hidden')
         .removeClass('btn-valid')
         .addClass('btn-secondary');
     $("div.popper-div").remove();
@@ -1092,4 +1049,53 @@ function is_valid(type, value, id, cy) {
         return list_number.test(value) || only_number.test(value) || value === null || value === ''
     }
     return true;
+}
+
+function load_model_input() {
+    $("#normalization").change(function () {
+        $("#normalization option:selected").each(function () {
+            $("#normalization_explain").html(this.title);
+        });
+    });
+
+    wizard_next(1, dict_wizard);
+
+    // Load model -> modal window
+    if (appConfig.data_df !== null) {
+        update_split(appConfig.dataset_params.split.split(','));
+        wizard_next(2, dict_wizard);
+        if ('category_list' in appConfig.dataset_params) {
+            table_feat_created = create_features_table(appConfig.data_df, appConfig.dataset_params.category_list, dict_wizard);
+            table_target_created = create_target_table(appConfig.data_df, appConfig.dataset_params.category_list, appConfig.dataset_params.targets, dict_wizard);
+            $('#normalize').prop('checked', appConfig.dataset_params.normalize);
+
+            let input_nodes = cy.nodes().filter((node) => 'name' in node.data()).roots();
+            input_nodes.forEach(node => {
+                inputs_layers[node.data('name')] = {
+                    'dataset': appConfig.parameters[appConfig.m_name].dataset,
+                    'split': appConfig.dataset_params.split,
+                    'df': appConfig.data_df,
+                    'category_list': appConfig.dataset_params.category_list,
+                    'normalize': appConfig.dataset_params.normalize,
+                    'targets': appConfig.dataset_params.targets
+                };
+            });
+        } else {
+            create_image_feature(appConfig.data_df, dict_wizard);
+            restore_features_images(appConfig.dataset_params.height, appConfig.dataset_params.width,  appConfig.dataset_params.normalization, appConfig.dataset_params.augmentation_options, appConfig.dataset_params.augmentation_params);
+            create_images_targets(appConfig.data_df.data);
+            // Supposed one input
+            inputs_layers[loaded_input.data().name] = {
+                'dataset': appConfig.dataset_params.name,
+                'split': appConfig.dataset_params.split,
+                'height': appConfig.dataset_params.height,
+                'width': appConfig.dataset_params.width,
+                'normalization': appConfig.dataset_params.normalization,
+                'augmentation_options': appConfig.dataset_params.augmentation_options,
+                'augmentation_params': appConfig.dataset_params.augmentation_params,
+                'image_data': appConfig.data_df.data,
+            };
+        }
+        $('#validate_model').click();
+    }
 }

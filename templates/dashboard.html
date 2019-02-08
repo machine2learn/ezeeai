@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#sb-dashboard').addClass('active');
+        });
+    </script>
+{% endblock %}

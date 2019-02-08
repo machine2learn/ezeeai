@@ -64,7 +64,7 @@ def login():
     if form.validate_on_submit():
         if not db_ops.checklogin(form, login_user, session, sess):
             return render_template('login.html', form=form, error='Invalid username or password')
-        return redirect(url_for('upload'))
+        return redirect(url_for('dashboard'))
     return render_template('login.html', form=form)
 
 
@@ -91,7 +91,7 @@ def user_data():
         db_ops.update_user(username, email)
     db_ops.get_user_data(username, form)
     _, param_configs = config_ops.get_configs_files(APP_ROOT, username)
-    user_dataset = config_ops.get_datasets(APP_ROOT, username)
+    user_dataset = config_ops.get_datasets_type(APP_ROOT, username)
     return render_template('upload_user.html', form=form, user=session['user'], token=session['token'],
                            datasets=user_dataset, parameters=param_configs)
 
@@ -101,6 +101,16 @@ def user_data():
 def logout():
     logout_user()
     return redirect(url_for('login'))
+
+
+@app.route('/dashboard', methods=['GET', 'POST'])
+@login_required
+def dashboard():
+    sess.reset_user()
+    username = session['user']
+
+    return render_template('dashboard.html', title='Dashboard', user=username,
+                           user_configs=config_ops.get_datasets(APP_ROOT, username), token=session['token'])
 
 
 @app.route('/upload', methods=['GET', 'POST'])

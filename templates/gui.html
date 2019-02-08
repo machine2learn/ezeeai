@@ -1,387 +1,473 @@
-{% extends "base_tf3.html" %}
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
 
-{% import 'bootstrap/wtf.html' as wtf %}
 {% block styles %}
     {{ super() }}
     <link rel="stylesheet" type="text/css" href="{{ url_for('.static', filename='css/cytocreator.css') }}"/>
     <link rel="stylesheet" type="text/css" href="{{ url_for('.static', filename='css/cytoscape-context-menus.css') }}"/>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/ion.rangeSlider.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/ion.rangeSlider.skinFlat.css') }}">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css"
-          integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
-    <link rel="stylesheet" type="text/css"
-          href="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.css"/>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css">
+    <link href="{{ url_for('.static', filename='base/css/tables.css') }}" rel="stylesheet">
 
+    {#        <link rel="stylesheet" type="text/css"#}
+    {#              href="https://cdn.datatables.net/1.10.2/css/jquery.dataTables.min.css"/>#}
 {% endblock %}
 
-{% block app_content %}
-
-    <div class="gui_container">
-        <div id="accordion" class="buttonbar"></div>
-        <div class="editor">
-            <div id="cy_buttons0" class="cy-buttons">
-                <label for="inp" class="inp">
-                    <input type="text" id="inp" placeholder="&nbsp;">
-                    <span class="label">Model name</span>
-                    <span class="border"></span>
-                </label>
-            </div>
-            <div id="cy_buttons" class="cy-buttons">
-                <button id="zoom_handler" class="right-align"><i class="fas fa-compress "></i></button>
-                <button id="zoom_plus" class="right-align"><i class="fas fa-search-plus"></i></button>
-                <button id="zoom_minus" class="right-align"><i class="fas fa-search-minus"></i></button>
-                <button id="load" class="right-align" onclick="$('#loadmodal').show();">
-                    <i class="fas fa-download"></i>Load Model
-                </button>
-            </div>
-            <div id="cy"></div>
-        </div>
-        <div id="properties" class="properties"></div>
-    </div>
-    <div class="validation">
-
-    </div>
-    <br>
-    <div id="form">
-        <form action="/save_model" id="submitform" method="post" align="right">
-            <input class="hidden" id="modelname" name="modelname">
-            <input class="hidden" id="mode" name="mode">
-            <button type="button" id="validate_model" class="btn btn-primary">
-                <i class="fas fa-check fa-sm" id="i_validate_model"></i> Validate
-            </button>
-            <button type="submit" formmethod="get" id="submit" class="btn btn-primary">Next</button>
-        </form>
-
-    </div>
-
-    <!-- Modal INPUT -->
-
-    <div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modal" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="wizard-title"><i class="fas fa-arrow-right" aria-hidden="true"></i>
-                        Input Layer
-                        <button type="button" id="close" class="close" data-dismiss="modal" aria-label="Close"><span
-                                aria-hidden="true">&times;</span>
-                        </button>
-                    </h5>
-                </div>
-                <!-- Modal Wizard-->
-                <div class="modal-body">
-                    <ul class="nav nav-tabs" id="myTab" role="tablist">
-                        <li class="nav-item">
-                            <a class="nav-link" id="wizard1" href="#select_data" data-toggle="tab" role="tab">
-                                1. Select data</a>
-                        <li>
-                        <li class="nav-item">
-                            <a class="nav-link disabled" id="wizard2" data-toggle="tab" href="#split_tab"
-                               role="tab"> 2. Split</a>
-                        <li>
-                        <li class="nav-item">
-                            <a class="nav-link disabled" id="wizard3" data-toggle="tab" href="#features"
-                               role="tab"> 3. Features</a>
-                        <li>
-                        <li class="nav-item">
-                            <a class="nav-link disabled" id="wizard4" data-toggle="tab" href="#targets"
-                               role="tab"> 4. Targets</a>
-                        <li>
-                    </ul>
-
-
-                    <div class="tab-content">
-                        <!-- 1 Modal Wizard-->
-                        <div class="tab-pane fade" id="select_data" role="tabpanel">
-                            <h4 align="center">Select dataset</h4>
-                            <div class="form-group" id="select_dataset">
-                                <label for="venueSelect">1. Select dataset</label>
-                                <div id="selectDataset"></div>
-                            </div>
-                            <button href="#split_tab" class="btn btn-primary" id="select_continue">Continue
+{% block content %}
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">YOU ARE HERE</li>
+        <li class="breadcrumb-item active">Models</li>
+    </ol>
+    <div class="row">
+        <div class="col-lg-12">
+            <section class="widget">
+                <div class="gui_container">
+                    <div id="accordion" class="buttonbar"></div>
+                    <div class="editor">
+                        <div id="cy_buttons0" class="cy-buttons">
+                            <label for="inp" class="inp">
+                                <input type="text" id="inp" placeholder="&nbsp;">
+                                <span class="label">Model name</span>
+                                <span class="border"></span>
+                            </label>
+                        </div>
+                        <div id="cy_buttons" class="cy-buttons">
+                            <button id="zoom_handler" class="right-align"><i class="fas fa-compress "></i></button>
+                            <button id="zoom_plus" class="right-align"><i class="fas fa-search-plus"></i></button>
+                            <button id="zoom_minus" class="right-align"><i class="fas fa-search-minus"></i></button>
+                            <button id="load" class="right-align" onclick="$('#loadmodal').show();">
+                                <i class="fas fa-download"></i>Load Model
                             </button>
                         </div>
-
-                        <!-- 2 Modal Split-->
-                        <div class="tab-pane fade" id="split_tab" role="tabpanel">
-                            <h4 align="center">Split</h4>
-                            <div class="row" id="slider-div">
-                                <div class="range-slider">
-                                    <label for="range1"
-                                           title="Training Dataset: The sample of data used to fit the model.">Train</label>
-                                    <input type="text" id="range1" class="js-range-slider-1" value="20"/>
-                                </div>
-                                <br>
-                                <div class="range-slider">
-                                    <label for="range3"
-                                           title="Validation Dataset: The sample of data used to provide an unbiased  evaluation of a model fit on the training dataset.">Validation</label>
-                                    <input type="text" id="range2" class="js-range-slider-2" value="30"/>
-                                </div>
-                                <br>
-                                <div class="range-slider">
-                                    <label for="range3"
-                                           title="Test Dataset: The sample of data used to provide an unbiased  evaluation of a final model fit on the training dataset.">Test</label>
-                                    <input type="text" id="range3" class="js-range-slider-3" value="0"/>
-                                </div>
-                                <br>
-                                <div class="extra-controls js-result">
-                                </div>
-                                <br>
-                            </div>
-                            <button class="btn btn-primary" id="splitTabContinue">Continue</button>
-                        </div>
-
-                        <!-- 3 Model Feature-->
-                        <div class="tab-pane fade" id="features" role="tabpanel">
-                            <h4 align="center">Features</h4>
-                            <div id="tabular_features">
-                                <table id="table_features" class="display stripe" style="width:100%"></table>
-
-                                <input type="checkbox" id="normalize" name="normalize" checked>
-                                <label for="scales">Normalize</label>
-                            </div>
-
-                            <div id="image_features" class="container hidden">
-                                <div class="row">
-                                    <div class="col-sm-4">
-                                        <h4> Resize images</h4>
-                                        <label title="Height" for="height"> Height</label>
-                                        <input id='height' type="number" step="1" min="10" max="1000"/>
-                                        <label title="Width" for="width"> Width</label>
-                                        <input id='width' type="number" step="1" min="10" max="1000"/>
-                                    </div>
-                                    <div class="col-sm-4">
-                                        <h4 title="Normalization" for="normalization">Normalization</h4>
-                                        <select id="normalization">
-                                            <option value="unit_length" data-toggle="tooltip"
-                                                    title="Unit lenght  :  x' = x / 255 ">Unit lenght
-                                            </option>
-                                            <option value="per_image" data-toggle="tooltip"
-                                                    title="Per image standardization : x' = (x - mean) / stddev ">Per image standardization
-                                            </option>
-                                            <option value="zero_center" data-toggle="tooltip"
-                                                    title="Zero center : x' = 2 * ( x / 255. - 0.5)">Zero center
-                                            </option>
-                                            <option value="imagenet_mean_subtraction" data-toggle="tooltip"
-                                                    title=" ImageNet mean :  x' = x - [123.68, 116.779, 103.939] ">ImageNet mean
-                                                subtraction
-                                            </option>
-                                        </select>
-                                        <div id="normalization_explain"></div>
-                                    </div>
-                                </div>
-                                <br>
-                                <!-- 3.1 DATA AUGMENTATION-->
-                                <div class="row">
-                                    <div class="col-md-12"><h4>Data Augmentation</h4></div>
-                                    <div class="col-sm-3">
-                                        <div class="list-group" id="list1">
-                                            <a class="list-group-item active">Options
-                                                <input title="toggle all" type="checkbox" class="all pull-right"></a>
-
-                                            <a class="list-group-item" id="flip"><b>Flip</b>
-                                                <input type="checkbox" class="pull-right">
-                                                <br>
-                                                <hr class="collapse-aug collapse-flip">
-                                                <label class="collapse-aug collapse-flip"> Horizontal Flip </label>
-                                                <input id="horizontal_flip" type="checkbox"
-                                                       class="collapse-aug collapse-flip">
-                                                <br class="collapse-aug collapse-flip">
-                                                <label class="collapse-aug collapse-flip"> Vertical Flip </label>
-                                                <input id="vertical_flip" type="checkbox"
-                                                       class="collapse-aug collapse-flip">
-                                            </a>
-
-                                            <a class="list-group-item" id="rotation"><b>Rotation</b>
-                                                <input type="checkbox" class="pull-right">
-                                                <br>
-                                                <hr class="collapse-aug collapse-rotation">
-                                                <label class="collapse-aug collapse-rotation"> Angle : </label>
-                                                <br class="collapse-aug collapse-rotation">
-                                                <label class="collapse-aug collapse-rotation"> From </label>
-                                                <input id="angle_from_rotation" type="number" step="1" min="0" max="360"
-                                                       class="collapse-aug collapse-rotation">
-                                                <label class="collapse-aug collapse-rotation"> To </label>
-                                                <input id="angle_to_rotation" type="number" step="1" min="0" max="360"
-                                                       class="collapse-aug collapse-rotation">
-                                                <br class="collapse-aug collapse-rotation">
-                                                <label class="collapse-aug collapse-rotation"> Interpolation : </label>
-                                                <br class="collapse-aug collapse-rotation">
-                                                <input type="radio" name="interp_rot"
-                                                       id="interpolation_rotation_nearest"
-                                                       class="collapse-aug collapse-rotation"> <label
-                                                        class="collapse-aug collapse-rotation">
-                                                    NEAREST </label>
-                                                <input type="radio" name="interp_rot"
-                                                       id="interpolation_rotation_bilinear"
-                                                       class="collapse-aug collapse-rotation"><label
-                                                        class="collapse-aug collapse-rotation">
-                                                    BILINEAR </label>
-                                            </a>
-
-                                            <a class="list-group-item" id="saturation"><b> Saturation </b>
-                                                <input type="checkbox" class="pull-right">
-                                                <br>
-                                                <hr class="collapse-aug collapse-saturation">
-                                                <label class="collapse-aug collapse-saturation"> From </label>
-                                                <input id="from_saturation" type="number" step="any" min="0"
-                                                       class="collapse-aug collapse-saturation">
-
-                                                <label class="collapse-aug collapse-saturation"> To </label>
-                                                <input id="to_saturation" type="number" step="any" min="0"
-                                                       class="collapse-aug collapse-saturation">
-                                            </a>
-
-                                            <a class="list-group-item" id="contrast"><b> Contrast </b>
-                                                <input type="checkbox" class="pull-right">
-                                                <br>
-                                                <hr class="collapse-aug collapse-contrast">
-                                                <label class="collapse-aug collapse-contrast"> From</label>
-                                                <input id="from_contrast" type="number" step="any" min="0"
-                                                       class="collapse-aug collapse-contrast">
-                                                <label class="collapse-aug collapse-contrast"> To </label>
-                                                <input id="to_contrast" type="number" step="any" min="0"
-                                                       class="collapse-aug collapse-contrast">
-
-                                            </a>
-
-                                            <a class="list-group-item" id="brightness"><b> Brightness </b>
-                                                <input type="checkbox" class="pull-right">
-                                                <br>
-                                                <hr class="collapse-aug collapse-brightness">
-                                                <label class="collapse-aug collapse-brightness"> Max Delta </label>
-                                                <input id="max_delta_brightness" type="number" step="any" min="0"
-                                                       max="1"
-                                                       class="collapse-aug collapse-brightness">
-                                            </a>
-
-
-                                            <a class="list-group-item" id="randomhue"><b> HUE </b>
-                                                <input type="checkbox" class="pull-right">
-                                                <br>
-                                                <hr class="collapse-aug collapse-randomhue">
-                                                <label class="collapse-aug collapse-randomhue"> Max Delta </label>
-                                                <input id="max_delta_randomhue" type="number" step="any" min="0"
-                                                       max="0.5"
-                                                       class="collapse-aug collapse-randomhue">
-                                            </a>
-
-
-                                            <a class="list-group-item" id="quality"><b> Quality </b>
-                                                <input type="checkbox" class="pull-right">
-                                                <br>
-                                                <hr class="collapse-aug collapse-quality">
-                                                <label class="collapse-aug collapse-quality"> From</label>
-                                                <input id="from_quality" type="number" step="1" min="0" max="100"
-                                                       class="collapse-aug collapse-quality">
-                                                <label class="collapse-aug collapse-quality"> To </label>
-                                                <input id="to_quality" type="number" step="1" min="0" max="100"
-                                                       class="collapse-aug collapse-quality">
-                                            </a>
-
-                                            <a class="list-group-item" id="zoom"><b> Zoom </b>
-                                                <input type="checkbox" class="pull-right">
-                                                <br>
-                                                <hr class="collapse-aug collapse-zoom">
-                                                <label class="collapse-aug collapse-zoom"> From</label>
-                                                <input id="from_zoom" type="number" step="any" min="0" max="1"
-                                                       class="collapse-aug collapse-zoom">
-                                                <label class="collapse-aug collapse-zoom"> To </label>
-                                                <input id="to_zoom" type="number" step="any" min="0" max="1"
-                                                       class="collapse-aug collapse-zoom">
-                                            </a>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-1 v-center">
-                                        <button title="Send to list 2" class="btn btn-default center-block add"><i
-                                                class="glyphicon glyphicon-chevron-right"></i></button>
-                                        <button title="Send to list 1" class="btn btn-default center-block remove"><i
-                                                class="glyphicon glyphicon-chevron-left"></i></button>
-                                    </div>
-                                    <div class="col-sm-3">
-                                        <div class="list-group" id="list2">
-                                            <a class="list-group-item active">Selected <input title="toggle all"
-                                                                                              type="checkbox"
-                                                                                              class="all pull-right"></a>
-                                        </div>
-                                    </div>
-
-
-                                </div>
-                            </div>
-                            <button class="btn btn-primary" id="featuresContinue">Continue</button>
-                        </div>
-
-                        <!-- 4 Model Target-->
-                        <div class="tab-pane fade" id="targets" role="tabpanel">
-                            <div id="tabular_target">
-                                <h4 align="center">Select target(s)</h4>
-                                <table id="table_targets" class="display stripe" style="width:50%"></table>
-                            </div>
-
-                            <div id="image_target">
-                                <h4 align="center"> Labels</h4>
-                                <div id="image_row" class="row">
-                                </div>
-                                <div id="image_modal" class="img_modal modal">
-                                    <span class="close_im cursor" onclick="closeModal()">&times;</span>
-                                    <div class="modal-content">
-                                        <div id="slides"></div>
-
-                                        <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
-                                        <a class="next" onclick="plusSlides(1)">&#10095;</a>
-
-                                        <div class="caption-container">
-                                            <p id="caption"></p>
-                                        </div>
-                                        <div id="image_demo"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <button class="btn btn-primary btn-block" id="targetContinue">Save</button>
-                        </div>
-
-                        <div class="modal-footer">
-                        </div>
+                        <div id="cy"></div>
                     </div>
+                    <div id="properties" class="properties"></div>
                 </div>
-            </div>
-        </div>
-    </div>
+                <div class="validation">
 
-    <!-- Modal LOAD -->
-
-    <div id="loadmodal" class="modal" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-download"></i>Load Model</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                            onclick="$('#loadmodal').hide();">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
                 </div>
-                <div class="modal-body">
-                    <table id="table_models" class="display stripe" style="width:100%"></table>
-                </div>
-                <div class="modal-footer">
-                    <form action="/gui_load" id="form_load" method="post">
-                        <button type="submit" id="submit_load" class="btn btn-primary" disabled> Load</button>
+                <br>
+                <div id="form">
+                    <form action="/save_model" id="submitform" method="post" align="right">
+                        <input id="modelname" name="modelname" hidden>
+                        <input id="mode" name="mode" hidden>
+                        <button type="button" id="validate_model" class="btn btn-primary">
+                            <i class="fas fa-check fa-sm" id="i_validate_model"></i> Validate
+                        </button>
+                        <button type="submit" formmethod="get" id="submit" class="btn btn-primary">Save</button>
                     </form>
 
                 </div>
-            </div>
+
+                <!-- Modal INPUT -->
+
+
+                <div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modal"
+                     aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="wizard-title"><i class="fas fa-arrow-right"
+                                                                             aria-hidden="true"></i>
+                                    Input Layer
+                                </h5>
+                                <button type="button" id="close" class="close" data-dismiss="modal"
+                                        aria-label="Close"><span
+                                        aria-hidden="true">&times;</span>
+                                </button>
+
+                            </div>
+                            <!-- Modal Wizard-->
+                            <div class="modal-body">
+                                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="wizard1" href="#select_data" data-toggle="tab"
+                                           role="tab">
+                                            1. Select data</a>
+                                    <li>
+                                    <li class="nav-item">
+                                        <a class="nav-link disabled" id="wizard2" data-toggle="tab" href="#split_tab"
+                                           role="tab"> 2. Split</a>
+                                    <li>
+                                    <li class="nav-item">
+                                        <a class="nav-link disabled" id="wizard3" data-toggle="tab" href="#features"
+                                           role="tab"> 3. Features</a>
+                                    <li>
+                                    <li class="nav-item">
+                                        <a class="nav-link disabled" id="wizard4" data-toggle="tab" href="#targets"
+                                           role="tab"> 4. Targets</a>
+                                    <li>
+                                </ul>
+
+
+                                <div class="tab-content">
+                                    <!-- 1 Modal Wizard-->
+                                    <div class="tab-pane fade" id="select_data" role="tabpanel">
+                                        <h4 align="center">Select dataset</h4>
+                                        <div class="form-group" id="select_dataset">
+                                            <label for="venueSelect">1. Select dataset</label>
+                                            <div id="selectDataset"></div>
+                                        </div>
+                                        <button href="#split_tab" class="btn btn-primary" id="select_continue">Continue
+                                        </button>
+                                    </div>
+
+                                    <!-- 2 Modal Split-->
+                                    <div class="tab-pane fade" id="split_tab" role="tabpanel">
+                                        <h4 align="center">Split</h4>
+                                        <div class="row" id="slider-div">
+                                            <div class="range-slider">
+                                                <label for="range1"
+                                                       title="Training Dataset: The sample of data used to fit the model.">Train</label>
+                                                <input type="text" id="range1" class="js-range-slider-1" value="20"/>
+                                            </div>
+                                            <br>
+                                            <div class="range-slider">
+                                                <label for="range3"
+                                                       title="Validation Dataset: The sample of data used to provide an unbiased  evaluation of a model fit on the training dataset.">Validation</label>
+                                                <input type="text" id="range2" class="js-range-slider-2" value="30"/>
+                                            </div>
+                                            <br>
+                                            <div class="range-slider">
+                                                <label for="range3"
+                                                       title="Test Dataset: The sample of data used to provide an unbiased  evaluation of a final model fit on the training dataset.">Test</label>
+                                                <input type="text" id="range3" class="js-range-slider-3" value="0"/>
+                                            </div>
+                                            <br>
+                                            <div class="extra-controls js-result">
+                                            </div>
+                                            <br>
+                                        </div>
+                                        <button class="btn btn-primary" id="splitTabContinue">Continue</button>
+                                    </div>
+
+                                    <!-- 3 Model Feature-->
+                                    <div class="tab-pane fade" id="features" role="tabpanel">
+                                        <h4 align="center">Features</h4>
+                                        <div id="tabular_features" class="table-responsive">
+                                            <div class="navbar-form" role="search">
+                                                <div class="form-group">
+                                                    <div class="input-group input-group-no-border">
+                                                        <input id="feature_search" class="form-control" type="text"
+                                                               placeholder="Search Feature">
+                                                        <span class="input-group-append">
+                                                            <span class="input-group-text">
+                                                                <i class="la la-search"></i>
+                                                            </span>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <table id="table_features" class="table table-hover table-striped"
+                                                   style="width:100%"></table>
+
+
+                                        </div>
+                                        <div  class="checkbox abc-checkbox">
+                                            <input type="checkbox" id="normalize" name="normalize" checked>
+                                            <label for="normalize">Normalize</label>
+                                        </div>
+
+                                        <div id="image_features" class="container" hidden>
+                                            <div class="row">
+                                                <div class="col-sm-4">
+                                                    <h4> Resize images</h4>
+                                                    <label title="Height" for="height"> Height</label>
+                                                    <input id='height' type="number" step="1" min="10" max="1000"/>
+                                                    <label title="Width" for="width"> Width</label>
+                                                    <input id='width' type="number" step="1" min="10" max="1000"/>
+                                                </div>
+                                                <div class="col-sm-4">
+                                                    <h4 title="Normalization" for="normalization">Normalization</h4>
+                                                    <select id="normalization">
+                                                        <option value="unit_length" data-toggle="tooltip"
+                                                                title="Unit lenght  :  x' = x / 255 ">Unit lenght
+                                                        </option>
+                                                        <option value="per_image" data-toggle="tooltip"
+                                                                title="Per image standardization : x' = (x - mean) / stddev ">
+                                                            Per image standardization
+                                                        </option>
+                                                        <option value="zero_center" data-toggle="tooltip"
+                                                                title="Zero center : x' = 2 * ( x / 255. - 0.5)">Zero
+                                                            center
+                                                        </option>
+                                                        <option value="imagenet_mean_subtraction" data-toggle="tooltip"
+                                                                title=" ImageNet mean :  x' = x - [123.68, 116.779, 103.939] ">
+                                                            ImageNet mean
+                                                            subtraction
+                                                        </option>
+                                                    </select>
+                                                    <div id="normalization_explain"></div>
+                                                </div>
+                                            </div>
+                                            <br>
+                                            <!-- 3.1 DATA AUGMENTATION-->
+                                            <div class="row">
+                                                <div class="col-md-12"><h4>Data Augmentation</h4></div>
+                                                <div class="col-sm-3">
+                                                    <div class="list-group" id="list1">
+                                                        <a class="list-group-item active">Options
+                                                            <input title="toggle all" type="checkbox"
+                                                                   class="all pull-right"></a>
+
+                                                        <a class="list-group-item" id="flip"><b>Flip</b>
+                                                            <input type="checkbox" class="pull-right">
+                                                            <br>
+                                                            <hr class="collapse-aug collapse-flip">
+                                                            <label class="collapse-aug collapse-flip"> Horizontal
+                                                                Flip </label>
+                                                            <input id="horizontal_flip" type="checkbox"
+                                                                   class="collapse-aug collapse-flip">
+                                                            <br class="collapse-aug collapse-flip">
+                                                            <label class="collapse-aug collapse-flip"> Vertical
+                                                                Flip </label>
+                                                            <input id="vertical_flip" type="checkbox"
+                                                                   class="collapse-aug collapse-flip">
+                                                        </a>
+
+                                                        <a class="list-group-item" id="rotation"><b>Rotation</b>
+                                                            <input type="checkbox" class="pull-right">
+                                                            <br>
+                                                            <hr class="collapse-aug collapse-rotation">
+                                                            <label class="collapse-aug collapse-rotation"> Angle
+                                                                : </label>
+                                                            <br class="collapse-aug collapse-rotation">
+                                                            <label class="collapse-aug collapse-rotation"> From </label>
+                                                            <input id="angle_from_rotation" type="number" step="1"
+                                                                   min="0" max="360"
+                                                                   class="collapse-aug collapse-rotation">
+                                                            <label class="collapse-aug collapse-rotation"> To </label>
+                                                            <input id="angle_to_rotation" type="number" step="1" min="0"
+                                                                   max="360"
+                                                                   class="collapse-aug collapse-rotation">
+                                                            <br class="collapse-aug collapse-rotation">
+                                                            <label class="collapse-aug collapse-rotation"> Interpolation
+                                                                : </label>
+                                                            <br class="collapse-aug collapse-rotation">
+                                                            <input type="radio" name="interp_rot"
+                                                                   id="interpolation_rotation_nearest"
+                                                                   class="collapse-aug collapse-rotation"> <label
+                                                                    class="collapse-aug collapse-rotation">
+                                                                NEAREST </label>
+                                                            <input type="radio" name="interp_rot"
+                                                                   id="interpolation_rotation_bilinear"
+                                                                   class="collapse-aug collapse-rotation"><label
+                                                                    class="collapse-aug collapse-rotation">
+                                                                BILINEAR </label>
+                                                        </a>
+
+                                                        <a class="list-group-item" id="saturation"><b> Saturation </b>
+                                                            <input type="checkbox" class="pull-right">
+                                                            <br>
+                                                            <hr class="collapse-aug collapse-saturation">
+                                                            <label class="collapse-aug collapse-saturation">
+                                                                From </label>
+                                                            <input id="from_saturation" type="number" step="any" min="0"
+                                                                   class="collapse-aug collapse-saturation">
+
+                                                            <label class="collapse-aug collapse-saturation"> To </label>
+                                                            <input id="to_saturation" type="number" step="any" min="0"
+                                                                   class="collapse-aug collapse-saturation">
+                                                        </a>
+
+                                                        <a class="list-group-item" id="contrast"><b> Contrast </b>
+                                                            <input type="checkbox" class="pull-right">
+                                                            <br>
+                                                            <hr class="collapse-aug collapse-contrast">
+                                                            <label class="collapse-aug collapse-contrast"> From</label>
+                                                            <input id="from_contrast" type="number" step="any" min="0"
+                                                                   class="collapse-aug collapse-contrast">
+                                                            <label class="collapse-aug collapse-contrast"> To </label>
+                                                            <input id="to_contrast" type="number" step="any" min="0"
+                                                                   class="collapse-aug collapse-contrast">
+
+                                                        </a>
+
+                                                        <a class="list-group-item" id="brightness"><b> Brightness </b>
+                                                            <input type="checkbox" class="pull-right">
+                                                            <br>
+                                                            <hr class="collapse-aug collapse-brightness">
+                                                            <label class="collapse-aug collapse-brightness"> Max
+                                                                Delta </label>
+                                                            <input id="max_delta_brightness" type="number" step="any"
+                                                                   min="0"
+                                                                   max="1"
+                                                                   class="collapse-aug collapse-brightness">
+                                                        </a>
+
+
+                                                        <a class="list-group-item" id="randomhue"><b> HUE </b>
+                                                            <input type="checkbox" class="pull-right">
+                                                            <br>
+                                                            <hr class="collapse-aug collapse-randomhue">
+                                                            <label class="collapse-aug collapse-randomhue"> Max
+                                                                Delta </label>
+                                                            <input id="max_delta_randomhue" type="number" step="any"
+                                                                   min="0"
+                                                                   max="0.5"
+                                                                   class="collapse-aug collapse-randomhue">
+                                                        </a>
+
+
+                                                        <a class="list-group-item" id="quality"><b> Quality </b>
+                                                            <input type="checkbox" class="pull-right">
+                                                            <br>
+                                                            <hr class="collapse-aug collapse-quality">
+                                                            <label class="collapse-aug collapse-quality"> From</label>
+                                                            <input id="from_quality" type="number" step="1" min="0"
+                                                                   max="100"
+                                                                   class="collapse-aug collapse-quality">
+                                                            <label class="collapse-aug collapse-quality"> To </label>
+                                                            <input id="to_quality" type="number" step="1" min="0"
+                                                                   max="100"
+                                                                   class="collapse-aug collapse-quality">
+                                                        </a>
+
+                                                        <a class="list-group-item" id="zoom"><b> Zoom </b>
+                                                            <input type="checkbox" class="pull-right">
+                                                            <br>
+                                                            <hr class="collapse-aug collapse-zoom">
+                                                            <label class="collapse-aug collapse-zoom"> From</label>
+                                                            <input id="from_zoom" type="number" step="any" min="0"
+                                                                   max="1"
+                                                                   class="collapse-aug collapse-zoom">
+                                                            <label class="collapse-aug collapse-zoom"> To </label>
+                                                            <input id="to_zoom" type="number" step="any" min="0" max="1"
+                                                                   class="collapse-aug collapse-zoom">
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-1 v-center">
+                                                    <button title="Send to list 2"
+                                                            class="btn btn-default center-block add"><i
+                                                            class="glyphicon glyphicon-chevron-right"></i></button>
+                                                    <button title="Send to list 1"
+                                                            class="btn btn-default center-block remove"><i
+                                                            class="glyphicon glyphicon-chevron-left"></i></button>
+                                                </div>
+                                                <div class="col-sm-3">
+                                                    <div class="list-group" id="list2">
+                                                        <a class="list-group-item active">Selected <input
+                                                                title="toggle all"
+                                                                type="checkbox"
+                                                                class="all pull-right"></a>
+                                                    </div>
+                                                </div>
+
+
+                                            </div>
+                                        </div>
+                                        <button class="btn btn-primary" id="featuresContinue">Continue</button>
+                                    </div>
+
+                                    <!-- 4 Model Target-->
+                                    <div class="tab-pane fade" id="targets" role="tabpanel">
+                                        <div id="tabular_target" class="table-responsive">
+                                            <h4 align="center">Select target(s)</h4>
+                                            <div class="navbar-form" role="search">
+                                                <div class="form-group">
+                                                    <div class="input-group input-group-no-border">
+                                                        <input id="target_search" class="form-control" type="text"
+                                                               placeholder="Search Target">
+                                                        <span class="input-group-append">
+                                                            <span class="input-group-text">
+                                                                <i class="la la-search"></i>
+                                                            </span>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <table id="table_targets" class="table table-hover table-striped"
+                                                   style="width:50%"></table>
+                                        </div>
+
+                                        <div id="image_target">
+                                            <h4 align="center"> Labels</h4>
+                                            <div id="image_row" class="row">
+                                            </div>
+                                            <div id="image_modal" class="img_modal modal">
+                                                <span class="close_im cursor" onclick="closeModal()">&times;</span>
+                                                <div class="modal-content">
+                                                    <div id="slides"></div>
+
+                                                    <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+                                                    <a class="next" onclick="plusSlides(1)">&#10095;</a>
+
+                                                    <div class="caption-container">
+                                                        <p id="caption"></p>
+                                                    </div>
+                                                    <div id="image_demo"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button class="btn btn-primary btn-block" id="targetContinue">Save</button>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Modal LOAD -->
+
+                <div id="loadmodal" class="modal" tabindex="-1" role="dialog">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title"><i class="fas fa-download"></i>Load Model</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                                        onclick="$('#loadmodal').hide();">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body table-responsive">
+                                <div class="navbar-form" role="search">
+                                    <div class="form-group">
+                                        <div class="input-group input-group-no-border">
+                                            <input id="model_search" class="form-control" type="text"
+                                                   placeholder="Search Model">
+                                            <span class="input-group-append">
+                                                <span class="input-group-text">
+                                                    <i class="la la-search"></i>
+                                                </span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <table id="table_models" class="table table-hover table-striped"
+                                       style="width:100%"></table>
+                            </div>
+                            <div class="modal-footer">
+                                <form action="/gui_load" id="form_load" method="post">
+                                    <button type="submit" id="submit_load" class="btn btn-primary" disabled> Load
+                                    </button>
+                                </form>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
     </div>
-
 {% endblock %}
 
+
 {% block scripts %}
-
     {{ super() }}
+    {#    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>#}
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    {#    <script type="application/javascript"#}
+    {#            src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>#}
+    {#    <script type="application/javascript"#}
+    {#            src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>#}
+    {##}
+
     <script type="application/javascript"
             src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.10/lodash.js"></script>
     <script type="application/javascript" src="{{ url_for('.static', filename='gui_editor/cytocreator.js') }}"></script>
@@ -395,10 +481,7 @@
             src="{{ url_for('.static', filename='gui_editor/cytoscape-handler.js') }}"></script>
     <script type="application/javascript"
             src="{{ url_for('.static', filename='gui_editor/cytoscape-edge-bend-editing.js') }}"></script>
-    <script type="application/javascript"
-            src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
-    <script type="application/javascript"
-            src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
 
     <script src="https://cdn.rawgit.com/cpettitt/dagre/v0.7.4/dist/dagre.min.js"></script>
     <script src="https://cdn.rawgit.com/cytoscape/cytoscape.js-dagre/1.5.0/cytoscape-dagre.js"></script>
@@ -425,8 +508,7 @@
     <script src="{{ url_for('.static', filename='ion.rangeSlider.js') }}"></script>
     <script src="{{ url_for('.static', filename='slider.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-     <script src="{{ url_for('.static', filename='gui_editor/cytoscape-expand-collapse.js') }}"></script>
-
+    <script src="{{ url_for('.static', filename='gui_editor/cytoscape-expand-collapse.js') }}"></script>
     <script type="text/javascript">
         const dict_wizard = {1: 'select_data', 2: 'split_tab', 3: 'features', 4: 'targets'};
         var user_dataset = {{ user_dataset | tojson | safe}};
@@ -446,11 +528,114 @@
             data_df: data_df
         };
     </script>
-
+    <script type=text/javascript>
+        $(document).ready(function () {
+            $('#sb-gui_editor').addClass('active');
+        });
+    </script>
 {% endblock %}
 
 
 
 
+{#{% extends "base_tf3.html" %}#}
+{##}
+{#{% import 'bootstrap/wtf.html' as wtf %}#}
+{#{% block styles %}#}
+{#    {{ super() }}#}
+{#    <link rel="stylesheet" type="text/css" href="{{ url_for('.static', filename='css/cytocreator.css') }}"/>#}
+{#    <link rel="stylesheet" type="text/css" href="{{ url_for('.static', filename='css/cytoscape-context-menus.css') }}"/>#}
+{#    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/ion.rangeSlider.css') }}">#}
+{#    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/ion.rangeSlider.skinFlat.css') }}">#}
+{##}
+{#    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">#}
+{#    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css"#}
+{#          integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">#}
+{#    <link rel="stylesheet" type="text/css"#}
+{#          href="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.css"/>#}
+{##}
+{#{% endblock %}#}
+{##}
+{#{% block app_content %}#}
 
 
+{#{% endblock %}#}
+{##}
+{#{% block scripts %}#}
+{##}
+{#    {{ super() }}#}
+{##}
+{#    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>#}
+
+{#    <script type="application/javascript"#}
+{#            src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.10/lodash.js"></script>#}
+{#    <script type="application/javascript" src="{{ url_for('.static', filename='gui_editor/cytocreator.js') }}"></script>#}
+{#    <script type="application/javascript"#}
+{#            src="{{ url_for('.static', filename='gui_editor/cytoscape.min.js') }}"></script>#}
+{#    <script type="application/javascript"#}
+{#            src="{{ url_for('.static', filename='gui_editor/cytoscape-edgehandles.js') }}"></script>#}
+{#    <script type="application/javascript"#}
+{#            src="{{ url_for('.static', filename='gui_editor/cytoscape-context-menus.js') }}"></script>#}
+{#    <script type="application/javascript"#}
+{#            src="{{ url_for('.static', filename='gui_editor/cytoscape-handler.js') }}"></script>#}
+{#    <script type="application/javascript"#}
+{#            src="{{ url_for('.static', filename='gui_editor/cytoscape-edge-bend-editing.js') }}"></script>#}
+{#    <script type="application/javascript"#}
+{#            src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>#}
+{#    <script type="application/javascript"#}
+{#            src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>#}
+{##}
+{#    <script src="https://cdn.rawgit.com/cpettitt/dagre/v0.7.4/dist/dagre.min.js"></script>#}
+{#    <script src="https://cdn.rawgit.com/cytoscape/cytoscape.js-dagre/1.5.0/cytoscape-dagre.js"></script>#}
+{#    <script type="application/javascript"#}
+{#            src="{{ url_for('.static', filename='gui_editor/cytoscape-undo-redo.js') }}"></script>#}
+{#    <script type="application/javascript"#}
+{#            src="{{ url_for('.static', filename='gui_editor/cytoscape-clipboard.js') }}"></script>#}
+{#    <script src="https://cdnjs.cloudflare.com/ajax/libs/tensorflow/0.14.0/tf.js"></script>#}
+{#    <script type="application/javascript"#}
+{#            src="{{ url_for('.static', filename='gui_editor/core_layers/jslayers.js') }}"></script>#}
+{#    <script type="application/javascript"#}
+{#            src="{{ url_for('.static', filename='gui_editor/core_layers/cytoscape-styles.js') }}"></script>#}
+{#    <script src="https://unpkg.com/popper.js"></script>#}
+{#    <script src="{{ url_for('.static', filename='gui_editor/cytoscape-popper.js') }}"></script>#}
+{#    <script src="{{ url_for('.static', filename='gui_editor/cytoscape-node-html-label.js') }}"></script>#}
+{#    <script src="{{ url_for('.static', filename='gui_editor/modal-window.js') }}"></script>#}
+{##}
+{##}
+{#    <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.js"></script>#}
+{#    <script type="text/javascript" src="https://cdn.datatables.net/select/1.2.7/js/dataTables.select.min.js"></script>#}
+{#    <script type="text/javascript"#}
+{#            src="https://cdn.datatables.net/fixedheader/3.1.5/js/dataTables.fixedHeader.min.js"></script>#}
+{#    <script src="{{ url_for('.static', filename='table.js') }}"></script>#}
+{#    <script src="{{ url_for('.static', filename='ion.rangeSlider.js') }}"></script>#}
+{#    <script src="{{ url_for('.static', filename='slider.js') }}"></script>#}
+{#    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>#}
+{#     <script src="{{ url_for('.static', filename='gui_editor/cytoscape-expand-collapse.js') }}"></script>#}
+{##}
+{#    <script type="text/javascript">#}
+{#        const dict_wizard = {1: 'select_data', 2: 'split_tab', 3: 'features', 4: 'targets'};#}
+{#        var user_dataset = {{ user_dataset | tojson | safe}};#}
+{#        var parameters = {{ parameters | tojson | safe}};#}
+{#        var cy_model = {{ cy_model | tojson | safe}};#}
+{#        var m_name = {{ model_name | tojson | safe}};#}
+{#        var num_outputs = {{ num_outputs | tojson | safe  }};#}
+{#        var dataset_params = {{ dataset_params | tojson | safe  }};#}
+{#        var data_df = {{ data | tojson | safe  }};#}
+{#        window.appConfig = {#}
+{#            user_dataset: user_dataset,#}
+{#            parameters: parameters,#}
+{#            cy_model: cy_model,#}
+{#            m_name: m_name,#}
+{#            num_outputs: num_outputs,#}
+{#            dataset_params: dataset_params,#}
+{#            data_df: data_df#}
+{#        };#}
+{#    </script>#}
+{##}
+{#{% endblock %}#}
+{##}
+{##}
+{##}
+{##}
+{##}
+{##}
