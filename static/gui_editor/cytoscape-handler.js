@@ -16,8 +16,8 @@ function create_layers(corelayers) {
             .attr('href', '#collapse-' + key_np)
             .attr('data-toggle', "collapse")
             .attr('aria-expanded', 'false')
-            .attr('aria-controls', 'collapse-' + key)
-            .attr('data-parent', "#accordion");
+            .attr('aria-controls', 'collapse-' + key_np);
+        // .attr('data-parent', "#accordion");
         let i = $('<i class="' + fa_corelayers[key] + '"></i><br>');
         button
             .append(i)
@@ -27,7 +27,8 @@ function create_layers(corelayers) {
         let collapsible = $('<div></div>');
         collapsible
             .attr("id", 'collapse-' + key_np)
-            .attr('aria-labelledby', 'card-header-' + key_np);
+            .attr('aria-labelledby', 'card-header-' + key_np)
+            .attr('data-parent', "#accordion");
         collapsible.addClass('collapse card-body');
 
 

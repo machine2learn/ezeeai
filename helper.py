@@ -351,9 +351,10 @@ class Image(Helper):
     def get_data(self):
         size = self._dataset.get_image_size()
         if size is not None:
-            return {'height': size[0], 'width': size[1], 'data': self.get_labels_images()}
+            return {'height': size[0], 'width': size[1], 'data': self.get_labels_images(), 'n_channels': size[2]}
         return {'height': self._dataset.get_sample().shape[0], 'width': self._dataset.get_sample().shape[1],
-                'data': self.get_labels_images()}
+                'data': self.get_labels_images(), 'num_outputs': self._dataset.get_num_outputs(),
+                'n_channels': self._dataset.get_sample().shape[2]}
 
     def get_targets(self):
         return self._dataset.get_targets()
@@ -390,19 +391,19 @@ class Image(Helper):
         features_params = request.get_json()['augmentation_params']
 
         # TODO augmentation
-        self._dataset.set_normalization_method(features_params['normalization'])
-        self._dataset.set_image_size(features_params['height'], features_params['width'])
+        self._dataset.set_normalization_method(request.get_json()['normalization'])
+        h, w, c = self._dataset.get_sample().shape
+        self._dataset.set_image_size(request.get_json()['height'], request.get_json()['width'], c)
 
         data = self.get_labels_images()
 
-        h, w, c = self._dataset.get_sample().shape
-        data['input_shape'] = '[' + features_params['height'] + ',' + features_params['width'] + ',' + str(c) + ']'
+        data['input_shape'] = '[' + str(request.get_json()['height']) + ',' + str(
+            request.get_json()['width']) + ',' + str(c) + ']'
+        data['n_channels'] = c
         data['num_outputs'] = self._dataset.get_num_outputs()
 
         self._dataset.split_dataset(self._dataset.get_split())
-        del features_params['normalization']
-        del features_params['height']
-        del features_params['width']
+
         self._dataset.set_augmentation_params(features_params)
         self._dataset.set_augmentation_options(augmentation_options)
         return data

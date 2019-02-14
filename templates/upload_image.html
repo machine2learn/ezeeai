@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block styles %}
+    {{ super() }}
+    <link href="{{ url_for('.static', filename='base/css/tables.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">YOU ARE HERE </li>
+        <li class="breadcrumb-item"> Datasets </li>
+        <li class="breadcrumb-item active">Image</li>
+    </ol>
+    <div class="row">
+        <div class="col-lg-12">
+            <section class="widget">
+            </section>
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block scripts %}
+    {{ super() }}
+    <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.js"></script>
+     <script type=text/javascript>
+        $(document).ready(function () {
+            $('#sb-datasets').addClass('active');
+            $('#upload_image').addClass('active');
+            $('#sidebar-data').addClass('show');
+        });
+    </script>
+    <script type=text/javascript>
+        var handle_key = {};
+        handle_key.datasets = {{  datasets | tojson | safe }};
+        window.appConfig = {
+            handle_key: handle_key
+        };
+    </script>
+{% endblock %}
+

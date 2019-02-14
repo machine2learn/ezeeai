@@ -52,8 +52,8 @@ class Image:
     def get_normalization_method(self):
         return self._normalization_method
 
-    def set_image_size(self, height, width):
-        self._image_size = [int(height), int(width)]
+    def set_image_size(self, height, width, nc):
+        self._image_size = [int(height), int(width), int(nc)]
 
     def get_image_size(self):
         return self._image_size

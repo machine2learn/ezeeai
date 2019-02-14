@@ -1,9 +1,29 @@
 $(document).ready(function () {
-    $('#close').on('click', function () {
 
-        clear_input_modal(dict_wizard);
-        close_modal();
+    var dataset_rows = get_dataset_rows(appConfig.user_dataset);
+    var table_datasets = $('#table_datasets').DataTable({
+        data: dataset_rows,
+        columns: [{title: 'Dataset'}, {title: 'Type'}],
+        searching: true,
+        'select': 'single',
+        "lengthChange": false,
+
     });
+    $('#data_search').keyup(function () {
+        table_datasets.search($(this).val()).draw();
+
+    });
+
+    if (appConfig.dataset_params !== null) {
+        table_datasets.rows().every(function () {
+            var data = this.data()[0];
+            if (appConfig.dataset_params.name === data) {
+                this.select();
+                $("#select_continue").prop('disabled', false);
+            }
+
+        });
+    }
 
     var load_table = $('#table_models').DataTable({
         data: get_load_rows(appConfig.parameters),
@@ -25,10 +45,6 @@ $(document).ready(function () {
 
     });
 
-    modal_add_input_select('datasets_availables', appConfig.user_dataset);
-
-    if (appConfig.data_df !== null)
-        $('#datasets_availables').val(appConfig.dataset_params.name);
 
     $('#table_models tbody').on('click', 'tr', function (e) {
         if (load_table.row(this, {selected: true}).any())
@@ -134,8 +150,6 @@ function wizard_next(number, dict_wizard) {
 
 
 function create_features_table(data, category_list, dict_wizard) {
-    wizard_next(3, dict_wizard);
-
     $('#tabular_features').removeAttr('hidden');
     $('#image_features').attr('hidden', '');
 
@@ -147,7 +161,8 @@ function create_features_table(data, category_list, dict_wizard) {
             columns: [{title: 'Features', name: 'Features'},
                 {title: 'Category', name: 'Category'},
                 {title: '#Unique Values'},
-                {title: '(Most frequent, Frequency)'},
+                {title: 'Most frequent'},
+                {title: 'Frequency'},
                 {title: 'Defaults', name: 'Defaults'}, {title: 'Sample 1'},
                 {title: 'Sample 2'}, {title: 'Sample 3'}, {title: 'Sample 4'}, {title: 'Sample 5'}],
             fixedHeader: false,
@@ -166,7 +181,6 @@ function create_features_table(data, category_list, dict_wizard) {
 
 
 function create_image_feature(data, dict_wizard) {
-    wizard_next(3, dict_wizard);
     $('#tabular_features').attr('hidden', '');
     $('#image_features').removeAttr('hidden');
     $('#height').val(data.height);
@@ -192,7 +206,8 @@ function create_target_table(data, category_list, targets, dict_wizard) {
         var target_table = $target_table.DataTable({
             data: get_target_rows(data, category_list),
             columns: [{title: 'Features'}, {title: 'Category', name: 'Category'}, {title: '#Unique Values'},
-                {title: '(Most frequent, Frequency)'}, {title: 'Defaults'}, {title: 'Sample 1'},
+                {title: 'Most frequent'},
+                {title: 'Frequency'}, {title: 'Defaults'}, {title: 'Sample 1'},
                 {title: 'Sample 2'}, {title: 'Sample 3'}, {title: 'Sample 4'}, {title: 'Sample 5'}],
             'select': 'multiple',
             fixedHeader: false,
@@ -222,7 +237,7 @@ function clear_table(id) {
         .draw();
 }
 
-function clear_input_modal(dict_wizard) {
+function clear_input_modal(dict_wizard, clear_select) {
     wizard_next(1, dict_wizard);
     wizard_next(2, dict_wizard);
     $('#image_row').empty();
@@ -248,8 +263,9 @@ function clear_input_modal(dict_wizard) {
     if (table_feat_created) {
         clear_table('table_features');
         update_split([70, 30, 0]);
-        $("#datasets_availables").val($("#datasets_availables option:first").val());
+
     }
+
     $('#wizard4').removeClass('active show')
         .parent().removeClass('active');
     $('#targets').removeClass('active in show');
@@ -258,6 +274,15 @@ function clear_input_modal(dict_wizard) {
         .addClass('active show')
         .parent().addClass('active');
     $('#' + dict_wizard[1]).addClass('active in show');
+
+    if (clear_select) {
+        $('#table_datasets').DataTable().rows({selected: true}).every(function () {
+
+            this.deselect();
+            $("#select_continue").prop('disabled', true);
+        });
+    }
+
 
 }
 
@@ -315,7 +340,8 @@ function get_feature_rows(data, category_list) {
         let u_val = result['#Unique Values'][f];
         if (u_val === -1)
             u_val = 'Not relevant';
-        dataset.push([f, category[result['Category'][f]], u_val, result['(Most frequent, Frequency)'][f],
+        let mff = result['(Most frequent, Frequency)'][f];
+        dataset.push([f, category[result['Category'][f]], u_val, mff[0], mff[1],
             result['Defaults'][f], result['Sample 1'][f], result['Sample 2'][f], result['Sample 3'][f],
             result['Sample 4'][f], result['Sample 5'][f]]);
     });
@@ -331,8 +357,9 @@ function get_target_rows(data, category_list) {
         let u_val = result['#Unique Values'][f];
         if (u_val === -1)
             u_val = 'Not relevant';
+        let mff = result['(Most frequent, Frequency)'][f];
         if (!result['Category'][f].includes("none")) {
-            dataset.push([f, result['Category'][f], u_val, result['(Most frequent, Frequency)'][f],
+            dataset.push([f, result['Category'][f], u_val, mff[0], mff[1],
                 result['Defaults'][f], result['Sample 1'][f], result['Sample 2'][f], result['Sample 3'][f],
                 result['Sample 4'][f], result['Sample 5'][f]]);
         }
@@ -342,43 +369,9 @@ function get_target_rows(data, category_list) {
 
 
 function close_modal() {
-    clear_input_modal(dict_wizard);
+    clear_input_modal(dict_wizard, true);
     $('#modal').addClass('fade');
     $('#modal').hide();
-
-}
-
-function modal_add_input_select(label_name, options) {
-    let selectList = $("<select>")
-        .attr('id', label_name)
-        .attr('name', label_name);
-
-    let tabular_group = $("<optgroup>")
-        .attr('id', 'tabular_group')
-        .attr('label', 'Tabular dataset');
-
-    let image_group = $("<optgroup>")
-        .attr('id', 'image_group')
-        .attr('label', 'Image dataset');
-
-
-    let option_list = Object.keys(options).map((key) => $('<option>').val(key).text(key));
-    let tab_list = [];
-    let im_lit = [];
-
-    $.each(option_list, function (index, value) {
-        if (options[value.text()] === 'tabular') {
-            tab_list.push(option_list[index])
-        } else {
-            im_lit.push(option_list[index])
-        }
-    });
-    image_group.append(im_lit);
-    tabular_group.append(tab_list);
-    selectList.append(tabular_group);
-    selectList.append(image_group);
-
-    $('#selectDataset').append(selectList);
 
 }
 
@@ -541,4 +534,23 @@ function restore_features_images(height, width, norm, aug_op, aug_param) {
 
     })
 
+}
+
+function get_dataset_rows(datasets) {
+    let dataset_rows = [];
+    Object.keys(datasets).forEach(function (d) {
+        let type = 'Tabular';
+        if (datasets[d].includes('image')) {
+            type = 'Image';
+        }
+        let conf_row = [d, type];
+        dataset_rows.push(conf_row)
+    });
+    return dataset_rows;
+}
+
+function reset_wizard() {
+    $('#wizard2').addClass('disabled');
+    $('#wizard3').addClass('disabled');
+    $('#wizard4').addClass('disabled');
 }

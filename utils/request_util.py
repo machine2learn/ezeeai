@@ -64,6 +64,10 @@ def get_model(request):
     return get_json_attr(request, 'model')
 
 
+def get_mode(request):
+    return get_json_attr(request, 'mode')
+
+
 def get_model_name(request):
     return get_json_attr(request, 'model_name')
 

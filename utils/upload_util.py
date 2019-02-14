@@ -47,8 +47,8 @@ def new_config(dataset_name, username, sess, app_root):
 def generate_dataset_name(app_root, username, dataset_name):
     user_datasets = []
     if os.path.isdir(os.path.join(app_root, 'user_data', username)):
-        user_datasets = [a for a in os.listdir(os.path.join(app_root, 'user_data', username))
-                         if os.path.isdir(os.path.join(app_root, 'user_data', username, a))]
+        user_datasets = [a for a in os.listdir(os.path.join(app_root, 'user_data', username, 'datasets'))
+                         if os.path.isdir(os.path.join(app_root, 'user_data', username, 'datasets', a))]
     cont = 1
     while dataset_name + '_' + str(cont) in user_datasets:
         cont += 1

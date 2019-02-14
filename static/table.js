@@ -100,8 +100,6 @@ $(document).ready(function () {
             return this.value;
         }).get();
 
-        console.log(default_column);
-
 
         let cat_input = $("<input>")
             .attr("type", "hidden")

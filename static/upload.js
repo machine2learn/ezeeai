@@ -64,7 +64,7 @@ $(document).ready(function () {
             }),
             success: function (data) {
                 var valid_mess = data.valid;
-                console.log(valid_mess);
+
                 if (valid_mess === 'True') {
                     $('#upload_form_button').prop('disabled', false);
                     $('#data_graphs_button').prop('disabled', false);

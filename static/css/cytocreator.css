@@ -1,5 +1,5 @@
 body {
-    font-family: helvetica neue, helvetica, liberation sans, arial, sans-serif;
+    font-family: "Montserrat", sans-serif;
 }
 
 .gui_container {
@@ -144,12 +144,6 @@ h1 {
 
 }
 
-.logo {
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
-}
-
 .properties {
     display: flex;
     text-align: center;
@@ -179,7 +173,7 @@ input:invalid + span:after {
 
 .popper-div {
     background: transparent;
-    z-index: 9999;
+    z-index: 999;
     padding: 0.25em;
     pointer-events: none;
     font-size: 16px;
@@ -535,9 +529,6 @@ input:invalid + span:after {
     top: 0;
 }
 
-img {
-    margin-bottom: -4px;
-}
 
 .caption-container {
     text-align: center;
@@ -664,29 +655,3 @@ img.demo {
     margin: 0;
 }
 
-/*.close {*/
-  /*float: right;*/
-  /*font-size: 1.5rem;*/
-  /*font-weight: 700;*/
-  /*line-height: 1;*/
-  /*color: #000;*/
-  /*text-shadow: 0 1px 0 #fff;*/
-  /*opacity: .5;*/
-/*}*/
-
-/*.close:hover, .close:focus {*/
-  /*color: #000;*/
-  /*text-decoration: none;*/
-  /*opacity: .75;*/
-/*}*/
-
-/*.close:not(:disabled):not(.disabled) {*/
-  /*cursor: pointer;*/
-/*}*/
-
-/*button.close {*/
-  /*padding: 0;*/
-  /*background-color: transparent;*/
-  /*border: 0;*/
-  /*-webkit-appearance: none;*/
-/*}*/

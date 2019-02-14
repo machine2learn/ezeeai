@@ -68,7 +68,7 @@
         <!-- every .sidebar-nav may have a title -->
         <!-- <h5 class="sidebar-nav-title">Template <a class="action-link" href="#"><i class="glyphicon glyphicon-refresh"></i></a></h5> -->
         <ul class="sidebar-nav">
-            <li class="">
+            <li class="" id="sb-datasets">
                 <!-- an example of nested submenu. basic bootstrap collapse component -->
 
                 <a class="collapsed" href="#sidebar-data" data-toggle="collapse" data-parent="#sidebar">
@@ -79,8 +79,8 @@
                     <i class="toggle fa fa-angle-down"></i>
                 </a>
                 <ul id="sidebar-data" class="collapse ">
-                    <li class=""><a href="icons.html">Tabular</a></li>
-                    <li class=""><a href="charts.html">Image</a></li>
+                    <li id="upload_tabular" class=""><a href="#" onclick="location.href='/upload_tabular'">Tabular</a></li>
+                    <li id="upload_image" class=""><a href="#" onclick="location.href='/upload_image'">Image</a></li>
                 </ul>
             </li>
             <li class="" id="sb-gui_editor">

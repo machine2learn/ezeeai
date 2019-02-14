@@ -3,7 +3,7 @@
 
 {% block styles %}
     {{ super() }}
-    <link rel="stylesheet" href="{{ url_for('.static', filename='css/signin.css') }}">
+    <link rel="shortcut icon" href="{{ url_for('.static', filename='base/img/logotext-brain.png') }}">
     <link rel="stylesheet" href="{{ url_for('.static', filename='css/signin.css') }}">
 {% endblock %}
 
@@ -16,7 +16,7 @@
     <div class="container signup-section">
         <div class="section-content">
             <img id="brand-image" src="{{ url_for('static', filename='images/logotext.png') }}" alt="Machine2Learn"
-                         class="login-img">
+                 class="login-img">
             <form class="form-signin" method="POST" action="/login">
                 <h2 class="form-signin-heading">Please sign in</h2>
                 {{ form.hidden_tag() }}
@@ -37,7 +37,6 @@
 
 {% block scripts %}
     {{ super() }}
-    <script src="{{ url_for('.static', filename='base.js') }}"></script>
     <script type="text/javascript">
 
         $(document).ready(function () {

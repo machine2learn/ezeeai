@@ -4,6 +4,10 @@ var table_feat_created = false;
 var table_target_created = false;
 var inputs_layers = {};
 var mode, loaded_input;
+Array.prototype.contains = function (element) {
+    return this.indexOf(element) > -1;
+};
+
 document.addEventListener('DOMContentLoaded', function () {
     $('#inp').val(appConfig.m_name);
     $('#submit').prop('disabled', true);
@@ -82,8 +86,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     let target = event.target || event.cyTarget;
                     // if ((target.data().class_name === "InputLayer") && !(target.data().name in Object.keys(inputs_layers)))
                     //     clear_input_modal(dict_wizard);
-                    if (inputs_layers.hasOwnProperty(target.data().name))
+                    if (inputs_layers.hasOwnProperty(target.data().name)) {
                         delete inputs_layers[target.data().name];
+                        reset_wizard();
+                    }
+
                     target.remove();
                     $('#' + target.id()).remove();
                     disable_submit_button();
@@ -174,8 +181,11 @@ document.addEventListener('DOMContentLoaded', function () {
             if ($(":focus").length === 0) {
                 let node = cy.nodes().filter((node) => (node.selected()));
                 if (node.length > 0) {
-                    if (inputs_layers.hasOwnProperty(node.data().name))
+                    if (inputs_layers.hasOwnProperty(node.data().name)) {
                         delete inputs_layers[node.data().name];
+                        reset_wizard();
+                    }
+
                     $('#' + node.id()).remove();
                     disable_submit_button();
                 }
@@ -204,15 +214,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
     cy.on('doubleTap', 'node', function (event) {
         if (event.target.data().class_name.includes('InputLayer')) {
+
             $('#modal').removeClass('fade');
 
             disable_submit_button();
-            if (inputs_layers.hasOwnProperty(event.target.data().name)) {
+            if (inputs_layers.hasOwnProperty(event.target.data().name) && inputs_layers[event.target.data().name].is_saved) {
                 let name = event.target.data().name;
-                $('#datasets_availables').val(inputs_layers[name].dataset);
-                update_split(inputs_layers[name].split.split(','));
+
+                $('#table_datasets').DataTable().rows().every(function () {
+                    var data = this.data()[0];
+                    if (inputs_layers[name].dataset === data) {
+                        this.select();
+                        $("#select_continue").prop('disabled', false);
+                    }
+
+                });
                 wizard_next(2, dict_wizard);
+
+                update_split(inputs_layers[name].split.split(','));
+
                 if (inputs_layers[name].hasOwnProperty('df')) {
+                    wizard_next(3, dict_wizard);
                     table_feat_created = create_features_table(inputs_layers[name]['df'], inputs_layers[name]['category_list'], dict_wizard);
                     table_target_created = create_target_table(inputs_layers[name]['df'], inputs_layers[name]['category_list'], inputs_layers[name]['targets'], dict_wizard);
                     $('#normalize').prop('checked', inputs_layers[name]['normalize']);
@@ -220,6 +242,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     restore_features_images(inputs_layers[name]['height'], inputs_layers[name]['width'], inputs_layers[name]['normalization'], inputs_layers[name]['augmentation_options'], inputs_layers[name]['augmentation_params']);
                     create_images_targets(inputs_layers[name]['image_data']);
                 }
+            } else {
+                reset_wizard();
             }
             $('#modal').show();
         }
@@ -227,6 +251,34 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var tappedBefore;
     var tappedTimeout;
+    $('#close').on('click', function () {
+        clear_input_modal(dict_wizard, true);
+        close_modal();
+        let input_node = cy.$(':selected').data().name;
+        if (inputs_layers.hasOwnProperty(input_node) && !inputs_layers[input_node].is_saved) {
+            reset_wizard();
+            delete inputs_layers[input_node];
+
+        }
+
+    });
+    $('#table_datasets tbody').on('click', 'tr', function (e) {
+        clear_input_modal(dict_wizard, false);
+        reset_wizard();
+        let input_node = cy.$(':selected').data().name;
+        if (inputs_layers.hasOwnProperty(input_node) && !inputs_layers[input_node].is_saved) {
+            delete inputs_layers[input_node];
+        }
+        let table_datasets = $('#table_datasets').DataTable();
+        if (table_datasets.row(this, {selected: true}).any())
+            $('#select_continue').prop('disabled', true);
+        else if (table_datasets.page.info().recordsDisplay === 0) {
+            $('#select_continue').prop('disabled', true);
+        }
+        else $("#select_continue").prop('disabled', false);
+
+    });
+
     cy.on('tap', function (event) {
         let tappedNow = event.target;
         if (tappedTimeout && tappedBefore) {
@@ -442,98 +494,13 @@ document.addEventListener('DOMContentLoaded', function () {
         zoom(cy, -0.000001);
     }
 
-    function check_input_output() {
-        let input_nodes = cy.filter(function (element, i) {
-            if (element.isNode() && 'name' in element.data())
-                if (element.data().class_name.includes('InputLayer') && element.data().content.input_shape.value !== undefined)
-                    return true;
-            return false;
-        });
-        let output_nodes = cy.filter(function (element, i) {
-            if (element.isNode() && 'name' in element.data())
-                if (element.data('name').includes('Loss'))
-                    return true;
-            return false;
-        });
-
-        if (input_nodes.length !== 1)
-            return 'Input layer not exists or  dataset not correctly added';
-
-        if (input_nodes.length !== 1 || output_nodes.length !== 1)
-            return 'Just one input layer and one loss layer are allowed';
-
-        let canned_nodes = cy.nodes().filter((node) => (node.data().class_name in corelayers["Canned Models"]));
-        let all = cy.nodes().filter((node) => ('class_name' in node.data()));
-
-        if (canned_nodes.length === 1 && all.length > 3)
-            return 'If you use a canned model it is not posible use another layer (besides input and loss)';
-        return true;
-    }
 
     $('#validate_model').on('click', async function (event) {
-        cy.remove(cy.nodes().filter((node) => (!('name' in node.data()))));
-        let mess = check_input_output();
-        if (mess !== true) {
-            alert(mess);
-            disable_submit_button();
-            return false;
+        validate_save_model(cy, event, api, false);
+    });
 
-        } else {
-            let canned_nodes = cy.nodes().filter((node) => (node.data().class_name in corelayers["Canned Models"]));
-            let canned_length = canned_nodes.length;
-            if (canned_length === 1) {
-                let input_canned = cy.filter(function (element, i) {
-                    if (element.isNode() && 'name' in element.data())
-                        if (element.data().class_name.includes('InputLayer') && element.data().content.input_shape.value !== undefined)
-                            return element.data();
-                    return false;
-                });
-                let is_image = input_canned.data().content.input_shape.value.split(',').length === 3;
-                if (!is_image) {
-                    var loss = canned_nodes.successors().filter((node) => (node.data().hasOwnProperty('class_name') && node.data()['class_name'] === 'Loss')).data().content.function.value;
-                    $('#submit').removeAttr('hidden')
-                        .prop('disabled', false);
-                    $('#validate_model').attr('hidden', '');
-                    send_canned(canned_nodes, cy.json(), loss);
-
-                } else {
-                    alert('Canned Models can not be use with Image Input');
-                }
-
-
-            } else if (canned_length === 0) {
-                let enodes = api.expandableNodes();
-                api.expandAll();
-
-                let loss_node = cy.nodes().filter((node) => (node.data('name').includes('Loss')));
-                let edges = loss_node.connectedEdges();
-                let loss_function = loss_node.data('content')['function'].value;
-
-                cy.remove(loss_node);
-
-                try {
-                    let nodes = cy.nodes().filter((node) => (node.data().class_name !== 'block'));
-                    let models = create_json_model(sort_nodes(nodes));
-
-                    cy.add(loss_node);
-                    cy.add(edges);
-
-                    await tf_load_model(sort_nodes(nodes), models, loss_function, cy.json(), cy, loss_node);
-                    api.collapse(enodes);
-
-                } catch (e) {
-                    cy.add(loss_node);
-                    cy.add(edges);
-                    api.collapse(enodes);
-                }
-                event.preventDefault();
-            }
-            else {
-                alert("Just one Canned Model allowed");
-                disable_submit_button();
-                return false;
-            }
-        }
+    $('#save_model').on('click', async function (event) {
+        validate_save_model(cy, event, api, true);
     });
     $('#inp').on('change', function () {
         disable_submit_button();
@@ -558,6 +525,34 @@ document.addEventListener('DOMContentLoaded', function () {
     load_model_input();
 
 });
+
+function check_input_output(cy) {
+    let input_nodes = cy.filter(function (element, i) {
+        if (element.isNode() && 'name' in element.data())
+            if (element.data().class_name.includes('InputLayer') && element.data().content.input_shape.value !== undefined)
+                return true;
+        return false;
+    });
+    let output_nodes = cy.filter(function (element, i) {
+        if (element.isNode() && 'name' in element.data())
+            if (element.data('name').includes('Loss'))
+                return true;
+        return false;
+    });
+
+    if (input_nodes.length !== 1)
+        return 'Input layer not exists or  dataset not correctly added';
+
+    if (input_nodes.length !== 1 || output_nodes.length !== 1)
+        return 'Just one input layer and one loss layer are allowed';
+
+    let canned_nodes = cy.nodes().filter((node) => (node.data().class_name in corelayers["Canned Models"]));
+    let all = cy.nodes().filter((node) => ('class_name' in node.data()));
+
+    if (canned_nodes.length === 1 && all.length > 3)
+        return 'If you use a canned model it is not posible use another layer (besides input and loss)';
+    return true;
+}
 
 function show_params_config(prop, param, saved_config) {
     var config;
@@ -594,8 +589,11 @@ $(document).ready(function () {
 
 
     $('#select_continue').click(function (e) {
-        let dataset = $('#datasets_availables').find("option:selected").text();
-        appConfig.dataset = dataset;
+        $('#table_datasets').DataTable().rows({selected: true}).every(function () {
+            appConfig.dataset = this.data()[0];
+        });
+
+
         wizard_next(2, dict_wizard);
         $.ajax({
             url: "/gui_select_data",
@@ -606,52 +604,49 @@ $(document).ready(function () {
                 json: 'application/json',
             },
             data: JSON.stringify({
-                'dataset': dataset,
+                'dataset': appConfig.dataset,
             }),
             success: function (data) {
-                if (data.data) {
-                    update_split(data.data.split(','));
-                    wizard_next(2, dict_wizard);
-                }
-            }
-        });
-    });
-
-    $('#splitTabContinue').click(function (e) {
-        let train = $('#range1').val();
-        let val = $('#range2').val();
-        let test = $('#range3').val();
-        appConfig.dataset_params.split = train + ',' + val + ',' + test;
-        $.ajax({
-            url: "/gui_split",
-            type: 'POST',
-            dataType: 'json',
-            contentType: 'application/json;charset=UTF-8',
-            accepts: {
-                json: 'application/json',
-            },
-            data: JSON.stringify({
-                'train': train,
-                'validation': val,
-                'test': test,
-            }),
-            success: function (data) {
+                let input_node = cy.nodes().filter((node) => 'name' in node.data()).roots()[0];
+                inputs_layers[input_node.data('name')] = {'dataset': appConfig.dataset, 'is_saved': false};
                 if (data.data.hasOwnProperty('height')) {
                     create_image_feature(data.data, dict_wizard);
                     mode = 'image'
                 } else {
                     table_feat_created = create_features_table(data.data, null, dict_wizard);
-                    mode = 'tabular'
+                    mode = 'tabular';
+                    inputs_layers[input_node.data('name')]['df'] = data.data;
                 }
+
+                appConfig['data_df'] = data.data;
             }
-        })
+        });
+    });
+
+    $('#splitTabContinue').click(function (e) {
+
+        let train = $('#range1').val();
+        let val = $('#range2').val();
+        let test = $('#range3').val();
+        appConfig.dataset_params.split = train + ',' + val + ',' + test;
+        let input_node = cy.nodes().filter((node) => node.data().class_name === 'InputLayer')[0];
+
+        inputs_layers[input_node.data('name')]['split'] = appConfig.dataset_params.split;
+        inputs_layers[input_node.data('name')]['train'] = train;
+        inputs_layers[input_node.data('name')]['test'] = test;
+        inputs_layers[input_node.data('name')]['validation'] = val;
+
+        wizard_next(3, dict_wizard);
     });
 
     $('#featuresContinue').click(function (e) {
-        if (mode === 'tabular')
+
+        if (mode === 'tabular') {
             tabular_features_continue();
-        else
+        } else {
             image_features_continue();
+        }
+
     });
 
     $('#table_features').on('change', '.selfeat', function () {
@@ -667,6 +662,7 @@ $(document).ready(function () {
 
     $('#targetContinue').click(function (e) {
         if ($('#tabular_target').attr('hidden')) {
+            inputs_layers[cy.$(':selected').data().name]['is_saved'] = true;
             close_modal();
             return true;
         }
@@ -676,17 +672,22 @@ $(document).ready(function () {
         });
         if (targets.length > 0) {
             appConfig.dataset_params.targets = targets;
+            inputs_layers[cy.$(':selected').data().name]['targets'] = appConfig.dataset_params.targets;
+            let args = {};
+            Object.keys(inputs_layers[cy.$(':selected').data().name]).forEach(function (k) {
+                args[k] = inputs_layers[cy.$(':selected').data().name][k];
+                if (['default_featu', 'cat_column', 'default_column'].contains(k))
+                    args[k] = args[k].toArray();
+            });
             $.ajax({
-                url: "/gui_targets",
+                url: "/gui_input",
                 type: 'POST',
                 dataType: 'json',
                 contentType: 'application/json;charset=UTF-8',
                 accepts: {
                     json: 'application/json',
                 },
-                data: JSON.stringify({
-                    'targets': targets
-                }),
+                data: JSON.stringify(args),
                 success: function (data) {
                     if (data.error === false) {
                         appConfig.num_outputs = data.num_outputs;
@@ -694,17 +695,14 @@ $(document).ready(function () {
                         let input_shape = data.input_shape;
                         $('#input_shape').val(input_shape);
                         cy.$(':selected').data()['content']['input_shape']['value'] = input_shape;
-                        inputs_layers[cy.$(':selected').data().name] = {
-                            'dataset': appConfig.dataset,
-                            'split': appConfig.dataset_params.split,
-                            'df': appConfig.data_df,
-                            'category_list': appConfig.dataset_params.category_list,
-                            'normalize': appConfig.dataset_params.normalize,
-                            'targets': appConfig.dataset_params.targets
-                        };
+                        inputs_layers[cy.$(':selected').data().name]['targets'] = appConfig.dataset_params.targets;
+
+                        inputs_layers[cy.$(':selected').data().name]['is_saved'] = true;
                         close_modal();
-                    } else
+                    } else {
                         alert(data.error);
+                    }
+
                 }
             });
         } else
@@ -734,39 +732,35 @@ $(document).ready(function () {
         let cat_column = table.column('Category:name').data().map(b => $(b).val());
         let default_features = table.column('Features:name').data();
         let default_column = table.column('Defaults:name').data();
+
         appConfig.dataset_params.normalize = $('#normalize').is(":checked");
-        $.ajax({
-            url: "/gui_features",
-            type: 'POST',
-            dataType: 'json',
-            contentType: 'application/json;charset=UTF-8',
-            accepts: {
-                json: 'application/json',
-            },
-            data: JSON.stringify({
-                'default_featu': default_features.toArray(),
-                'cat_column': cat_column.toArray(),
-                'default_column': default_column.toArray(),
-                'normalize': appConfig.dataset_params.normalize
-            }),
-            success: function (data) {
-                var new_data = data.data;
-                appConfig.dataset_params.category_list = JSON.parse(new_data.data)['Category'];
-                appConfig.data_df = new_data.data;
-                table_target_created = create_target_table(new_data.data, null, null, dict_wizard);
-            }
+
+        let targets = null;
+        if (appConfig.dataset_params !== null && appConfig.dataset_params.hasOwnProperty('targets'))
+            targets = appConfig.dataset_params.targets;
+
+        let cat_dict = {};
+        table.rows().every(function () {
+            cat_dict[this.data()[0]] = $(this.data()[1]).val();
         });
+
+        table_target_created = create_target_table(appConfig.data_df, cat_dict, targets, dict_wizard);
+
+        let input_node = cy.nodes().filter((node) => node.data().class_name === 'InputLayer')[0];
+        inputs_layers[input_node.data('name')]['cat_column'] = cat_column;
+        inputs_layers[input_node.data('name')]['category_list'] = cat_dict;
+        inputs_layers[input_node.data('name')]['normalize'] = appConfig.dataset_params.normalize;
+        inputs_layers[input_node.data('name')]['default_featu'] = default_features;
+        inputs_layers[input_node.data('name')]['default_column'] = default_column;
+
     }
 
     function image_features_continue() {
         $('#image_target').removeAttr('hidden');
         $('#tabular_target').attr('hidden', '');
         let augmentation_options = [];
-        let params = {
-            'height': $('#height').val(),
-            'width': $('#width').val(),
-            'normalization': $('#normalization').val(),
-        };
+        let params = {};
+
         $.each($('#list2 a'), function (a, b) {
             if (b.id !== "")
                 augmentation_options.push(b.id);
@@ -788,39 +782,22 @@ $(document).ready(function () {
                 params[id_input] = $('#' + id_input).is(":checked");
         });
 
-        $.ajax({
-            url: "/gui_features",
-            type: 'POST',
-            dataType: 'json',
-            contentType: 'application/json;charset=UTF-8',
-            accepts: {
-                json: 'application/json',
-            },
-            data: JSON.stringify({
-                'augmentation_options': augmentation_options,
-                'augmentation_params': params
-            }),
-            success: function (data) {
-                let input_shape = data.data.input_shape;
-                $('#input_shape').val(input_shape);
-                appConfig.num_outputs = data.data['num_outputs'];
-                cy.$(':selected').data()['content']['input_shape']['value'] = input_shape;
-                inputs_layers[cy.$(':selected').data().name] = {
-                    'dataset': appConfig.dataset,
-                    'split': appConfig.dataset_params.split,
-                    'height': params.height,
-                    'width': params.width,
-                    'normalization': params.normalization,
+        data = appConfig.data_df;
 
-                    'augmentation_options': augmentation_options,
-                    'augmentation_params': params,
-                    'image_data': data.data,
-                };
-                delete data.data['input_shape'];
-                delete data.data['num_outputs'];
-                create_images_targets(data.data);
-            }
-        });
+        let input_shape = "[" + $('#height').val() + ',' + $('#width').val() + ',' + data['n_channels'] + ']';
+        $('#input_shape').val(input_shape);
+        appConfig.num_outputs = data['num_outputs'];
+        cy.$(':selected').data()['content']['input_shape']['value'] = input_shape;
+        inputs_layers[cy.$(':selected').data().name]['normalization'] = $('#normalization').val();
+        inputs_layers[cy.$(':selected').data().name]['augmentation_options'] = augmentation_options;
+        inputs_layers[cy.$(':selected').data().name]['augmentation_params'] = params;
+        inputs_layers[cy.$(':selected').data().name]['image_data'] = data.data;
+        inputs_layers[cy.$(':selected').data().name]['height'] = $('#height').val();
+        inputs_layers[cy.$(':selected').data().name]['width'] = $('#width').val();
+        delete data['n_channels'];
+        delete data['num_outputs'];
+        create_images_targets(data.data);
+
     }
 });
 
@@ -865,28 +842,108 @@ function sort_nodes(nodes) {
 }
 
 
-function send_canned(dnn_nodes, cy_json, loss) {
+function send_canned(cy, dnn_nodes, cy_json, loss) {
+    let input_node = cy.nodes().filter((node) => node.data().class_name === 'InputLayer')[0];
+    inputs_layers[input_node.data('name')]['targets'] = appConfig.dataset_params.targets;
+
+    let args = {};
+    Object.keys(inputs_layers[input_node.data('name')]).forEach(function (k) {
+        args[k] = inputs_layers[input_node.data('name')][k];
+        if (['default_featu', 'cat_column', 'default_column'].contains(k))
+            args[k] = args[k].toArray();
+    });
+    args['loss'] = loss;
+    args['cy_model'] = cy_json;
+    args['mode'] = 'canned';
+    args['model_name'] = $('#inp').val();
+    args['data'] = dnn_nodes.data().content;
+
     $.ajax({
-        url: "/save_canned",
+        url: "/save_model",
         type: 'POST',
         dataType: 'json',
         contentType: 'application/json;charset=UTF-8',
         accepts: {
             json: 'application/json',
         },
-        data: JSON.stringify({
-            'data': dnn_nodes.data().content,
-            'cy_model': cy_json,
-            'model_name': $('#inp').val(),
-            'loss': loss
-        }),
+        data: JSON.stringify(args),
         success: function (result) {
+            $.notify("New model saved", "success");
+
         }
     });
 }
 
+async function validate_save_model(cy, event, api, save_model) {
+    cy.remove(cy.nodes().filter((node) => (!('name' in node.data()))));
+    let mess = check_input_output(cy);
+    if (mess !== true) {
+        alert(mess);
+        disable_submit_button();
+        return false;
 
-async function tf_load_model(nodes, models, loss_function, cy_json, cy, loss_node) {
+    } else {
+        let canned_nodes = cy.nodes().filter((node) => (node.data().class_name in corelayers["Canned Models"]));
+        let canned_length = canned_nodes.length;
+        if (canned_length === 1) {
+            let input_canned = cy.filter(function (element, i) {
+                if (element.isNode() && 'name' in element.data())
+                    if (element.data().class_name.includes('InputLayer') && element.data().content.input_shape.value !== undefined)
+                        return element.data();
+                return false;
+            });
+            let is_image = input_canned.data().content.input_shape.value.split(',').length === 3;
+            if (!is_image) {
+                var loss = canned_nodes.successors().filter((node) => (node.data().hasOwnProperty('class_name') && node.data()['class_name'] === 'Loss')).data().content.function.value;
+                $('#submit').removeAttr('hidden')
+                    .prop('disabled', false);
+                $('#validate_model').attr('hidden', '');
+                if (save_model)
+                    send_canned(cy, canned_nodes, cy.json(), loss);
+
+            } else {
+                alert('Canned Models can not be use with Image Input');
+            }
+
+
+        } else if (canned_length === 0) {
+            let enodes = api.expandableNodes();
+            api.expandAll();
+
+            let loss_node = cy.nodes().filter((node) => (node.data('name').includes('Loss')));
+            let edges = loss_node.connectedEdges();
+            let loss_function = loss_node.data('content')['function'].value;
+
+            cy.remove(loss_node);
+
+            try {
+                let nodes = cy.nodes().filter((node) => (node.data().class_name !== 'block'));
+                let models = create_json_model(sort_nodes(nodes));
+
+                cy.add(loss_node);
+                cy.add(edges);
+
+                await tf_load_model(sort_nodes(nodes), models, loss_function, cy.json(), cy, loss_node, save_model);
+                api.collapse(enodes);
+
+            } catch (e) {
+                cy.add(loss_node);
+                cy.add(edges);
+                api.collapse(enodes);
+            }
+            event.preventDefault();
+        }
+        else {
+            alert("Just one Canned Model allowed");
+            disable_submit_button();
+            return false;
+        }
+    }
+
+}
+
+
+async function tf_load_model(nodes, models, loss_function, cy_json, cy, loss_node, save_model) {
     let blob = new Blob([encode(JSON.stringify(models['tensorflowjs_json'], null, 4))], {
         type: 'application/octet-stream'
     });
@@ -898,37 +955,55 @@ async function tf_load_model(nodes, models, loss_function, cy_json, cy, loss_nod
         let model_json = {"modelTopology": topology};
         create_poppers(model.layers, nodes, cy, loss_node);
 
-        $.ajax({
-            url: "/gui_editor",
-            type: 'POST',
-            dataType: 'json',
-            contentType: 'application/json;charset=UTF-8',
-            accepts: {
-                json: 'application/json',
-            },
-            data: JSON.stringify({
-                'loss_function': loss_function,
-                'model': model_json,
-                'cy_model': cy_json
-            }),
-            success: function (result) {
-                if (result.explanation !== 'ok') {
-                    alert(result.explanation);
-                    disable_submit_button();
-                    return false;
-                }
-                let check_out = check_output(model.outputs[0].shape);
-                if (!(check_out['val'])) {
-                    alert(check_out['mess']);
-                    disable_submit_button();
-                    return false;
-                }
-                $('#submit').removeAttr('hidden')
-                    .prop('disabled', false);
-                $('#validate_model').attr('hidden', '');
+        let check_out = check_output(model.outputs[0].shape);
+        if (!(check_out['val'])) {
+            alert(check_out['mess']);
+            disable_submit_button();
+            return false;
+        }
 
-            }
-        });
+        if (save_model) {
+            let input_node = cy.nodes().filter((node) => node.data().class_name === 'InputLayer')[0];
+            inputs_layers[input_node.data('name')]['targets'] = appConfig.dataset_params.targets;
+            let args = {};
+            Object.keys(inputs_layers[input_node.data('name')]).forEach(function (k) {
+                args[k] = inputs_layers[input_node.data('name')][k];
+                if (['default_featu', 'cat_column', 'default_column'].contains(k))
+                    args[k] = args[k].toArray();
+            });
+            args['loss_function'] = loss_function;
+            args['model'] = model_json;
+            args['cy_model'] = cy_json;
+            args['mode'] = 'custom';
+            args['model_name'] = $('#inp').val();
+
+
+            $.ajax({
+                url: "/save_model",
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json;charset=UTF-8',
+                accepts: {
+                    json: 'application/json',
+                },
+                data: JSON.stringify(args),
+                success: function (result) {
+                    if (result.explanation !== 'ok') {
+                        alert(result.explanation);
+                        disable_submit_button();
+                        return false;
+                    }
+                    $.notify("New model saved", "success");
+
+                }
+
+            });
+        }
+
+        $('#submit').removeAttr('hidden')
+            .prop('disabled', false);
+        $('#validate_model').attr('hidden', '');
+
     } catch (error) {
         alert(error);
         disable_submit_button();
@@ -1058,6 +1133,7 @@ function load_model_input() {
         });
     });
 
+
     wizard_next(1, dict_wizard);
 
     // Load model -> modal window
@@ -1065,37 +1141,57 @@ function load_model_input() {
         update_split(appConfig.dataset_params.split.split(','));
         wizard_next(2, dict_wizard);
         if ('category_list' in appConfig.dataset_params) {
+            wizard_next(3, dict_wizard);
+
             table_feat_created = create_features_table(appConfig.data_df, appConfig.dataset_params.category_list, dict_wizard);
             table_target_created = create_target_table(appConfig.data_df, appConfig.dataset_params.category_list, appConfig.dataset_params.targets, dict_wizard);
             $('#normalize').prop('checked', appConfig.dataset_params.normalize);
+            let table = $('#table_features').DataTable();
+            let cat_column = table.column('Category:name').data().map(b => $(b).val());
+            let default_features = table.column('Features:name').data();
+            let default_column = table.column('Defaults:name').data();
 
-            let input_nodes = cy.nodes().filter((node) => 'name' in node.data()).roots();
+            let input_nodes = cy.nodes().filter((node) => node.data().class_name === 'InputLayer');
             input_nodes.forEach(node => {
+                let split = appConfig.dataset_params.split.split(',');
                 inputs_layers[node.data('name')] = {
                     'dataset': appConfig.parameters[appConfig.m_name].dataset,
                     'split': appConfig.dataset_params.split,
+                    'train': split[0],
+                    'validation': split[1],
+                    'test': split[2],
                     'df': appConfig.data_df,
                     'category_list': appConfig.dataset_params.category_list,
                     'normalize': appConfig.dataset_params.normalize,
-                    'targets': appConfig.dataset_params.targets
+                    'targets': appConfig.dataset_params.targets,
+                    'default_featu': default_features,
+                    'default_column': default_column,
+                    'cat_column': cat_column,
+                    'is_saved': true
                 };
             });
         } else {
             create_image_feature(appConfig.data_df, dict_wizard);
-            restore_features_images(appConfig.dataset_params.height, appConfig.dataset_params.width,  appConfig.dataset_params.normalization, appConfig.dataset_params.augmentation_options, appConfig.dataset_params.augmentation_params);
+            restore_features_images(appConfig.dataset_params.height, appConfig.dataset_params.width, appConfig.dataset_params.normalization, appConfig.dataset_params.augmentation_options, appConfig.dataset_params.augmentation_params);
             create_images_targets(appConfig.data_df.data);
             // Supposed one input
+            let split = appConfig.dataset_params.split.split(',');
             inputs_layers[loaded_input.data().name] = {
                 'dataset': appConfig.dataset_params.name,
                 'split': appConfig.dataset_params.split,
+                'train': split[0],
+                'validation': split[1],
+                'test': split[2],
                 'height': appConfig.dataset_params.height,
                 'width': appConfig.dataset_params.width,
                 'normalization': appConfig.dataset_params.normalization,
                 'augmentation_options': appConfig.dataset_params.augmentation_options,
                 'augmentation_params': appConfig.dataset_params.augmentation_params,
                 'image_data': appConfig.data_df.data,
+                'is_saved': true
             };
         }
         $('#validate_model').click();
+
     }
 }

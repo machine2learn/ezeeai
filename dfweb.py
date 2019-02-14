@@ -13,7 +13,7 @@ from flask_bootstrap import Bootstrap
 from flask_login import LoginManager, login_user, login_required, logout_user
 from forms.login_form import LoginForm
 from forms.register import RegisterForm
-from forms.upload_form import UploadForm
+from forms.upload_form import UploadForm, NewTabularFileForm, GenerateDataSet
 
 from user import User
 from thread_handler import ThreadHandler
@@ -113,27 +113,52 @@ def dashboard():
                            user_configs=config_ops.get_datasets(APP_ROOT, username), token=session['token'])
 
 
-@app.route('/upload', methods=['GET', 'POST'])
+@app.route('/upload_tabular', methods=['GET', 'POST'])
 @login_required
-def upload():
+def upload_tabular():
     sess.reset_user()
     username = session['user']
-    form = UploadForm()
-    if form.validate_on_submit():
-        if request.form['selected'] == 'tabular_data':
-            if not form.new_tabular_files.data['train_file'] == '':
-                config_ops.new_config(form.new_tabular_files.data['train_file'],
-                                      form.new_tabular_files.data['test_file'], APP_ROOT, username)
-        elif request.form['selected'] == 'images':
-            option_selected = form.selector.data['selector']
-            file = form[option_selected].data['file']
-            if not config_ops.new_image_dataset(APP_ROOT, username, option_selected, file):
-                return 'Error'
-        return 'Ok'
-
     examples = upload_util.get_examples()
-    return render_template('upload.html', title='Data upload', form=form, page=0, examples=examples, user=username,
-                           user_configs=config_ops.get_datasets(APP_ROOT, username), token=session['token'])
+    form = NewTabularFileForm()
+    if form.validate_on_submit():
+        try:
+            config_ops.new_config(form.data['train_file'], form.data['test_file'], APP_ROOT, username)
+            return 'ok'
+        except Exception as e:
+            return str(e)
+
+    return render_template('upload_tabular.html', token=session['token'], form=form,
+                           datasets=config_ops.get_datasets(APP_ROOT, username), examples=examples,
+                           gen_form=GenerateDataSet())
+
+
+@app.route('/upload_image', methods=['GET', 'POST'])
+@login_required
+def upload_image():
+    return render_template('upload_image.html', token=session['token'], datasets={})
+
+
+# @app.route('/upload', methods=['GET', 'POST'])
+# @login_required
+# def upload():
+#     sess.reset_user()
+#     username = session['user']
+#     form = UploadForm()
+#     if form.validate_on_submit():
+#         if request.form['selected'] == 'tabular_data':
+#             if not form.new_tabular_files.data['train_file'] == '':
+#                 config_ops.new_config(form.new_tabular_files.data['train_file'],
+#                                       form.new_tabular_files.data['test_file'], APP_ROOT, username)
+#         elif request.form['selected'] == 'images':
+#             option_selected = form.selector.data['selector']
+#             file = form[option_selected].data['file']
+#             if not config_ops.new_image_dataset(APP_ROOT, username, option_selected, file):
+#                 return 'Error'
+#         return 'Ok'
+#
+#     examples = upload_util.get_examples()
+#     return render_template('upload.html', title='Data upload', form=form, page=0, examples=examples, user=username,
+#                            user_configs=config_ops.get_datasets(APP_ROOT, username), token=session['token'])
 
 
 @app.route('/gui', methods=['GET', 'POST'])
@@ -144,22 +169,17 @@ def gui():
     _, param_configs = config_ops.get_configs_files(APP_ROOT, username)
     user_dataset = config_ops.get_datasets_and_types(APP_ROOT, username)
 
-    if not sess.check_key('config_file'):
-        sess.reset_user()
-        return render_template('gui.html', user=username, token=session['token'], page=1, user_dataset=user_dataset,
-                               dataset_params={}, data=None, parameters=param_configs, cy_model=[],
-                               model_name='new_model', num_outputs=None)
-    hlp = sess.get_helper()
-    return render_template('gui.html', token=session['token'], page=1, user=username, user_dataset=user_dataset,
-                           parameters=param_configs, cy_model=sys_ops.load_cy_model(sess.get_model_name(), username),
-                           model_name=sess.get_model_name(), num_outputs=hlp.get_num_outputs(),
-                           dataset_params=hlp.get_dataset_params(), data=hlp.get_data())
+    sess.reset_user()
+    return render_template('gui.html', user=username, token=session['token'], page=1, user_dataset=user_dataset,
+                           dataset_params={}, data=None, parameters=param_configs, cy_model=[],
+                           model_name='new_model', num_outputs=None)
 
 
 @app.route('/gui_load', methods=['POST'])
 @login_required
 @check_config
 def gui_load():
+    sess.reset_user()
     username = session['user']
     _, param_configs = config_ops.get_configs_files(APP_ROOT, username)
     user_dataset = config_ops.get_datasets_and_types(APP_ROOT, username)
@@ -179,6 +199,21 @@ def gui_load():
                            num_outputs=None)
 
 
+@app.route('/gui_input', methods=['POST'])
+@login_required
+@check_config
+def gui_input():
+    sess.reset_user()
+    dataset_name, user = get_dataset(request), session['user']
+    upload_util.new_config(dataset_name, user, sess, APP_ROOT)
+    hlp = sess.get_helper()
+    hlp.set_split(get_split(request))
+    hlp.process_features_request(request)
+    result = hlp.process_targets_request(request)
+
+    return jsonify(**result)
+
+
 @app.route('/gui_select_data', methods=['POST'])
 @login_required
 @check_config
@@ -186,81 +221,58 @@ def gui_select_data():
     sess.reset_user()
     dataset_name, user = get_dataset(request), session['user']
     upload_util.new_config(dataset_name, user, sess, APP_ROOT)
-    return jsonify(data=False)
-
-
-@app.route('/gui_split', methods=['POST'])
-@login_required
-@check_config
-def gui_split():
-    hlp = sess.get_helper()
-    hlp.set_split(get_split(request))
-    data = hlp.get_data()
+    data = sess.get_helper().get_data()
     return jsonify(data=data)
-
-
-@app.route('/gui_features', methods=['POST'])
-@login_required
-@check_config
-def gui_features():
-    data = sess.get_helper().process_features_request(request)
-    return jsonify(data=data)
-
-
-@app.route('/gui_targets', methods=['POST'])
-@login_required
-@check_config
-def gui_targets():
-    result = sess.get_helper().process_targets_request(request)
-    return jsonify(**result)
-
-
-@app.route('/gui_editor', methods=['GET', 'POST'])
-@login_required
-@check_config
-def gui_editor():
-    sess.set_custom(request.get_json())
-    return jsonify(explanation='ok')
-
-
-@app.route('/save_canned', methods=['GET', 'POST'])
-@login_required
-@check_config
-def save_canned():  # TODO not allowed if image (for now)
-    # Load cy custom model
-    custom_path = sys_ops.create_custom_path(APP_ROOT, session['user'], get_model_name(request))
-    cy_model = get_cy_model(request)
-    custom.save_cy_model(custom_path, cy_model)
-
-    data = get_data(request)
-    data['loss_function'] = get_loss(request)
-
-    sess.set_canned_data(data)
-    sess.set_cy_model(cy_model)
-    return jsonify(explanation='ok')
 
 
 @app.route('/save_model', methods=['GET', 'POST'])
 @login_required
 @check_config
 def save_model():
-    model_name = request.values['modelname']
+    # TODO sep sess
+    sess.reset_user()
+    dataset_name, user = get_dataset(request), session['user']
+    upload_util.new_config(dataset_name, user, sess, APP_ROOT)
+    hlp = sess.get_helper()
+    hlp.set_split(get_split(request))
+    sess.get_helper().process_features_request(request)
+    sess.get_helper().process_targets_request(request)
+
+    model_name = get_model_name(request)
     sess.set_model_name(model_name)
-    sess.set_mode('canned')
-    if request.values['mode'] == '0':
-        sess.set_mode('custom')
+    sess.set_mode(get_mode(request))
+    if get_mode(request) == 'custom':
+        sess.set_custom(request.get_json())  # TODO
         path = sys_ops.get_models_pat(APP_ROOT, session['user'])
         os.makedirs(path, exist_ok=True)
         c_path, t_path = custom.save_model_config(sess.get_model(), path, sess.get_cy_model(), model_name)
-        sess.set_custom_path(c_path)
-        sess.set_transform_path(t_path)
-    return redirect(url_for('parameters'))
+        sess.set_custom_path(c_path)  # TODO
+        sess.set_transform_path(t_path)  # TODO
+    else:
+        custom_path = sys_ops.create_custom_path(APP_ROOT, session['user'], model_name)
+        cy_model = get_cy_model(request)
+        custom.save_cy_model(custom_path, cy_model)
+        data = get_data(request)
+        data['loss_function'] = get_loss(request)
+
+        sess.set_canned_data(data)  # TODO
+        sess.set_cy_model(cy_model)  # TODO
+
+    username = session['user']
+    config_path = sys_ops.get_config_path(APP_ROOT, username, sess.get_model_name())
+    sess.set_config_file(config_path)
+    sess.write_config()
+
+    config_ops.define_new_model(APP_ROOT, username, sess.get_writer(), sess.get_model_name())
+    sess.write_params()
+    return jsonify(explanation='ok')
 
 
 @app.route('/parameters', methods=['GET', 'POST'])
 @login_required
 @check_config
 def parameters():
+    sess.reset_user()
     form = GeneralParamForm()
     if form.validate_on_submit():
         sess.get_writer().populate_config(request.form)
@@ -278,8 +290,10 @@ def parameters():
 @login_required
 @check_config
 def run():
+    sess.reset_user()
     username = session['user']
-    config_ops.define_new_model(APP_ROOT, username, sess.get_writer(), sess.get_model_name())
+    config_ops.define_new_model(APP_ROOT, username, sess.get_writer(),
+                                sess.get_model_name())  # TODO model already saved
     sess.write_params()
     all_params_config = config_reader.read_config(sess.get_config_file())
     if sess.mode_is_canned():
@@ -443,18 +457,19 @@ def refresh():
         return jsonify(checkpoints='', data='', running=running, epochs=epochs)
 
 
-@app.route('/confirm', methods=['GET', 'POST'])
+@app.route('/generate', methods=['GET', 'POST'])
 @login_required
 @check_config
-def confirm():
+def generate():
     dataset_name = get_datasetname(request)
     script = get_script(request)
     main_path = sys_ops.get_dataset_path(APP_ROOT, session['user'], dataset_name)
-    e = parse(script, main_path, dataset_name)
-    if e is not True:
-        e = str(e).split("Expecting: ")[0]
-    sys_ops.create_split_folders(main_path)
-    return jsonify(valid=str(e))
+    try:
+        parse(script, main_path, dataset_name)
+        sys_ops.create_split_folders(main_path)
+        return jsonify(valid=str(True))
+    except Exception as e:
+        return jsonify(valid=str(e))
 
 
 @app.route("/download", methods=['GET', 'POST'])

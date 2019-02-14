@@ -4,7 +4,7 @@ from lark import Lark, UnexpectedCharacters, ParseError, v_args
 from lark import Transformer
 import pandas as pd
 import numpy as np
-from utils.sys_ops import mkdir_recursive
+from utils.sys_ops import mkdir_recursive, tree_remove
 import itertools
 import functools
 import os
@@ -246,30 +246,15 @@ class DataSetGeneratorTransformer(Transformer):
 def parse(script, path, datsetname):
     try:
         rg_tree = random_generator_parser.parse(script)
-    except UnexpectedCharacters as e:
-        print(e)
-        return e
-    except ParseError as e:
-        print(e)
-        return e
-    transformer = DataSetGeneratorTransformer()
-    transformer.transform(rg_tree)
-    mkdir_recursive(path)
-    transformer.df.to_csv(os.path.join(path, datsetname + '.csv'), index=False)
-    open(os.path.join(path, '.tabular'), 'w')
-    return True
 
-
-if __name__ == '__main__':
-    try:
-        rg_tree = random_generator_parser.parse(text)
-        # print(rg_tree.pretty())
         transformer = DataSetGeneratorTransformer()
         transformer.transform(rg_tree)
-    except UnexpectedCharacters as e:
-        print(e)
-    except ParseError as e:
-        print(e)
+        mkdir_recursive(path)
+        transformer.df.to_csv(os.path.join(path, datsetname + '.csv'), index=False)
+        open(os.path.join(path, '.tabular'), 'w')
+    except (UnexpectedCharacters, ParseError, ValueError) as e:
+        if os.path.isdir(path):
+            tree_remove(path)
+        raise e
 
-# rg_tree = random_generator_parser.parse(text)
-# print(rg_tree.pretty())
+

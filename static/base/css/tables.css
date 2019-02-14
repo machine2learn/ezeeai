@@ -110,3 +110,12 @@ th:focus {
     float: right;
     width: 180px;
 }
+
+table.dataTable tbody>tr.selected, table.dataTable tbody>tr>.selected {
+   background-color: #deeaee;
+}
+
+.select-info {
+    margin-left: 5px;
+    font-weight: 600;
+}

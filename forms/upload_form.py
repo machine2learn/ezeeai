@@ -79,12 +79,12 @@ class NewImageOption3(FlaskForm):
 
 class GenerateDataSet(FlaskForm):
     dataset_name = StringField("Dataset name")
-    example_type = SelectField('Select an option to generate an example script : ',
+    example_type = SelectField('Select an option to generate an example script',
                                choices=[('regression', 'Regression'),
                                         ('cluster', 'Classifier - Cluster'),
                                         ('decision_tree', 'Classifier - Decision Tree')
                                         ])
-    script = TextAreaField("Script", render_kw={"rows": 25, "cols": 10})
+    script = TextAreaField("Script", render_kw={"rows": 0, "cols": 10})
 
 
 class UploadForm(FlaskForm):
