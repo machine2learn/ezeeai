@@ -103,45 +103,51 @@
                 </header>
                 <div class="row margin-top-15 align-items-center gallery-container">
                     <div class="col-9">
-                        <div class="widget"><img class="gallery-img" id="expandedImg"></div>
+                        <div class="widget">
+                            <img class="gallery-img" id="expandedImg">
+                            <label id="imgText"></label>
+                        </div>
+                        <button id="previous">&laquo; Previous</button>
+                        <button id="next">Next &raquo;</button>
+
 
                     </div>
                     <div class="col-3">
                         <div class="gallery-sidebar">
                             <div class="row">
-                                <img class="gallery-thumbnail" src="../static/img/021.jpg" alt="Nature"
+                                <img id="img-1" class="gallery-thumbnail" src="../static/img/1.jpg" title="Cat"
+                                     alt="Nature"
                                      onclick="myFunction(this);">
+                                <label>Cat</label>
                             </div>
                             <div class="row">
-                                <img class="gallery-thumbnail" src="../static/img/022.jpg" alt="Snow"
+                                <img id="img-2" class="gallery-thumbnail" src="../static/img/2.jpg" title="Cat"
+                                     alt="Snow"
                                      onclick="myFunction(this);">
+                                <label>Here's the overlay text</label>
                             </div>
                             <div class="row">
-                                <img class="gallery-thumbnail" src="../static/img/023.jpg" alt="Mountains"
+                                <img id="img-3" class="gallery-thumbnail" src="../static/img/3.jpg" title="Cat"
+                                     alt="Mountains"
                                      onclick="myFunction(this);">
+                                <label>Here's the overlay text</label>
                             </div>
                             <div class="row">
-                                <img class="gallery-thumbnail" src="../static/img/024.jpg" alt="Lights"
+                                <img id="img-4" class="gallery-thumbnail" src="../static/img/4.jpg" alt="Nature"
                                      onclick="myFunction(this);">
+                                <label>Here's the overlay text</label>
                             </div>
                             <div class="row">
-                                <img class="gallery-thumbnail" src="../static/img/021.jpg" alt="Nature"
+                                <img id="img-5" class="gallery-thumbnail" src="../static/img/5.jpg" alt="Snow"
                                      onclick="myFunction(this);">
+                                <label>Here's the overlay text</label>
                             </div>
                             <div class="row">
-                                <img class="gallery-thumbnail" src="../static/img/022.jpg" alt="Snow"
+                                <img id="img-6" class="gallery-thumbnail" src="../static/img/6.jpg" alt="Mountains"
                                      onclick="myFunction(this);">
-                            </div>
-                            <div class="row">
-                                <img class="gallery-thumbnail" src="../static/img/023.jpg" alt="Mountains"
-                                     onclick="myFunction(this);">
-                            </div>
-                            <div class="row">
-                                <img class="gallery-thumbnail" src="../static/img/024.jpg" alt="Lights"
-                                     onclick="myFunction(this);">
+                                <label>Here's the overlay text</label>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </section>
@@ -161,17 +167,38 @@
             $('#sb-datasets').addClass('active');
             $('#upload_image').addClass('active');
             $('#sidebar-data').addClass('show');
+            handle_key['currentImg'] = null;
+        });
+
+        function myFunction(imgs) {
+            $("#expandedImg").attr("src", imgs.src)
+                .attr("style", "display:block;");
+            $("#imgText").text(imgs.alt);
+            handle_key['currentImg'] = imgs.id.split('-')[1];
+
+        };
+
+        function change_expanded_img(imgs, new_id) {
+            if ((new_id > 0) && ($('#img-' + new_id).length !== 0)) {
+                $("#expandedImg").attr("src", imgs.attr('src'))
+                    .attr("style", "display:block;");
+                $("#imgText").text(imgs.attr('alt'));
+                handle_key['currentImg'] = new_id;
+                $('.gallery-sidebar').animate({scrollTop: $('#img-' + new_id).position().top}, 100);
+            }
+        };
+
+        $('#previous').on('click', function () {
+            let prev = parseInt(handle_key['currentImg']) - 1;
+            change_expanded_img($('#img-' + prev.toString()), prev);
+        });
+
+        $('#next').on('click', function () {
+            let next = parseInt(handle_key['currentImg']) + 1;
+            change_expanded_img($('#img-' + next.toString()), next);
         });
     </script>
-    <script>
-        function myFunction(imgs) {
-            var expandImg = document.getElementById("expandedImg");
-            var imgText = document.getElementById("imgtext");
-            expandImg.src = imgs.src;
-            imgText.innerHTML = imgs.alt;
-            expandImg.parentElement.style.display = "block";
-        }
-    </script>
+
     <script type=text/javascript>
         var handle_key = {};
         handle_key.datasets = {{  data_types | tojson | safe }};
