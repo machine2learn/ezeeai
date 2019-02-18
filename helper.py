@@ -350,11 +350,18 @@ class Image(Helper):
 
     def get_data(self):
         size = self._dataset.get_image_size()
+        unique, counts = np.unique(self._dataset.get_labels(), return_counts=True)
+        counts = counts.astype(int).tolist()
         if size is not None:
-            return {'height': size[0], 'width': size[1], 'data': self.get_labels_images(), 'n_channels': size[2]}
+            return {'height': size[0],
+                    'width': size[1],
+                    'data': self.get_labels_images(),
+                    'n_channels': size[2],
+                    'counts': dict(zip(unique, counts))}
         return {'height': self._dataset.get_sample().shape[0], 'width': self._dataset.get_sample().shape[1],
                 'data': self.get_labels_images(), 'num_outputs': self._dataset.get_num_outputs(),
-                'n_channels': self._dataset.get_sample().shape[2]}
+                'n_channels': self._dataset.get_sample().shape[2],
+                'counts': dict(zip(unique, counts))}
 
     def get_targets(self):
         return self._dataset.get_targets()

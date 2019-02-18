@@ -101,7 +101,7 @@ function histogram(feat1, div, norm, data) {
 
     var layout = {
         margin: {l: 0, r: 0, t: 25, b: 0},
-        xaxis: {automargin: true},
+        xaxis: {automargin: false},
         yaxis: {automargin: true},
         showlegend: false,
     };
@@ -110,4 +110,21 @@ function histogram(feat1, div, norm, data) {
     Plotly.newPlot(div, plot_data, layout, {responsive: true});
 
 
+}
+
+function bar_plot(div, x, y) {
+    var data = [
+        {
+            x: x,
+            y: y,
+            type: 'bar'
+        }
+    ];
+    var layout = {
+        margin: {l: 0, r: 0, t: 0, b: 0},
+        xaxis: {automargin: true,  type: 'category', showticklabels: true},
+        yaxis: {automargin: true},
+        showlegend: false,
+    };
+    Plotly.newPlot(div, data, layout,  {responsive: true});
 }

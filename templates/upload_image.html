@@ -100,48 +100,60 @@
                     <h5>
                         Sample <span class="fw-semi-bold">Images</span>
                     </h5>
-                </header>
-                <div class="row margin-top-15 align-items-center gallery-container">
-                    <div class="col-9">
-                        <div class="widget"><img class="gallery-img" id="expandedImg"></div>
-
+                    <div class="widget-controls">
+                        <a data-widgster="expand" title="Expand" href="#"><i
+                                class="glyphicon glyphicon-chevron-up"></i></a>
+                        <a data-widgster="collapse" title="Collapse" href="#"><i
+                                class="glyphicon glyphicon-chevron-down"></i></a>
+                        <a href="#" data-widgster="close"><i class="glyphicon glyphicon-remove"></i></a>
                     </div>
-                    <div class="col-3">
-                        <div class="gallery-sidebar">
-                            <div class="row">
-                                <img class="gallery-thumbnail" src="../static/img/021.jpg" alt="Nature"
-                                     onclick="myFunction(this);">
+                </header>
+                <div class="widget-body">
+                    <div class="visualization row margin-top-15 align-items-center gallery-container hide-element">
+                        <div class="col-9">
+                            <div class="widget" id="img-container">
+                                <img class="gallery-img" id="expandedImg">
+                                <label id="imgText"></label>
                             </div>
-                            <div class="row">
-                                <img class="gallery-thumbnail" src="../static/img/022.jpg" alt="Snow"
-                                     onclick="myFunction(this);">
+
+                        </div>
+                        <div class="col-3">
+                            <div class="gallery-sidebar" id="img-sidebar">
+
                             </div>
-                            <div class="row">
-                                <img class="gallery-thumbnail" src="../static/img/023.jpg" alt="Mountains"
-                                     onclick="myFunction(this);">
-                            </div>
-                            <div class="row">
-                                <img class="gallery-thumbnail" src="../static/img/024.jpg" alt="Lights"
-                                     onclick="myFunction(this);">
-                            </div>
-                            <div class="row">
-                                <img class="gallery-thumbnail" src="../static/img/021.jpg" alt="Nature"
-                                     onclick="myFunction(this);">
-                            </div>
-                            <div class="row">
-                                <img class="gallery-thumbnail" src="../static/img/022.jpg" alt="Snow"
-                                     onclick="myFunction(this);">
-                            </div>
-                            <div class="row">
-                                <img class="gallery-thumbnail" src="../static/img/023.jpg" alt="Mountains"
-                                     onclick="myFunction(this);">
-                            </div>
-                            <div class="row">
-                                <img class="gallery-thumbnail" src="../static/img/024.jpg" alt="Lights"
-                                     onclick="myFunction(this);">
-                            </div>
+
                         </div>
 
+                    </div>
+                    <div class="loader hide-element">Loading...</div>
+                    <div class="waiting-selection">
+                        Click on a Dataset to display
+                    </div>
+
+                </div>
+
+            </section>
+        </div>
+        <div class="col-lg-4">
+            <section class="widget">
+                <header>
+                    <h5>
+                        Label <span class="fw-semi-bold">Distribution</span>
+                    </h5>
+                    <div class="widget-controls">
+                        <a data-widgster="expand" title="Expand" href="#"><i
+                                class="glyphicon glyphicon-chevron-up"></i></a>
+                        <a data-widgster="collapse" title="Collapse" href="#"><i
+                                class="glyphicon glyphicon-chevron-down"></i></a>
+                        <a href="#" data-widgster="close"><i class="glyphicon glyphicon-remove"></i></a>
+                    </div>
+                </header>
+                <div class="widget-body">
+                    <div class="visualization hide-element" id="label-dist">
+                    </div>
+                    <div class="loader hide-element">Loading...</div>
+                    <div class="waiting-selection">
+                        Click on a Dataset to display
                     </div>
                 </div>
             </section>
@@ -152,10 +164,13 @@
 
 {% block scripts %}
     {{ super() }}
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.js"></script>
     <script src="{{ url_for('.static', filename='notify.js') }}"></script>
     <script src="{{ url_for('.static', filename='upload_image.js') }}"></script>
     <script src="{{ url_for('.static', filename='visualize_image.js') }}"></script>
+    <script src="{{ url_for('.static', filename='data_graphs.js') }}"></script>
+
     <script type=text/javascript>
         $(document).ready(function () {
             $('#sb-datasets').addClass('active');
@@ -163,15 +178,7 @@
             $('#sidebar-data').addClass('show');
         });
     </script>
-    <script>
-        function myFunction(imgs) {
-            var expandImg = document.getElementById("expandedImg");
-            var imgText = document.getElementById("imgtext");
-            expandImg.src = imgs.src;
-            imgText.innerHTML = imgs.alt;
-            expandImg.parentElement.style.display = "block";
-        }
-    </script>
+
     <script type=text/javascript>
         var handle_key = {};
         handle_key.datasets = {{  data_types | tojson | safe }};

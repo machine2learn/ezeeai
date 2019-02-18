@@ -150,29 +150,6 @@ def upload_image():
                            data_types=config_ops.get_datasets_type(APP_ROOT, username), form=form)
 
 
-# @app.route('/upload', methods=['GET', 'POST'])
-# @login_required
-# def upload():
-#     sess.reset_user()
-#     username = session['user']
-#     form = UploadForm()
-#     if form.validate_on_submit():
-#         if request.form['selected'] == 'tabular_data':
-#             if not form.new_tabular_files.data['train_file'] == '':
-#                 config_ops.new_config(form.new_tabular_files.data['train_file'],
-#                                       form.new_tabular_files.data['test_file'], APP_ROOT, username)
-#         elif request.form['selected'] == 'images':
-#             option_selected = form.selector.data['selector']
-#             file = form[option_selected].data['file']
-#             if not config_ops.new_image_dataset(APP_ROOT, username, option_selected, file):
-#                 return 'Error'
-#         return 'Ok'
-#
-#     examples = upload_util.get_examples()
-#     return render_template('upload.html', title='Data upload', form=form, page=0, examples=examples, user=username,
-#                            user_configs=config_ops.get_datasets(APP_ROOT, username), token=session['token'])
-
-
 @app.route('/gui', methods=['GET', 'POST'])
 @login_required
 def gui():
@@ -411,6 +388,16 @@ def data_graphs():
     df = pd.read_csv(os.path.join(main_path, dataset_name + '.csv'))
     df_as_json, norm, corr = get_norm_corr(df)
     return jsonify(data=json.loads(df_as_json), norm=norm, corr=corr)
+
+@app.route('/image_graphs', methods=['POST', 'GET'])
+@login_required
+@check_config
+def image_graphs():
+    sess.reset_user()
+    dataset_name = get_datasetname(request)
+    upload_util.new_config(dataset_name, session['user'], sess, APP_ROOT)
+    data = sess.get_helper().get_data()
+    return jsonify(data=data)
 
 
 @app.route('/delete', methods=['POST'])
