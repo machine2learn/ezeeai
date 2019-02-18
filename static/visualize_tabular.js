@@ -55,6 +55,7 @@ $(document).ready(function () {
                 $('#hist-select').children().remove();
             }
 
+
             $.ajax({
                 url: "/data_graphs",
                 type: 'POST',
