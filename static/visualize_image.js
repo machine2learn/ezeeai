@@ -2,6 +2,16 @@ $(document).ready(function () {
     $('.widget').widgster();
     $('.visualization').addClass('hide-element');
 
+    $('#previous').on('click', function () {
+        let prev = parseInt(handle_key['currentImg']) - 1;
+        change_expanded_img($('#img-' + prev.toString()), prev);
+    });
+
+    $('#next').on('click', function () {
+        let next = parseInt(handle_key['currentImg']) + 1;
+        change_expanded_img($('#img-' + next.toString()), next);
+    });
+
 
     var dataset_rows = get_rows(appConfig.handle_key.datasets);
     var table_datasets = $('#table_datasets').DataTable({
@@ -42,6 +52,9 @@ $(document).ready(function () {
                 $('#label-dist').children().remove();
             }
 
+            if ($('#img-sidebar').length > 0) {
+                $('#img-sidebar').children().remove();
+            }
             $.ajax({
                 url: "/image_graphs",
                 type: 'POST',
@@ -57,33 +70,22 @@ $(document).ready(function () {
                     var collapsed = $("a[data-widgster='expand'][style='display: inline;']");
                     collapsed.click();
                     let imgs = data.data.data;
-                     $('.visualization').removeClass('hide-element');
+                    $('.visualization').removeClass('hide-element');
 
                     if ($('#img-sidebar').length > 0) {
                         appendImgs(imgs, 'img-sidebar');
+                        $('#img-0').click();
                     }
                     if ($('#label-dist').length > 0) {
                         bar_plot('label-dist', Object.keys(data.data.counts), Object.values(data.data.counts));
                     }
 
-
-                    $('.visualization').removeClass('hide-element');
                     collapsed.next().click();
                     $('.loader').addClass('hide-element');
-                    for (var k in imgs) {
-                        break
-                    }
-                    $('#' + k + '_th').click();
-
-
+                    appConfig.handle_key['currentImg'] = 0;
                 }
-
             });
-
-
         }
-
-
     });
 
 
@@ -91,8 +93,12 @@ $(document).ready(function () {
 
 function appendImgs(imgs, div) {
     let container = $('#' + div);
+    let cont = 0;
     for (var key in imgs) {
         let row = $('<div></div>');
+        row.addClass('gallery-thumbnail-item');
+        let label = $('<label></label>');
+        label.text(key);
         row.addClass('row');
 
         let img = new Image();
@@ -106,13 +112,13 @@ function appendImgs(imgs, div) {
         img.alt = key;
         img.title = key;
         img.classList = 'gallery-thumbnail';
-        img.id = key + '_th';
+        img.id = 'img-' + cont.toString();
+        cont += 1;
 
         row.append(img);
+        row.append(label);
         container.append(row);
-
     }
-
 }
 
 function displayImg(imgs) {
@@ -122,6 +128,17 @@ function displayImg(imgs) {
     imgText.innerHTML = imgs.alt;
     expandImg.parentElement.style.display = "block";
 }
+
+function change_expanded_img(imgs, new_id) {
+    if ((new_id >= 0) && ($('#img-' + new_id).length !== 0)) {
+        $("#expandedImg").attr("src", imgs.attr('src'))
+            .attr("style", "display:block;");
+        $("#imgText").text(imgs.attr('alt'));
+        handle_key['currentImg'] = new_id;
+        $('.gallery-sidebar').animate({scrollTop: $('#img-' + new_id).position().top}, 100);
+    }
+};
+
 
 function get_rows(datasets) {
     let dataset_rows = [];
