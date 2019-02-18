@@ -1,7 +1,7 @@
 $(document).ready(function () {
     $('.widget').widgster();
     $('.visualization').addClass('hide-element');
-    jssor_1_slider_init();
+
     var dataset_rows = get_rows(appConfig.handle_key.data_types);
     var table_datasets = $('#table_datasets').DataTable({
         data: dataset_rows,
@@ -32,7 +32,7 @@ $(document).ready(function () {
             $('.waiting-selection').removeClass('hide-element');
         } else {
 
-            if ($(this).hasClass('trash-icon')) {
+            if ($(this).hasClass('trash-icon')){
                 return;
             }
 

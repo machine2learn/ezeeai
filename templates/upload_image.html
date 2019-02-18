@@ -100,54 +100,62 @@
                     <h5>
                         Sample <span class="fw-semi-bold">Images</span>
                     </h5>
+                    <div class="widget-controls">
+                        <a data-widgster="expand" title="Expand" href="#"><i
+                                class="glyphicon glyphicon-chevron-up"></i></a>
+                        <a data-widgster="collapse" title="Collapse" href="#"><i
+                                class="glyphicon glyphicon-chevron-down"></i></a>
+                        <a href="#" data-widgster="close"><i class="glyphicon glyphicon-remove"></i></a>
+                    </div>
                 </header>
-                <div class="row margin-top-15 align-items-center gallery-container">
-                    <div class="col-9">
-                        <div class="widget">
-                            <img class="gallery-img" id="expandedImg">
-                            <label id="imgText"></label>
-                        </div>
-                        <button id="previous">&laquo; Previous</button>
+                <div class="widget-body">
+                    <div class="visualization row margin-top-15 align-items-center gallery-container hide-element">
+                        <div class="col-9">
+                            <div class="widget" id="img-container">
+                                <img class="gallery-img" id="expandedImg">
+                                <label id="imgText"></label>
+                                <button id="previous">&laquo; Previous</button>
                         <button id="next">Next &raquo;</button>
+                            </div>
 
+                        </div>
+                        <div class="col-3">
+                            <div class="gallery-sidebar" id="img-sidebar">
+
+                            </div>
+
+                        </div>
 
                     </div>
-                    <div class="col-3">
-                        <div class="gallery-sidebar">
-                            <div class="row">
-                                <img id="img-1" class="gallery-thumbnail" src="../static/img/1.jpg" title="Cat"
-                                     alt="Nature"
-                                     onclick="myFunction(this);">
-                                <label>Cat</label>
-                            </div>
-                            <div class="row">
-                                <img id="img-2" class="gallery-thumbnail" src="../static/img/2.jpg" title="Cat"
-                                     alt="Snow"
-                                     onclick="myFunction(this);">
-                                <label>Here's the overlay text</label>
-                            </div>
-                            <div class="row">
-                                <img id="img-3" class="gallery-thumbnail" src="../static/img/3.jpg" title="Cat"
-                                     alt="Mountains"
-                                     onclick="myFunction(this);">
-                                <label>Here's the overlay text</label>
-                            </div>
-                            <div class="row">
-                                <img id="img-4" class="gallery-thumbnail" src="../static/img/4.jpg" alt="Nature"
-                                     onclick="myFunction(this);">
-                                <label>Here's the overlay text</label>
-                            </div>
-                            <div class="row">
-                                <img id="img-5" class="gallery-thumbnail" src="../static/img/5.jpg" alt="Snow"
-                                     onclick="myFunction(this);">
-                                <label>Here's the overlay text</label>
-                            </div>
-                            <div class="row">
-                                <img id="img-6" class="gallery-thumbnail" src="../static/img/6.jpg" alt="Mountains"
-                                     onclick="myFunction(this);">
-                                <label>Here's the overlay text</label>
-                            </div>
-                        </div>
+                    <div class="loader hide-element">Loading...</div>
+                    <div class="waiting-selection">
+                        Click on a Dataset to display
+                    </div>
+
+                </div>
+
+            </section>
+        </div>
+        <div class="col-lg-4">
+            <section class="widget">
+                <header>
+                    <h5>
+                        Label <span class="fw-semi-bold">Distribution</span>
+                    </h5>
+                    <div class="widget-controls">
+                        <a data-widgster="expand" title="Expand" href="#"><i
+                                class="glyphicon glyphicon-chevron-up"></i></a>
+                        <a data-widgster="collapse" title="Collapse" href="#"><i
+                                class="glyphicon glyphicon-chevron-down"></i></a>
+                        <a href="#" data-widgster="close"><i class="glyphicon glyphicon-remove"></i></a>
+                    </div>
+                </header>
+                <div class="widget-body">
+                    <div class="visualization hide-element" id="label-dist">
+                    </div>
+                    <div class="loader hide-element">Loading...</div>
+                    <div class="waiting-selection">
+                        Click on a Dataset to display
                     </div>
                 </div>
             </section>
@@ -158,44 +166,18 @@
 
 {% block scripts %}
     {{ super() }}
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.js"></script>
     <script src="{{ url_for('.static', filename='notify.js') }}"></script>
     <script src="{{ url_for('.static', filename='upload_image.js') }}"></script>
     <script src="{{ url_for('.static', filename='visualize_image.js') }}"></script>
+    <script src="{{ url_for('.static', filename='data_graphs.js') }}"></script>
+
     <script type=text/javascript>
         $(document).ready(function () {
             $('#sb-datasets').addClass('active');
             $('#upload_image').addClass('active');
             $('#sidebar-data').addClass('show');
-            handle_key['currentImg'] = null;
-        });
-
-        function myFunction(imgs) {
-            $("#expandedImg").attr("src", imgs.src)
-                .attr("style", "display:block;");
-            $("#imgText").text(imgs.alt);
-            handle_key['currentImg'] = imgs.id.split('-')[1];
-
-        };
-
-        function change_expanded_img(imgs, new_id) {
-            if ((new_id > 0) && ($('#img-' + new_id).length !== 0)) {
-                $("#expandedImg").attr("src", imgs.attr('src'))
-                    .attr("style", "display:block;");
-                $("#imgText").text(imgs.attr('alt'));
-                handle_key['currentImg'] = new_id;
-                $('.gallery-sidebar').animate({scrollTop: $('#img-' + new_id).position().top}, 100);
-            }
-        };
-
-        $('#previous').on('click', function () {
-            let prev = parseInt(handle_key['currentImg']) - 1;
-            change_expanded_img($('#img-' + prev.toString()), prev);
-        });
-
-        $('#next').on('click', function () {
-            let next = parseInt(handle_key['currentImg']) + 1;
-            change_expanded_img($('#img-' + next.toString()), next);
         });
     </script>
 

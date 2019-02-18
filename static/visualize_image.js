@@ -35,6 +35,50 @@ $(document).ready(function () {
             if ($(this).hasClass('trash-icon')) {
                 return;
             }
+            $('.waiting-selection').addClass('hide-element');
+            $('.loader').removeClass('hide-element');
+            $('.visualization').addClass('hide-element');
+            if ($('#label-dist').length > 0) {
+                $('#label-dist').children().remove();
+            }
+
+            $.ajax({
+                url: "/image_graphs",
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json;charset=UTF-8',
+                accepts: {
+                    json: 'application/json',
+                },
+                data: JSON.stringify({
+                    'datasetname': table_datasets.row(this).data()[0]
+                }),
+                success: function (data) {
+                    var collapsed = $("a[data-widgster='expand'][style='display: inline;']");
+                    collapsed.click();
+                    let imgs = data.data.data;
+                     $('.visualization').removeClass('hide-element');
+
+                    if ($('#img-sidebar').length > 0) {
+                        appendImgs(imgs, 'img-sidebar');
+                    }
+                    if ($('#label-dist').length > 0) {
+                        bar_plot('label-dist', Object.keys(data.data.counts), Object.values(data.data.counts));
+                    }
+
+
+                    $('.visualization').removeClass('hide-element');
+                    collapsed.next().click();
+                    $('.loader').addClass('hide-element');
+                    for (var k in imgs) {
+                        break
+                    }
+                    $('#' + k + '_th').click();
+
+
+                }
+
+            });
 
 
         }
@@ -44,6 +88,40 @@ $(document).ready(function () {
 
 
 });
+
+function appendImgs(imgs, div) {
+    let container = $('#' + div);
+    for (var key in imgs) {
+        let row = $('<div></div>');
+        row.addClass('row');
+
+        let img = new Image();
+        if (imgs[key].hasOwnProperty('extension'))
+            img.src = 'data:image/' + imgs[key]['extension'] + ';base64,' + imgs[key]['img'];
+        else
+            img.src = 'data:image/jpg;base64,' + imgs[key]['img'];
+        img.onclick = function () {
+            displayImg(this);
+        };
+        img.alt = key;
+        img.title = key;
+        img.classList = 'gallery-thumbnail';
+        img.id = key + '_th';
+
+        row.append(img);
+        container.append(row);
+
+    }
+
+}
+
+function displayImg(imgs) {
+    var expandImg = document.getElementById("expandedImg");
+    var imgText = document.getElementById("imgText");
+    expandImg.src = imgs.src;
+    imgText.innerHTML = imgs.alt;
+    expandImg.parentElement.style.display = "block";
+}
 
 function get_rows(datasets) {
     let dataset_rows = [];
