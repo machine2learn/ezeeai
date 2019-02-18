@@ -1,3 +1,34 @@
+var format1 = 'my-images/              my-images/\n' +
+    '├── cat/                ├── train/\n' +
+    '│   ├── 1.jpg           │   ├── cat/\n' +
+    '│   └── 2.jpg           │   │   └── *.jpg\n' +
+    '└── dog/                │   └── dog/\n' +
+    '    ├── 1.jpg           │       └── *.jpg\n' +
+    '    └── 2.jpg           └── test/\n' +
+    '                            ├── cat/\n' +
+    '                            │   └── *.jpg\n' +
+    '                            └── dog/\n' +
+    '                                └── *.jpg';
+
+var format2 = 'my-images/               my-images/             my-images/\n' +
+    '├── 1.jpg                ├── images/             ├── 1.jpg\n' +
+    '├── 2.jpg                │   ├── 1.jpg           ├── 2.jpg\n' +
+    '├── 3.jpg                │   └── 2.jpg           ├── 3.jpg\n' +
+    '└── labels.txt           └── labels.txt          ├── train.txt\n' +
+    '                                                 └── test.txt';
+
+
+var format3 = 'Save your data with:\n\n' +
+    'np.savez(filename, x=images, y=labels)\n\n' +
+    'or\n\n' +
+    'np.savez(filename, x_train=images_train, y_train=labels_train, x_test=images_test,   y_test=labels_test)';
+
+var formats = {
+    'option1': format1,
+    'option2': format2,
+    'option3': format3
+};
+
 var id_file_uploading = '';
 var ajax;
 
@@ -7,9 +38,17 @@ function _(el) {
 
 $(document).ready(function () {
 
-    $('#sb-datasets').addClass('active');
-    $('#upload_tabular').addClass('active');
-    $('#sidebar-data').addClass('show');
+    $('#format-content').html(formats[$('#selector-selector').val()]);
+    id_file_uploading = $('#selector-selector').val();
+
+    $('#selector-selector').on('change', function () {
+        clear_upload_status();
+        $('#format-content').html(formats[$(this).val()]);
+        $('.img-select').addClass('hide-element');
+        $('#' + $(this).val()).removeClass('hide-element');
+        id_file_uploading = $(this).val();
+
+    });
     $('.custom-file-input').on('change', function () {
         let fileName = $(this).val().split('\\').pop();
         if (fileName === "")
@@ -18,9 +57,8 @@ $(document).ready(function () {
         clear_upload_status();
     });
 
-
-    $('#train_file:file').change(function (e) {
-        if ($('#train_file').val() !== '')
+    $('input:file').change(function (e) {
+        if ($(this).val() !== '')
             $('#upload_form_button').prop('disabled', false);
         else
             $('#upload_form_button').prop('disabled', true);
@@ -28,6 +66,7 @@ $(document).ready(function () {
 
 
 });
+
 
 function clear_upload_status() {
     _("progressBar_" + id_file_uploading).addClass('invisible');
@@ -40,7 +79,7 @@ function clear_upload_status() {
 function uploadFile() {
     ajax = new XMLHttpRequest();
     ajax.onreadystatechange = function () {
-        if (this.responseText.length === 0){
+        if (this.responseText.length === 0) {
             return;
         }
         var response = JSON.parse(this.responseText);
@@ -50,9 +89,8 @@ function uploadFile() {
         } else if (this.readyState === 4 && response.status === 'ok') {
             $.notify("New dataset saved", "success");
             _("status_" + id_file_uploading).text('File upload completed');
-            appConfig.handle_key.datasets.push(response.msg);
-            appConfig.handle_key.data_types.push([response.msg, 'Tabular']);
-            let r_d = get_rows(appConfig.handle_key.data_types);
+            appConfig.handle_key.datasets.push([response.msg, 'Image']);
+            let r_d = get_rows(appConfig.handle_key.datasets);
             $('#table_datasets').DataTable().clear().rows.add(r_d).draw();
 
         }
@@ -62,7 +100,7 @@ function uploadFile() {
     ajax.addEventListener("error", errorHandler, false);
     ajax.addEventListener("abort", abortHandler, false);
 
-    ajax.open("POST", "/upload_tabular");
+    ajax.open("POST", "/upload_image");
 
     ajax.send(new FormData(_("upload_form")[0]));
     _("progressBar_" + id_file_uploading).removeClass('invisible');
@@ -75,13 +113,11 @@ function progressHandler(event) {
     _("loaded_n_total_" + id_file_uploading).text("Uploaded " + event.loaded + " bytes of " + event.total);
     let percent = (event.loaded / event.total) * 100;
     percent = Math.round(percent);
-    document.getElementById('progressBar_').style.width = percent.toString() + "%";
+    document.getElementById('progressBar_' + id_file_uploading).style.width = percent.toString() + "%";
     _("status_" + id_file_uploading).text(percent + "% uploaded... please wait");
     if (percent === 100) {
-        $('#train_file').prev('.custom-file-label').html('Choose file');
-        $('#test_file').prev('.custom-file-label').html('Choose file');
-        $('#train_file').val('');
-        $('#test_file').val('');
+        $('.custom-file-label').html('Choose file');
+        $('.custom-file-input').val('');
         $('#upload_form_button').prop('disabled', true);
     }
 }
@@ -97,5 +133,3 @@ function abortHandler(event) {
     _("status_" + id_file_uploading).text("Upload Aborted");
     _("loaded_n_total_" + id_file_uploading).text("");
 }
-
-

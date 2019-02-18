@@ -1,20 +1,149 @@
 {% extends "base.html" %}
-
+{% import 'bootstrap/wtf.html' as wtf %}
+{% from '_render_field.html' import render_checkbox, render_option_field, render_field_two_col, render_single_field, render_field, render_gener_field %}
 {% block styles %}
     {{ super() }}
     <link href="{{ url_for('.static', filename='base/css/tables.css') }}" rel="stylesheet">
+    <link href="{{ url_for('.static', filename='css/gallery.css') }}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
 
     <ol class="breadcrumb">
-        <li class="breadcrumb-item">YOU ARE HERE </li>
-        <li class="breadcrumb-item"> Datasets </li>
+        <li class="breadcrumb-item">YOU ARE HERE</li>
+        <li class="breadcrumb-item"> Datasets</li>
         <li class="breadcrumb-item active">Image</li>
     </ol>
     <div class="row">
         <div class="col-lg-12">
-            <section class="widget">
+            <section class="widget widget-overflow">
+                <header>
+                    <h5>
+                        Upload <span class="fw-semi-bold">Data</span>
+                    </h5>
+                </header>
+                <div class="row">
+
+                    <div class="col-lg-5">
+                        <form action="/upload_image" id="upload_form" method="post" enctype="multipart/form-data">
+                            {{ form.csrf_token }}
+
+                            <div class="margin-top-15">
+                                <div class="bhoechie-tab-content">
+                                    {{ render_gener_field(form.selector) }}
+                                    <div id="option1" class="img-select">
+
+                                        {{ render_option_field(form.option1) }}
+                                    </div>
+                                    <div id="option2" class="hide-element img-select">
+
+                                        {{ render_option_field(form.option2) }}
+                                    </div>
+                                    <div id="option3" class="hide-element img-select">
+
+                                        {{ render_option_field(form.option3) }}
+                                    </div>
+                                </div>
+                            </div>
+
+                        </form>
+                    </div>
+                    <div class="col-lg-7">
+                        <div id="format" class="margin-top-15">
+                            <label> <b>Format</b></label>
+                            <pre id='format-content' class="prettyprint"></pre>
+                        </div>
+                    </div>
+                </div>
+                <div class="btn-next-parent">
+                    <button type="button" class="btn btn-primary btn-next" onclick="uploadFile();"
+                            id="upload_form_button" disabled><span
+                            class="glyphicon glyphicon-save"></span> Save
+                    </button>
+                </div>
+
+            </section>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-3">
+            <section class="widget widget-overflow">
+                <header>
+                    <h5>
+                        Choose <span class="fw-semi-bold">Data</span>
+                    </h5>
+                </header>
+                <div class="table-responsive">
+                    <div class="navbar-form" role="search">
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <div class="input-group input-group-no-border">
+                                <input id="dataset_search" class="form-control" type="text"
+                                       placeholder="Search Dataset">
+                                <span class="input-group-append">
+                                    <span class="input-group-text">
+                                        <i class="la la-search"></i>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <table id="table_datasets" class="table table-hover table-striped "
+                           style="width:100%">
+
+                    </table>
+                </div>
+            </section>
+        </div>
+        <div class="col-lg-5">
+            <section class="widget widget-overflow">
+                <header>
+                    <h5>
+                        Sample <span class="fw-semi-bold">Images</span>
+                    </h5>
+                </header>
+                <div class="row margin-top-15 align-items-center gallery-container">
+                    <div class="col-9">
+                        <div class="widget"><img class="gallery-img" id="expandedImg"></div>
+
+                    </div>
+                    <div class="col-3">
+                        <div class="gallery-sidebar">
+                            <div class="row">
+                                <img class="gallery-thumbnail" src="../static/img/021.jpg" alt="Nature"
+                                     onclick="myFunction(this);">
+                            </div>
+                            <div class="row">
+                                <img class="gallery-thumbnail" src="../static/img/022.jpg" alt="Snow"
+                                     onclick="myFunction(this);">
+                            </div>
+                            <div class="row">
+                                <img class="gallery-thumbnail" src="../static/img/023.jpg" alt="Mountains"
+                                     onclick="myFunction(this);">
+                            </div>
+                            <div class="row">
+                                <img class="gallery-thumbnail" src="../static/img/024.jpg" alt="Lights"
+                                     onclick="myFunction(this);">
+                            </div>
+                            <div class="row">
+                                <img class="gallery-thumbnail" src="../static/img/021.jpg" alt="Nature"
+                                     onclick="myFunction(this);">
+                            </div>
+                            <div class="row">
+                                <img class="gallery-thumbnail" src="../static/img/022.jpg" alt="Snow"
+                                     onclick="myFunction(this);">
+                            </div>
+                            <div class="row">
+                                <img class="gallery-thumbnail" src="../static/img/023.jpg" alt="Mountains"
+                                     onclick="myFunction(this);">
+                            </div>
+                            <div class="row">
+                                <img class="gallery-thumbnail" src="../static/img/024.jpg" alt="Lights"
+                                     onclick="myFunction(this);">
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
             </section>
         </div>
     </div>
@@ -24,16 +153,28 @@
 {% block scripts %}
     {{ super() }}
     <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.js"></script>
-     <script type=text/javascript>
+    <script src="{{ url_for('.static', filename='notify.js') }}"></script>
+    <script src="{{ url_for('.static', filename='upload_image.js') }}"></script>
+    <script src="{{ url_for('.static', filename='visualize_image.js') }}"></script>
+    <script type=text/javascript>
         $(document).ready(function () {
             $('#sb-datasets').addClass('active');
             $('#upload_image').addClass('active');
             $('#sidebar-data').addClass('show');
         });
     </script>
+    <script>
+        function myFunction(imgs) {
+            var expandImg = document.getElementById("expandedImg");
+            var imgText = document.getElementById("imgtext");
+            expandImg.src = imgs.src;
+            imgText.innerHTML = imgs.alt;
+            expandImg.parentElement.style.display = "block";
+        }
+    </script>
     <script type=text/javascript>
         var handle_key = {};
-        handle_key.datasets = {{  datasets | tojson | safe }};
+        handle_key.datasets = {{  data_types | tojson | safe }};
         window.appConfig = {
             handle_key: handle_key
         };

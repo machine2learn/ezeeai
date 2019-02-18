@@ -1,0 +1,19 @@
+.gallery-container {
+    overflow: hidden;
+}
+
+.gallery-img {
+    width: 100%;
+}
+
+.gallery-sidebar {
+    max-height: 450px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+.gallery-thumbnail {
+    width: 90%;
+    height: 25%;
+    margin-bottom: 5px;
+}

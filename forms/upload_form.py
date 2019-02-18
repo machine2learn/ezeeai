@@ -87,9 +87,7 @@ class GenerateDataSet(FlaskForm):
     script = TextAreaField("Script", render_kw={"rows": 0, "cols": 10})
 
 
-class UploadForm(FlaskForm):
-    new_tabular_files = FormField(NewTabularFileForm)
-    generate_dataset = FormField(GenerateDataSet)
+class UploadImageForm(FlaskForm):
     selector = FormField(NewImageFileForm)
     option1 = FormField(NewImageOption1)
     option2 = FormField(NewImageOption2)

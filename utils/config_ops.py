@@ -100,6 +100,7 @@ def new_config(train_form_file, test_form_file, APP_ROOT, username):
         os.makedirs(os.path.join(path, 'test'), exist_ok=True)
     os.makedirs(os.path.join(path, 'train'), exist_ok=True)
     os.makedirs(os.path.join(path, 'valid'), exist_ok=True)
+    return dataset_name
 
 
 def check_dataset_path(app_root, username, dataset_name):
@@ -138,14 +139,14 @@ def new_image_dataset(app_root, username, option, file):
                 np.savez(os.path.join(dataset_test_path, dataset_name, dataset_name + '.npz'), x=test_data[0],
                          y=test_data[1])
                 open(os.path.join(dataset_test_path, dataset_name, '.option0'), 'w')  # NUMPY FILE
-            return True
-        except:
+            return dataset_name
+        except Exception as e:
             tree_remove(dataset_path)
-            return False
+            raise e
 
     if not check_zip_file(path_file):
         tree_remove(dataset_path)
-        return False
+        raise ValueError('Invalid file.')
 
     unzip(path_file, train_path)
     try:
@@ -188,7 +189,7 @@ def new_image_dataset(app_root, username, option, file):
                 os.rename(os.path.join(train_path, info_test_file[0]), os.path.join(dataset_test_path, 'labels.txt'))
                 open(os.path.join(dataset_test_path, '.option3'), 'w')  # NUMPY FILE
 
-    except AssertionError:
+    except AssertionError as e:
         tree_remove(dataset_path)
-        return False
-    return True
+        raise e
+    return dataset_name

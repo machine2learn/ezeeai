@@ -3,10 +3,18 @@ $(document).ready(function () {
     var dataset_rows = get_rows(appConfig.handle_key.datasets);
     var table_datasets = $('#table_datasets').DataTable({
         data: dataset_rows,
-        columns: [{title: 'Dataset'}, {title: 'Type'}, {title: '', width: "3%"}],
+        columns: [{title: 'Dataset'}, {title: 'Type'}, {title: '', width: "3%", 'sClass': 'trash-icon'}],
         searching: true,
         'select': false,
         "lengthChange": false,
+        "drawCallback": function () {
+            if ($(this).DataTable().rows()[0].length <= 10) {
+                let id = '#' + $(this).attr('id');
+                $(id + '_paginate').remove();
+                $(id + '_info').remove();
+            }
+
+        }
 
     });
     var models_rows = get_rows_model(appConfig.handle_key.parameters);
@@ -14,12 +22,21 @@ $(document).ready(function () {
         data: models_rows,
         columns: [{title: 'Model name'}, {title: 'Dataset'}, {title: 'Performance'}, {title: 'Loss'}, {
             title: '',
-            width: "5%"
+            width: "5%",
+            'sClass': 'trash-icon'
         }],
         'select': false,
         fixedHeader: false,
         searching: true,
         "lengthChange": false,
+        "drawCallback": function () {
+            if ($(this).DataTable().rows()[0].length <= 10) {
+                let id = '#' + $(this).attr('id');
+                $(id + '_paginate').remove();
+                $(id + '_info').remove();
+            }
+
+        }
     });
     $('#data_search').keyup(function () {
         table_datasets.search($(this).val()).draw();

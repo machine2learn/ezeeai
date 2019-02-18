@@ -172,13 +172,17 @@
         {% endif %}
     {%- endfor %}
     {{ field.hidden_tag() }}
-    <div class="progress invisible" style="width:97%;height:5px">
-        <div id="progressBar_{{ field.name }}" class="progress-bar invisible" style="width:0%;height:5px"></div>
+    <div>
+        <div class="progress invisible" style="width:97%;height:5px">
+            <div id="progressBar_{{ field.name }}" class="progress-bar invisible" style="width:0%;height:5px"></div>
+        </div>
+
+        <button style="width:1%;" id="abort_{{ field.name }}" type="button" class="btn btn-light abort invisible"
+                aria-label="Close"
+                onclick="ajax.abort()"><span class="icon"><i class="fi flaticon-multiply"></i></span>
+        </button>
     </div>
 
-    <button id="abort_{{ field.name }}" type="button" class="btn btn-light abort invisible" aria-label="Close"
-            onclick="ajax.abort()"><span class="icon"><i class="fi flaticon-multiply"></i></span>
-    </button>
 
     <h6 id="status_{{ field.name }}"></h6>
     <h6 class="rem-08" id="loaded_n_total_{{ field.name }}"></h6>

@@ -7,6 +7,14 @@ $(document).ready(function () {
         searching: true,
         'select': 'single',
         "lengthChange": false,
+        "drawCallback": function () {
+            if ( $(this).DataTable().rows()[0].length <= 10) {
+                let id = '#' + $(this).attr('id');
+                $(id + '_paginate').remove();
+                $(id + '_info').remove();
+            }
+
+        }
 
     });
     $('#data_search').keyup(function () {
@@ -36,6 +44,14 @@ $(document).ready(function () {
         "lengthChange": false,
         fixedHeader: false,
         deferRender: false,
+        "drawCallback": function () {
+            if ( $(this).DataTable().rows()[0].length <= 10) {
+                let id = '#' + $(this).attr('id');
+                $(id + '_paginate').remove();
+                $(id + '_info').remove();
+            }
+
+        }
 
     });
 
@@ -169,7 +185,15 @@ function create_features_table(data, category_list, dict_wizard) {
             deferRender: true,
             scrollX: true,
             scroller: true,
-            "lengthChange": false
+            "lengthChange": false,
+            "drawCallback": function () {
+            if ( $(this).DataTable().rows()[0].length <= 10) {
+                let id = '#' + $(this).attr('id');
+                $(id + '_paginate').remove();
+                $(id + '_info').remove();
+            }
+
+        }
         });
         $('#feature_search').keyup(function () {
             table_features.search($(this).val()).draw();
@@ -215,6 +239,14 @@ function create_target_table(data, category_list, targets, dict_wizard) {
             scrollX: true,
             scroller: true,
             "lengthChange": false,
+            "drawCallback": function () {
+            if ( $(this).DataTable().rows()[0].length <= 10) {
+                let id = '#' + $(this).attr('id');
+                $(id + '_paginate').remove();
+                $(id + '_info').remove();
+            }
+
+        }
         });
         $('#target_search').keyup(function () {
             target_table.search($(this).val()).draw();

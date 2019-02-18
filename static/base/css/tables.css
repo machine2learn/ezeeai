@@ -119,3 +119,12 @@ table.dataTable tbody>tr.selected, table.dataTable tbody>tr>.selected {
     margin-left: 5px;
     font-weight: 600;
 }
+.trash-icon {
+    text-align: right;
+    cursor: pointer;
+    
+}
+
+.head-no-transform thead>tr>th {
+    text-transform: none;
+}

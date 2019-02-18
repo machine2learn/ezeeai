@@ -13,7 +13,7 @@ from flask_bootstrap import Bootstrap
 from flask_login import LoginManager, login_user, login_required, logout_user
 from forms.login_form import LoginForm
 from forms.register import RegisterForm
-from forms.upload_form import UploadForm, NewTabularFileForm, GenerateDataSet
+from forms.upload_form import NewTabularFileForm, GenerateDataSet, UploadImageForm
 
 from user import User
 from thread_handler import ThreadHandler
@@ -122,20 +122,32 @@ def upload_tabular():
     form = NewTabularFileForm()
     if form.validate_on_submit():
         try:
-            config_ops.new_config(form.data['train_file'], form.data['test_file'], APP_ROOT, username)
-            return 'ok'
+            dataset_name = config_ops.new_config(form.data['train_file'], form.data['test_file'], APP_ROOT, username)
+            return jsonify(status='ok', msg=dataset_name)
         except Exception as e:
-            return str(e)
+            return jsonify(status='error', msg=str(e))
 
     return render_template('upload_tabular.html', token=session['token'], form=form,
                            datasets=config_ops.get_datasets(APP_ROOT, username), examples=examples,
-                           gen_form=GenerateDataSet())
+                           gen_form=GenerateDataSet(), data_types=config_ops.get_datasets_type(APP_ROOT, username))
 
 
 @app.route('/upload_image', methods=['GET', 'POST'])
 @login_required
 def upload_image():
-    return render_template('upload_image.html', token=session['token'], datasets={})
+    sess.reset_user()
+    username = session['user']
+    form = UploadImageForm()
+    if form.validate_on_submit():
+        option_selected = form.selector.data['selector']
+        file = form[option_selected].data['file']
+        try:
+            dataset_name = config_ops.new_image_dataset(APP_ROOT, username, option_selected, file)
+            return jsonify(status='ok', msg=dataset_name)
+        except Exception as e:
+            return jsonify(status='error', msg=str(e))
+    return render_template('upload_image.html', token=session['token'],
+                           data_types=config_ops.get_datasets_type(APP_ROOT, username), form=form)
 
 
 # @app.route('/upload', methods=['GET', 'POST'])
@@ -394,11 +406,11 @@ def test():
 @login_required
 @check_config
 def data_graphs():
-    if request.method == 'POST':
-        sess.set_generate_df(get_generate_dataset_name(request), APP_ROOT)
-        return jsonify(explanation='ok')
-    df_as_json, norm, corr = get_norm_corr(sess.get('generated_df').copy())
-    return render_template('data_graphs.html', data=json.loads(df_as_json), norm=norm, corr=corr)
+    dataset_name = get_datasetname(request)
+    main_path = sys_ops.get_dataset_path(APP_ROOT, session['user'], dataset_name)
+    df = pd.read_csv(os.path.join(main_path, dataset_name + '.csv'))
+    df_as_json, norm, corr = get_norm_corr(df)
+    return jsonify(data=json.loads(df_as_json), norm=norm, corr=corr)
 
 
 @app.route('/delete', methods=['POST'])
@@ -434,7 +446,7 @@ def delete_dataset():
     sys_ops.delete_dataset(get_all(request), get_dataset(request), get_models(request), username)
     _, models = config_ops.get_configs_files(APP_ROOT, username)
     datasets = config_ops.get_datasets(APP_ROOT, username)
-    return jsonify(datasets=datasets, models=models)
+    return jsonify(datasets=datasets, models=models, data_types=config_ops.get_datasets_type(APP_ROOT, username))
 
 
 @app.route('/refresh', methods=['GET'])
