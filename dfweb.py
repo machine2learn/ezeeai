@@ -111,6 +111,23 @@ def dashboard():
                            user_configs=config_ops.get_datasets(APP_ROOT, username), token=session['token'])
 
 
+@app.route('/tensorboard', methods=['GET', 'POST'])
+@login_required
+def tensorboard():
+    username = session['user']
+    port = ''
+    running, config_file = th.check_running(username)
+    if not running:
+        config_file = sess.get_config_file() if sess.check_key('config_file') else None
+
+    if config_file is not None:
+        sess.set_config_file(config_file)
+        sess.load_config()
+        port = th.get_port(username, sess.get_config_file())
+    return render_template('tensorboard.html', title='Tensorboard', user=username,
+                           user_configs=config_ops.get_datasets(APP_ROOT, username), token=session['token'], port=port)
+
+
 @app.route('/upload_tabular', methods=['GET', 'POST'])
 @login_required
 def upload_tabular():
@@ -281,7 +298,8 @@ def run():
     _, model_configs = config_ops.get_configs_files(APP_ROOT, username)
     user_datasets = config_ops.get_datasets_and_types(APP_ROOT, username)
     model_name = ''
-
+    checkpoints = ''
+    metric = ''
     form = GeneralParamForm()
 
     running, config_file = th.check_running(username)
@@ -294,9 +312,9 @@ def run():
         param_utils.set_form(form, sess.get_config_file())
         model_name = config_file.split('/')[-2]
         sess.set_model_name(model_name)
-        # TODO populate ckpts, etc
-
-    # TODO populate config params/model selected if running
+        export_dir = config_reader.read_config(sess.get_config_file()).export_dir()
+        checkpoints = run_utils.get_eval_results(export_dir, sess.get_writer(), sess.get_config_file())
+        metric = sess.get_metric()
 
     if request.method == 'POST':
         sess.run_or_pause(is_run(request))
@@ -310,7 +328,7 @@ def run():
         sess.get_writer().populate_config(request.form)
         sess.get_writer().write_config(sess.get_config_file())
 
-        th.run_tensor_board(username, sess.get_config_file())  # TODO resume
+        th.run_tensor_board(username, sess.get_config_file())
 
         all_params_config = config_reader.read_config(sess.get_config_file())
 
@@ -325,10 +343,12 @@ def run():
 
         th.handle_request(get_action(request), all_params_config, username, get_resume_from(request),
                           sess.get_config_file())
-        pass
+        metric = sess.get_metric()
+        return jsonify(status='ok', metric=metric)
 
     return render_template('run.html', title="Run", user=username, token=session['token'], form=form,
-                           user_models=model_configs, dataset_params=user_datasets, running=running, model_name = model_name)
+                           user_models=model_configs, dataset_params=user_datasets, running=running,
+                           model_name=model_name, checkpoints=checkpoints, metric=metric)
 
     # sess.reset_user()
     # username = session['user']

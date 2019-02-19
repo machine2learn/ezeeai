@@ -16,6 +16,7 @@ $(document).ready(function () {
         enable_run();
     }
 
+
     $('#model_name').on('change', function () {
         enable_run();
     });
@@ -108,7 +109,7 @@ function button_play() {
         processData: false,
         contentType: false,
         data: formData,
-        success: function () {
+        success: function (data) {
             //TODO if error not playing = !playing
             playing = !playing;
             toggle_play();
