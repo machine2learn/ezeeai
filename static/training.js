@@ -11,7 +11,7 @@ $(document).ready(function () {
         disable_run_config();
     }
 
-    if (appConfig.handle_key.model_name !== ''){
+    if (appConfig.handle_key.model_name !== '') {
         $('#model_name').val(appConfig.handle_key.model_name);
         enable_run();
     }
@@ -32,9 +32,8 @@ $(document).ready(function () {
                         playing = data.running;
                         toggle_play();
                         enable_run_config();
-                        update_checkpoint_table(data.checkpoints)
                     }
-
+                    update_checkpoint_table(data.checkpoints)
 
                     // if (data.data !== '')
                     //     $('#log').append(data.data).scrollTop($('#log')[0].scrollHeight);
