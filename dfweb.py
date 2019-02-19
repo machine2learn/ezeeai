@@ -292,7 +292,8 @@ def run():
         sess.set_config_file(config_file)
         sess.load_config()
         param_utils.set_form(form, sess.get_config_file())
-        model_name = sess.get_model_name()
+        model_name = config_file.split('/')[-2]
+        sess.set_model_name(model_name)
         # TODO populate ckpts, etc
 
     # TODO populate config params/model selected if running
