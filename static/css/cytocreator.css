@@ -71,7 +71,7 @@ h1 {
 }
 
 .buttonbar {
-    display: flex;
+    display: block;
     text-align: center;
     width: 10%;
     flex-direction: column;

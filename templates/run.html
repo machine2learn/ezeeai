@@ -28,16 +28,14 @@
                 </header>
                 <div class="widget-body margin-top-15">
                     <form id="parameters_form">
-                        <div>
-                            {{ render_gener_field(form.experiment) }}
-                        </div>
 
-                        <div class="border-top">
-                            {{ render_gener_field(form.training) }}
-                        </div>
+                        <h5 class="param-section"><span>Experiment</span></h5>
+                        {{ render_gener_field(form.experiment) }}
+                        <h5 class="param-section"><span>Training</span></h5>
+                        {{ render_gener_field(form.training) }}
 
-                        <div class="border-top" id="models-select-div">
-
+                        <div id="models-select-div">
+                            <h5 class="param-section"><span>Model</span></h5>
                         </div>
                     </form>
 
@@ -103,6 +101,75 @@
                     </section>
                 </div>
             </div>
+
+            <div class="row">
+                <div class="col-6">
+                    <section class="widget widget-overflow" id="checpoints_div">
+                        <header>
+                            <h6>
+                                <span class="fw-semi-bold">Checkpoints</span>
+                            </h6>
+                        </header>
+                        <div class="widget-body margin-top-15">
+                            <div class="table-responsive">
+                                <div class="navbar-form" role="search">
+                                    <div class="form-group">
+                                        <div class="input-group input-group-no-border">
+                                            <input id="checkpoint_search" class="form-control" type="text"
+                                                   placeholder="Search Checkpoint">
+                                            <span class="input-group-append">
+                                                    <span class="input-group-text">
+                                                        <i class="la la-search"></i>
+                                                    </span>
+                                        </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <table id="table_checkpoints" class="table table-hover table-striped"
+                                       style="width:100%">
+                                    <tfoot align="right">
+                                    <tr>
+                                        <td colspan="4">Clear all <a data-id=all onclick="ConfirmDelete(this, true)">
+                                            <i class="fi flaticon-trash"></i></a>
+                                        </td>
+                                    </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+
+                    </section>
+                </div>
+                <div class="col-6">
+                    <div class="row">
+                        <div class="col-12">
+                            <section class="widget widget-overflow" id="graph1_div">
+                                <header>
+                                    <h6>
+                                        Graph<span class="fw-semi-bold">1</span>
+                                    </h6>
+                                </header>
+                                <div class="widget-body margin-top-15">
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <section class="widget widget-overflow" id="graph2_div">
+                                <header>
+                                    <h6>
+                                        Graph<span class="fw-semi-bold">2</span>
+                                    </h6>
+                                </header>
+                                <div class="widget-body margin-top-15">
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
         <div class="row">
 
@@ -119,7 +186,7 @@
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.js"></script>
     <script src="{{ url_for('.static', filename='training.js') }}"></script>
-
+    <script src="{{ url_for('.static', filename='checkpoints.js') }}"></script>
     <script type=text/javascript>
         $(document).ready(function () {
             $('#sb-train').addClass('active');
@@ -133,7 +200,9 @@
         handle_key.models = {{  user_models | tojson | safe }};
         handle_key.datasets = {{  dataset_params | tojson | safe }};
         handle_key.running = {{  running | tojson | safe }};
-         handle_key.model_name = {{  model_name | tojson | safe }};
+        handle_key.model_name = {{  model_name | tojson | safe }};
+        handle_key.checkpoints = {{  checkpoints | tojson | safe }};
+        handle_key.metric = {{  metric | tojson | safe }};
         window.appConfig = {
             handle_key: handle_key
         };

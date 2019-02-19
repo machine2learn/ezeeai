@@ -31,7 +31,7 @@ $(document).ready(function () {
                         playing = data.running;
                         toggle_play();
                         enable_run_config();
-
+                        update_checkpoint_table(data.checkpoints)
                     }
 
 
