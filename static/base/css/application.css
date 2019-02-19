@@ -23747,6 +23747,7 @@ a {
     position: relative;
     border-top: 1px solid transparent;
     padding-left: 50px;
+    padding-left: 50px;
     line-height: 35px;
 }
 
@@ -23764,18 +23765,18 @@ a {
 .sidebar-nav > li > a .icon {
     display: block;
     position: absolute;
-    top: 3px;
+    top: 11px;
     left: 11px;
-    width: 28px;
-    height: 28px;
-    line-height: 28px;
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
     text-align: center;
-    font-size: 16px;
+    font-size: 20px
 }
 
 @media (min-width: 992px) and (min-height: 670px), (max-width: 767px) {
     .sidebar-nav > li > a .icon {
-        top: 14px;
+        top: 11px;
     }
 }
 
@@ -26393,4 +26394,10 @@ input.text-error {
     margin-top: 5px;
     display: inline;
     width: 70%;
+}
+
+.disabled-custom
+{
+  pointer-events: none;
+  opacity: 0.5;
 }

@@ -69,7 +69,7 @@ class ThreadHandler:
         self._return_queue.put(runner.explain(explain_params))
 
     def pause_threads(self, username):
-        p = self._processes[username] if username in self._processes.keys() else None
+        p = self._processes[username]['process'] if username in self._processes.keys() else None
         if not isinstance(p, str) and p:
             pid = p.pid
             parent = psutil.Process(pid)
@@ -80,14 +80,16 @@ class ThreadHandler:
         return True
 
     def check_running(self, username):
-        return self._processes[username].is_alive() if username in self._processes.keys() else False
+        if username in self._processes.keys():
+            return self._processes[username]['process'].is_alive(), self._processes[username]['config_file']
+        return False, None
 
-    def run_estimator(self, all_params_config, username):
+    def run_estimator(self, all_params_config, username, config_file):
         r_thread = Process(
             target=lambda: self.run_thread(all_params_config), name='run')
         r_thread.daemon = True
         r_thread.start()
-        self._processes[username] = r_thread
+        self._processes[username] = {'process': r_thread, 'config_file': config_file}
 
     def predict_estimator(self, all_params_config, features, all=False):
         r_thread = Process(target=lambda: self.predict_thread(all_params_config, features, all), name='predict')
@@ -114,11 +116,11 @@ class ThreadHandler:
         r_thread.join()
         return exp
 
-    def handle_request(self, option, all_params_config, username, resume_from):
+    def handle_request(self, option, all_params_config, username, resume_from, config_file):
         if option == 'run':
             if resume_from != '':
                 change_checkpoints(all_params_config, resume_from)
-            self.run_estimator(all_params_config, username)
+            self.run_estimator(all_params_config, username, config_file)
         elif option == 'pause':
             self.pause_threads(username)
         else:

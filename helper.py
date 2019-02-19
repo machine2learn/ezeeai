@@ -35,6 +35,8 @@ def encode_image(path):
 class Helper(metaclass=ABCMeta):
     def __init__(self, dataset):
         self._dataset = dataset
+        self._canned_data = None
+        self._cy_model = None
 
     @abstractmethod
     def get_num_outputs(self):

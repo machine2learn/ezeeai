@@ -316,6 +316,8 @@ def load_cy_model(model, user):
 
 def create_custom_path(APP_ROOT, username, model_name):
     path = os.path.join(APP_ROOT, 'user_data', username, 'models', model_name, 'custom')
+    shutil.rmtree(path, ignore_errors=True)
+
     os.makedirs(path, exist_ok=True)
     return path
 

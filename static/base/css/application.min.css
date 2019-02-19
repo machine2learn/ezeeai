@@ -22450,11 +22450,11 @@ a {
     position: absolute;
     top: 3px;
     left: 11px;
-    width: 28px;
-    height: 28px;
-    line-height: 28px;
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
     text-align: center;
-    font-size: 16px
+    font-size: 20px
 }
 
 @media (min-width: 992px) and (min-height: 670px), (max-width: 767px) {

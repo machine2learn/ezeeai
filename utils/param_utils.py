@@ -15,7 +15,6 @@ def set_form(form, CONFIG_FILE):
             form.experiment.form.save_checkpoints_steps.default = reader['EXPERIMENT']['save_checkpoints_steps']
             form.experiment.form.save_summary_steps.default = reader['EXPERIMENT']['save_summary_steps']
             form.experiment.form.throttle.default = reader['EXPERIMENT']['throttle']
-            form.experiment.form.validation_batch_size.default = reader['EXPERIMENT']['validation_batch_size']
         if 'TRAINING' in reader.keys():
             form.training.form.num_epochs.default = reader['TRAINING']['num_epochs']
             form.training.form.batch_size.default = reader['TRAINING']['batch_size']

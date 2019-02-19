@@ -14,14 +14,12 @@ from wtforms.validators import InputRequired, ValidationError, StopValidation, A
 class ExperimentForm(FlaskForm):
     keep_checkpoint_max = IntegerField("Maximum # of checkpoints", validators=[InputRequired()], default=5,
                                        description="MAXIMUN # OF CHECKPOINTS : The maximum number of recent checkpoint files to keep. As new files are created, older files are deleted. If None or 0, all checkpoint files are kept.")
-    save_checkpoints_steps = IntegerField("Save checkpoints after", validators=[InputRequired()], default=20,
+    save_checkpoints_steps = IntegerField("Save checkpoints after", validators=[InputRequired()], default=50,
                                           description="SAVE CHECKPOINTS STEPS : The frequency, in number of global steps, that the global step/sec and the loss will be logged during training.")
-    save_summary_steps = IntegerField("Save summary after", validators=[InputRequired()], default=10,
+    save_summary_steps = IntegerField("Save summary after", validators=[InputRequired()], default=50,
                                       description="SAVE SUMMARY AFTER: Save summaries every this many steps.")
     throttle = IntegerField("Evaluate after (s)", validators=[InputRequired()], default=1,
                             description="EVALUATE AFTER (S):  Do not re-evaluate unless the last evaluation was started at least this many seconds ago. Of course, evaluation does not occur if no new checkpoints are available, hence, this is the minimum.")
-    validation_batch_size = IntegerField("Validation batch size", validators=[InputRequired()], default=32,
-                                         description="VALIDATION BATCH SIZE: An integer indicating the desired batch size for validation set. ")
 
 
 class TrainForm(FlaskForm):

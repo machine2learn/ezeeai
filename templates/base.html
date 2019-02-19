@@ -5,8 +5,11 @@
 
     <title>Easy AI - Machine2Learn</title>
     {% block styles %}
+
         <link href="{{ url_for('.static', filename='base/css/application.css') }}" rel="stylesheet">
         <link href="{{ url_for('.static', filename='base/css/tables.css') }}" rel="stylesheet">
+         <link href="{{ url_for('.static', filename='base/fonts/flaticon-2/flaticon.css') }}" rel="stylesheet">
+
         <link rel="shortcut icon" href="{{ url_for('.static', filename='base/img/logotext-brain.png') }}">
     {% endblock %}
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -93,24 +96,24 @@
                 </a>
             </li>
 
-            <li class="">
-                <a class="collapsed" href="#sidebar-main" data-toggle="collapse" data-parent="#sidebar">
+            <li class="" id="sb-train">
+                <a class="collapsed" href="#sidebar-train" data-toggle="collapse" data-parent="#sidebar">
                         <span class="icon">
-                            <i class="fi flaticon-layers"></i>
+                            <i class="fi flaticon-settings-train"></i>
                         </span>
                     Train
                     <i class="toggle fa fa-angle-down"></i>
                 </a>
-                <ul id="sidebar-main" class="collapse ">
-                    <li class=""><a href="maps_google.html">Run</a></li>
-                    <li class=""><a href="maps_google.html">TensorBoard</a></li>
+                <ul id="sidebar-train" class="collapse ">
+                    <li id="li_run" class=""><a href="#" onclick="location.href='/run'">Run</a></li>
+                    <li id="li_tb" class=""><a href="maps_google.html">TensorBoard</a></li>
                 </ul>
             </li>
             <li class="">
                 <!-- an example of nested submenu. basic bootstrap collapse component -->
                 <a href="tables.html">
                         <span class="icon">
-                            <i class="fi flaticon-cloud-computing"></i>
+                            <i class="fi flaticon-prediction"></i>
                         </span>
                     Predict
                 </a>
@@ -119,7 +122,7 @@
                 <!-- an example of nested submenu. basic bootstrap collapse component -->
                 <a href="tables.html">
                         <span class="icon">
-                            <i class="fi flaticon-cloud-computing"></i>
+                            <i class="fi flaticon-analysis-1"></i>
                         </span>
                     Explain
                 </a>
@@ -128,7 +131,7 @@
                 <!-- an example of nested submenu. basic bootstrap collapse component -->
                 <a href="tables.html">
                         <span class="icon">
-                            <i class="fi flaticon-cloud-computing"></i>
+                            <i class="fi flaticon-exam"></i>
                         </span>
                     Test
                 </a>

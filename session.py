@@ -198,11 +198,13 @@ class Session:
 
     def load_config(self):
         # read saved config
-        conf = config_reader.read_config(self.get('config_file'))  # TODO read tabular dataset
+        conf = config_reader.read_config(self.get('config_file'))
+
         # update files and df in config dict
         if 'PATHS' in conf.keys():
             dataset = pickle.load(open(conf['PATHS']['data_path'], 'rb'))
             self.create_helper(dataset)
+            self.update_writer_conf(conf)
             return True
         return False
 
