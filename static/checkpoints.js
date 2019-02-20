@@ -35,9 +35,9 @@ function get_rows(checkpoints) {
     let rows = [];
     $.each(checkpoints, function (key, value) {
         let val = 0;
-        if ('accuracy' in value)
+        if (value.hasOwnProperty('accuracy'))
             val = value['accuracy'];
-        else if ('r_squared' in value)
+        else if (value.hasOwnProperty('r_squared'))
             val = value['r_squared'];
         rows.push([key, val, value['loss'], '<a data-id=' + key + ' onclick="ConfirmDelete(this, false)" >' +
         '<span class="fi flaticon-trash"></span></a>']);
@@ -58,24 +58,3 @@ function update_checkpoint_table(checkpoints, metric) {
     }
 }
 
-function ConfirmDelete(elem, all) {
-    let message = "Are you sure you want to delete the selected checkpoint?";
-    if (all === true) {
-        message = "Are you sure you want to delete all saved checkpoints?";
-    }
-    if (confirm(message)) {
-        $.ajax({
-            url: "/delete",
-            type: 'POST',
-            dataType: 'json',
-            contentType: 'application/json;charset=UTF-8',
-            accepts: {
-                json: 'application/json',
-            },
-            data: JSON.stringify({'deleteID': $(elem).attr('data-id')}),
-            success: function (data) {
-                update_checkpoint_table(data.checkpoints, '')
-            }
-        })
-    }
-}

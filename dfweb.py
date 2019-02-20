@@ -121,9 +121,12 @@ def tensorboard():
         config_file = sess.get_config_file() if sess.check_key('config_file') else None
 
     if config_file is not None:
-        sess.set_config_file(config_file)
-        sess.load_config()
-        port = th.get_port(username, sess.get_config_file())
+        try:
+            sess.set_config_file(config_file)
+            sess.load_config()
+            port = th.get_port(username, sess.get_config_file())
+        except:
+            pass
     return render_template('tensorboard.html', title='Tensorboard', user=username,
                            user_configs=config_ops.get_datasets(APP_ROOT, username), token=session['token'], port=port)
 
@@ -298,17 +301,16 @@ def params_run():
         model_name = get_model_name(request)
         config_file = sys_ops.get_config_path(APP_ROOT, session['user'], model_name)
         parameters = param_utils.get_params(config_file)
-        # all_params_config = config_reader.read_config(config_file)
         sess.set_config_file(config_file)
         sess.load_config()
         sess.set_model_name(model_name)
-        hlp = sess.get_helper()
         export_dir = config_reader.read_config(sess.get_config_file()).export_dir()
         checkpoints = run_utils.get_eval_results(export_dir, sess.get_writer(), sess.get_config_file())
         metric = sess.get_metric()
-        return jsonify(checkpoints=checkpoints, parameters=parameters, metric=metric)
+        graphs = train_eval_graphs(config_reader.read_config(sess.get_config_file()).checkpoint_dir())
+        return jsonify(checkpoints=checkpoints, parameters=parameters, metric=metric, graphs=graphs)
     except (KeyError, NoSectionError):
-        return jsonify(checkpoints='', parameters='', metric='')
+        return jsonify(checkpoints='', parameters='', metric='', graphs={})
 
 
 @app.route('/run', methods=['GET', 'POST'])
@@ -321,6 +323,8 @@ def run():
     model_name = ''
     checkpoints = ''
     metric = ''
+    graphs = {}
+
     form = GeneralParamForm()
 
     running, config_file = th.check_running(username)
@@ -336,6 +340,7 @@ def run():
         export_dir = config_reader.read_config(sess.get_config_file()).export_dir()
         checkpoints = run_utils.get_eval_results(export_dir, sess.get_writer(), sess.get_config_file())
         metric = sess.get_metric()
+        graphs = train_eval_graphs(config_reader.read_config(sess.get_config_file()).checkpoint_dir())
 
     if request.method == 'POST':
         sess.run_or_pause(is_run(request))
@@ -369,7 +374,7 @@ def run():
 
     return render_template('run.html', title="Run", user=username, token=session['token'], form=form,
                            user_models=model_configs, dataset_params=user_datasets, running=running,
-                           model_name=model_name, checkpoints=checkpoints, metric=metric)
+                           model_name=model_name, checkpoints=checkpoints, metric=metric, graphs=graphs)
 
     # sess.reset_user()
     # username = session['user']
@@ -545,10 +550,11 @@ def refresh():
                                     all_params_config.checkpoint_dir())
         export_dir = all_params_config.export_dir()
         checkpoints = run_utils.get_eval_results(export_dir, sess.get_writer(), sess.get_config_file())
+        graphs = train_eval_graphs(all_params_config.checkpoint_dir())
         return jsonify(checkpoints=checkpoints, data=sess.get('log_fp').read() if sess.check_key('log_fp') else '',
-                       running=running, epochs=epochs)
+                       running=running, epochs=epochs, graphs=graphs)
     except (KeyError, NoSectionError):
-        return jsonify(checkpoints='', data='', running=running, epochs=0)
+        return jsonify(checkpoints='', data='', running=running, epochs=0, graphs={})
 
 
 @app.route('/generate', methods=['GET', 'POST'])

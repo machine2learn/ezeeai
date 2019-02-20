@@ -13,6 +13,7 @@ $(document).ready(function () {
         $('#model_name').val(appConfig.handle_key.model_name);
         enable_run();
     }
+    update_graphs(appConfig.handle_key.graphs, true);
 
 
     $('#model_name').on('change', function () {
@@ -24,10 +25,12 @@ $(document).ready(function () {
             contentType: 'application/json;charset=UTF-8',
             data: JSON.stringify({'model_name': $(this).val()}),
             success: function (data) {
-                if (!jQuery.isEmptyObject(data.parameters)) {
-                    update_parameters_form(data.parameters);
-                }
+
+                update_parameters_form(data.parameters);
+
                 update_checkpoint_table(data.checkpoints, data.metric);
+
+                update_graphs(data.graphs, true);
             }
         })
     });
@@ -44,7 +47,8 @@ $(document).ready(function () {
                         toggle_play();
                         enable_run_config();
                     }
-                    update_checkpoint_table(data.checkpoints, '')
+                    update_checkpoint_table(data.checkpoints, '');
+                    update_graphs(data.graphs, false);
 
                     // if (data.data !== '')
                     //     $('#log').append(data.data).scrollTop($('#log')[0].scrollHeight);
@@ -157,4 +161,60 @@ function update_parameters_form(params) {
     $('#training-batch_size').val(params['batch_size']);
     $('#training-optimizer').val(params['optimizer']);
     $('#training-learning_rate').val(params['learning_rate']);
+}
+
+
+function update_graphs(data, from_scratch) {
+    if (from_scratch) {
+        $('#loss_graph').children().remove();
+        $('#metric_graph').children().remove();
+    }
+
+    if (!data.hasOwnProperty('train'))
+        return;
+
+    let keys = Object.keys(data.train);
+    let divs = ['loss_graph', 'metric_graph'];
+
+    for (var i = 0; i < keys.length; i++) {
+        line_plot_2_variables(divs[i], getCol(data.train[keys[i]], 0), getCol(data.train[keys[i]], 1),
+            getCol(data.eval[keys[i]], 0), getCol(data.eval[keys[i]], 1), 'train', 'val', 'steps', '');
+
+    }
+
+}
+
+function getCol(matrix, col) {
+    var column = [];
+    for (var i = 0; i < matrix.length; i++) {
+        column.push(matrix[i][col]);
+    }
+    return column;
+}
+
+function ConfirmDelete(elem, all) {
+    let message = "Are you sure you want to delete the selected checkpoint?";
+    if (all === true) {
+        message = "Are you sure you want to delete all saved checkpoints?";
+    }
+    if (confirm(message)) {
+        $.ajax({
+            url: "/delete",
+            type: 'POST',
+            dataType: 'json',
+            contentType: 'application/json;charset=UTF-8',
+            accepts: {
+                json: 'application/json',
+            },
+            data: JSON.stringify({'deleteID': $(elem).attr('data-id')}),
+            success: function (data) {
+                update_checkpoint_table(data.checkpoints, '');
+                if (all) {
+                    $('#loss_graph').children().remove();
+                    $('#metric_graph').children().remove();
+                }
+
+            }
+        })
+    }
 }

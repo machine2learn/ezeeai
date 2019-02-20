@@ -122,9 +122,38 @@ function bar_plot(div, x, y) {
     ];
     var layout = {
         margin: {l: 0, r: 0, t: 0, b: 0},
-        xaxis: {automargin: true,  type: 'category', showticklabels: true},
+        xaxis: {automargin: true, type: 'category', showticklabels: true},
         yaxis: {automargin: true},
         showlegend: false,
     };
-    Plotly.newPlot(div, data, layout,  {responsive: true});
+    Plotly.newPlot(div, data, layout, {responsive: true});
+}
+
+function line_plot_2_variables(div, x1, y1, x2, y2, name1, name2, xaxis, yaxis) {
+
+    var trace1 = {
+        x: x1,
+        y: y1,
+        mode: 'lines',
+        name: name1
+    };
+
+    var trace2 = {
+        x: x2,
+        y: y2,
+        mode: 'lines',
+        name: name2
+    };
+
+    var data = [trace1, trace2];
+
+    var layout = {
+        margin: {l: 10, r: 0, t: 25, b: 25},
+        xaxis: {automargin: false, title: xaxis},
+        yaxis: {automargin: true, title: yaxis},
+    };
+
+
+    Plotly.newPlot(div, data, layout, {responsive: true});
+
 }

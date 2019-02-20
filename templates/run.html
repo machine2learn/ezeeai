@@ -29,7 +29,7 @@
                 <div class="widget-body margin-top-15">
                     <form id="parameters_form">
                         <div id="models-select-div">
-{#                            <h5 class="param-section"><span>Model</span></h5>#}
+                            {#                            <h5 class="param-section"><span>Model</span></h5>#}
                         </div>
                         <h5 class="param-section"><span>Experiment</span></h5>
                         {{ render_gener_field(form.experiment) }}
@@ -142,10 +142,13 @@
                             <section class="widget widget-overflow" id="graph1_div">
                                 <header>
                                     <h6>
-                                        Graph<span class="fw-semi-bold">1</span>
+                                        <span class="fw-semi-bold">Loss</span>
                                     </h6>
                                 </header>
-                                <div class="widget-body margin-top-15">
+                                <div class="widget-body">
+                                    <div class="visualization" id="loss_graph">
+
+                                    </div>
                                 </div>
                             </section>
                         </div>
@@ -155,10 +158,13 @@
                             <section class="widget widget-overflow" id="graph2_div">
                                 <header>
                                     <h6>
-                                        Graph<span class="fw-semi-bold">2</span>
+                                        <span class="fw-semi-bold" id="metric_span">Metric</span>
                                     </h6>
                                 </header>
-                                <div class="widget-body margin-top-15">
+                                <div class="widget-body">
+                                    <div class="visualization" id="metric_graph">
+
+                                    </div>
                                 </div>
                             </section>
                         </div>
@@ -182,6 +188,7 @@
     <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.js"></script>
     <script src="{{ url_for('.static', filename='training.js') }}"></script>
     <script src="{{ url_for('.static', filename='checkpoints.js') }}"></script>
+    <script src="{{ url_for('.static', filename='data_graphs.js') }}"></script>
     <script type=text/javascript>
         $(document).ready(function () {
             $('#sb-train').addClass('active');
@@ -198,6 +205,7 @@
         handle_key.model_name = {{  model_name | tojson | safe }};
         handle_key.checkpoints = {{  checkpoints | tojson | safe }};
         handle_key.metric = {{  metric | tojson | safe }};
+        handle_key.graphs = {{  graphs | tojson | safe }};
         window.appConfig = {
             handle_key: handle_key
         };
