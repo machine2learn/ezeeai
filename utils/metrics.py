@@ -1,4 +1,6 @@
 import numpy as np
+import os
+import tensorflow as tf
 from sklearn.metrics import roc_curve, auc, precision_recall_curve, average_precision_score, accuracy_score, r2_score
 from scipy import interp
 from sklearn.preprocessing import label_binarize
@@ -181,3 +183,39 @@ def get_metrics(mode, y_true, y_pred, labels, target_len=1, logits=None):
             metrics['r2_score'] = r2_score(y_true, y_pred)
 
     return metrics
+
+
+def train_eval_graphs(path):
+    train = {'title': '', 'loss': []}
+    eval = {'title': '', 'loss': []}
+
+    train_events = [os.path.join(path, f) for f in os.listdir(path) if f.startswith('events.out.tfevents')]
+    eval_events = [os.path.join(path, 'eval', f) for f in os.listdir(os.path.join(path, 'eval')) if
+                   f.startswith('events.out.tfevents')]
+
+    train_events.sort(key=lambda x: os.path.getmtime(x))
+    eval_events.sort(key=lambda x: os.path.getmtime(x))
+
+    train_summary = train_events[0]
+    eval_summary = eval_events[0]
+
+    for e in tf.train.summary_iterator(train_summary):
+        for v in e.summary.value:
+            metric = v.tag.split('_1')[0]
+            if metric in ['accuracy', 'r_squared', 'loss']:
+                if metric not in train:
+                    train[metric] = []
+                train[metric].append(v.simple_value)
+
+    for e in tf.train.summary_iterator(eval_summary):
+        for v in e.summary.value:
+            metric = v.tag.split('_1')[0]
+            if metric in ['accuracy', 'r_squared', 'loss']:
+                if metric not in eval:
+                    eval[metric] = []
+                eval[metric].append(v.simple_value)
+
+    return train, eval
+
+
+

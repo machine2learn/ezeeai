@@ -482,6 +482,8 @@ def delete():
     paths = [del_id] if del_id != 'all' else [d for d in os.listdir(export_dir) if
                                               os.path.isdir(os.path.join(export_dir, d))]
     sys_ops.delete_recursive(paths, export_dir)
+    if len([i for i in os.listdir(export_dir) if os.path.isdir(i)]):
+        sys_ops.tree_remove(all_params_config.checkpoint_dir())
     checkpoints = run_utils.get_eval_results(export_dir, sess.get_writer(), sess.get_config_file())
     return jsonify(checkpoints=checkpoints)
 

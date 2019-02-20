@@ -123,14 +123,15 @@ def regressor(features, labels, mode, params):
         return tf.estimator.EstimatorSpec(mode, predictions={'predictions': output})
 
     loss = getattr(tensorflow.losses, params['loss_function'])(tf.reshape(labels, tf.shape(output)), output)
+
+    axis = 0 if 'label_dimension' in params else None
+    r_squared = rsquared_metric(tf.reshape(labels, tf.shape(output)), output, axis=axis)
+    metrics = {'r_squared': r_squared}
+    tf.summary.scalar('r_squared', rsquared(tf.reshape(labels, tf.shape(output)), output, axis=axis))
+
     if mode == tf.estimator.ModeKeys.EVAL:
-        axis = 0 if 'label_dimension' in params else None
-        r_squared = rsquared(tf.reshape(labels, tf.shape(output)), output, axis=axis)
-        metrics = {'r_squared': r_squared}
-        tf.summary.scalar('r_squared', r_squared[0])
         return tf.estimator.EstimatorSpec(mode, loss=loss, eval_metric_ops=metrics,
                                           predictions={'predictions': output})
-
     train_op = create_train_op(loss, params, mode)
 
     return tf.estimator.EstimatorSpec(mode, loss=loss, train_op=train_op)
@@ -154,24 +155,27 @@ def classifier(features, labels, mode, params):
     reshaped_labels = reshaped_labels if 'sparse' in params['loss_function'] else tf.one_hot(
         tf.reshape(label_ids, [-1]),
         params['n_classes'])
+
     loss = getattr(tensorflow.losses, params['loss_function'])(reshaped_labels, output)
 
-    if mode == tf.estimator.ModeKeys.EVAL:
-        probs = tf.nn.softmax(output) if 'softmax' not in output.name.lower() else output
-        accuracy = tf.metrics.accuracy(labels=label_ids,
-                                       predictions=predicted_classes,
-                                       name='accuracy')
-        map = tf.metrics.average_precision_at_k(labels=label_ids,
-                                                predictions=probs,
-                                                k=params['n_classes'],
-                                                name='mean_average_precision')
+    probs = tf.nn.softmax(output) if 'softmax' not in output.name.lower() else output
+    accuracy = tf.metrics.accuracy(labels=label_ids,
+                                   predictions=predicted_classes,
 
-        metrics = {
-            'accuracy': accuracy,
-            'mean_average_precision': map
-        }
-        tf.summary.scalar('accuracy', accuracy[0])
-        tf.summary.scalar('mean_average_precision', map[0])
+                                   name='accuracy')
+    map = tf.metrics.average_precision_at_k(labels=label_ids,
+                                            predictions=probs,
+                                            k=params['n_classes'],
+                                            name='mean_average_precision')
+
+    metrics = {
+        'accuracy': accuracy,
+        'mean_average_precision': map
+    }
+    tf.summary.scalar('accuracy', accuracy[1])
+    tf.summary.scalar('mean_average_precision', map[1])
+
+    if mode == tf.estimator.ModeKeys.EVAL:
         return tf.estimator.EstimatorSpec(mode, loss=loss, eval_metric_ops=metrics)
 
     train_op = create_train_op(loss, params, mode)
@@ -195,36 +199,37 @@ def binary_classifier(features, labels, mode, params):
     label_ids = get_label_ids(labels, label_vocabulary)
     loss = getattr(tensorflow.losses, params['loss_function'])(tf.reshape(label_ids, tf.shape(output)), output)
 
+    accuracy = tf.metrics.accuracy(labels=label_ids,
+                                   predictions=predicted_classes,
+                                   name='accuracy')
+    probs = tf.nn.sigmoid(output) if 'sigmoid' not in output.name.lower() else output
+    auc = tf.metrics.auc(labels=label_ids,
+                         predictions=probs,
+                         name='auc')
+    auc_pr = tf.metrics.auc(labels=label_ids,
+                            predictions=probs,
+                            name='auc_precision_recall',
+                            curve='PR')
+    precision = tf.metrics.precision(labels=label_ids,
+                                     predictions=probs,
+                                     name='precision')
+    recall = tf.metrics.recall(labels=label_ids,
+                               predictions=probs,
+                               name='recall')
+    metrics = {
+        'accuracy': accuracy,
+        'auc': auc,
+        'auc_precision_recall': auc_pr,
+        'precision': precision,
+        'recall': recall
+    }
+    tf.summary.scalar('accuracy', accuracy[1])
+    tf.summary.scalar('auc', auc[1])
+    tf.summary.scalar('auc_precision_recall', auc_pr[1])
+    tf.summary.scalar('precision', precision[1])
+    tf.summary.scalar('recall', recall[1])
+
     if mode == tf.estimator.ModeKeys.EVAL:
-        accuracy = tf.metrics.accuracy(labels=label_ids,
-                                       predictions=predicted_classes,
-                                       name='accuracy')
-        probs = tf.nn.sigmoid(output) if 'sigmoid' not in output.name.lower() else output
-        auc = tf.metrics.auc(labels=label_ids,
-                             predictions=probs,
-                             name='auc')
-        auc_pr = tf.metrics.auc(labels=label_ids,
-                                predictions=probs,
-                                name='auc_precision_recall',
-                                curve='PR')
-        precision = tf.metrics.precision(labels=label_ids,
-                                         predictions=probs,
-                                         name='precision')
-        recall = tf.metrics.recall(labels=label_ids,
-                                   predictions=probs,
-                                   name='recall')
-        metrics = {
-            'accuracy': accuracy,
-            'auc': auc,
-            'auc_precision_recall': auc_pr,
-            'precision': precision,
-            'recall': recall
-        }
-        tf.summary.scalar('accuracy', accuracy[0])
-        tf.summary.scalar('auc', auc[0])
-        tf.summary.scalar('auc_precision_recall', auc_pr[0])
-        tf.summary.scalar('precision', precision[0])
-        tf.summary.scalar('recall', recall[0])
         return tf.estimator.EstimatorSpec(mode, loss=loss, eval_metric_ops=metrics)
 
     train_op = create_train_op(loss, params, mode)
@@ -264,10 +269,17 @@ def dnn(net, params, mode):
     return model(net, mode)
 
 
-def rsquared(labels, predictions, axis=None):
+def rsquared_metric(labels, predictions, axis=None):
     SST, update_op1 = tf.metrics.mean_squared_error(labels, tf.reduce_mean(labels, axis=axis, keepdims=True))
     SSE, update_op2 = tf.metrics.mean_squared_error(labels, predictions)
     return tf.subtract(1.0, tf.div(SSE, SST)), tf.group(update_op1, update_op2)
+
+
+def rsquared(labels, predictions, axis=None):
+    residual = tf.reduce_sum(tf.square(tf.subtract(labels, predictions)))
+    total = tf.reduce_sum(tf.square(tf.subtract(labels, tf.reduce_mean(labels, axis=axis, keepdims=True))))
+    r2 = tf.subtract(1.0, tf.div(residual, total))
+    return r2
 
 
 def _get_previous_name_scope():
