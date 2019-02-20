@@ -16,7 +16,7 @@ class ExperimentForm(FlaskForm):
                                        description="MAXIMUN # OF CHECKPOINTS : The maximum number of recent checkpoint files to keep. As new files are created, older files are deleted. If None or 0, all checkpoint files are kept.")
     save_checkpoints_steps = IntegerField("Save checkpoints after", validators=[InputRequired()], default=50,
                                           description="SAVE CHECKPOINTS STEPS : The frequency, in number of global steps, that the global step/sec and the loss will be logged during training.")
-    save_summary_steps = IntegerField("Save summary after", validators=[InputRequired()], default=50,
+    save_summary_steps = IntegerField("Save summary after", validators=[InputRequired()], default=5,
                                       description="SAVE SUMMARY AFTER: Save summaries every this many steps.")
     throttle = IntegerField("Evaluate after (s)", validators=[InputRequired()], default=1,
                             description="EVALUATE AFTER (S):  Do not re-evaluate unless the last evaluation was started at least this many seconds ago. Of course, evaluation does not occur if no new checkpoints are available, hence, this is the minimum.")

@@ -4,7 +4,7 @@ import tensorflow as tf
 from sklearn.metrics import roc_curve, auc, precision_recall_curve, average_precision_score, accuracy_score, r2_score
 from scipy import interp
 from sklearn.preprocessing import label_binarize
-from tensorflow.python.framework.errors_impl import DataLossError
+from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
 
 
 def store_predictions(has_targets, sess, final_pred, output):
@@ -187,36 +187,60 @@ def get_metrics(mode, y_true, y_pred, labels, target_len=1, logits=None):
 
 
 def train_eval_graphs(path):
-    train = {'loss': []}
-    eval = {'loss': []}
-    try:
+    train = {}
+    eval = {}
 
-        train_events = [os.path.join(path, f) for f in os.listdir(path) if f.startswith('events.out.tfevents')]
-        eval_events = [os.path.join(path, 'eval', f) for f in os.listdir(os.path.join(path, 'eval')) if
-                       f.startswith('events.out.tfevents')]
-
-        train_events.sort(key=lambda x: os.path.getmtime(x))
-        eval_events.sort(key=lambda x: os.path.getmtime(x))
-
-        train_summary = train_events[0]
-        eval_summary = eval_events[0]
-
-        for e in tf.train.summary_iterator(train_summary):
-            for v in e.summary.value:
-                metric = v.tag.split('_1')[0]
-                if metric in ['accuracy', 'r_squared', 'loss']:
-                    if metric not in train:
-                        train[metric] = []
-                    train[metric].append([e.step, v.simple_value])
-
-        for e in tf.train.summary_iterator(eval_summary):
-            for v in e.summary.value:
-                metric = v.tag.split('_1')[0]
-                if metric in ['accuracy', 'r_squared', 'loss']:
-                    if metric not in eval:
-                        eval[metric] = []
-                    eval[metric].append([e.step, v.simple_value])
-        return {'train': train, 'eval': eval}
-
-    except (FileNotFoundError, DataLossError):
+    if not os.path.isdir(path):
         return {}
+
+    train_events = [os.path.join(path, f) for f in os.listdir(path) if f.startswith('events.out.tfevents')]
+
+    if len(train_events) == 0:
+        return {}
+
+    train_events.sort(key=lambda x: os.path.getmtime(x))
+
+    train_summary = train_events[0]
+
+    summary_iterator = EventAccumulator(train_summary).Reload()
+
+    tags = [m for m in summary_iterator.Tags()['scalars'] if
+            m.split('_1')[0] in ['accuracy', 'r_squared', 'loss']]
+
+    if len(tags) == 0:
+        return {}
+
+    train['steps'] = [e.step for e in summary_iterator.Scalars(tags[0])]
+
+    for tag in tags:
+        train[tag.split('_1')[0]] = []
+        for e in summary_iterator.Scalars(tag):
+            train[tag.split('_1')[0]].append(e.value)
+
+    eval_events = [os.path.join(path, 'eval', f) for f in os.listdir(os.path.join(path, 'eval')) if
+                   f.startswith('events.out.tfevents')]
+
+    if len(eval_events) == 0:
+        return {'train': train}
+
+    eval_events.sort(key=lambda x: os.path.getmtime(x))
+
+    eval_summary = eval_events[0]
+
+    summary_iterator = EventAccumulator(eval_summary).Reload()
+
+    tags = [m for m in summary_iterator.Tags()['scalars'] if
+            m.split('_1')[0] in ['accuracy', 'r_squared', 'loss']]
+
+    if len(tags) == 0:
+        return {'train': train}
+
+
+    eval['steps'] = [e.step for e in summary_iterator.Scalars(tags[0])]
+
+    for tag in tags:
+        eval[tag.split('_1')[0]] = []
+        for e in summary_iterator.Scalars(tag):
+            eval[tag.split('_1')[0]].append(e.value)
+
+    return {'train': train, 'eval': eval}
