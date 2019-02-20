@@ -26401,3 +26401,7 @@ input.text-error {
   pointer-events: none;
   opacity: 0.5;
 }
+
+.js-plotly-plot{
+    height: 30vh;
+}

@@ -56,7 +56,6 @@ $(document).ready(function () {
                     }
                     update_checkpoint_table(data.checkpoints, '');
                     update_graphs(data.graphs, false);
-                    // $('.log').text(data.data);
                     $('.log').append(data.data).scrollTop($('.log')[0].scrollHeight);
                 }
             })
@@ -166,7 +165,6 @@ function update_parameters_form(params) {
 
 
 function update_graphs(data, from_scratch) {
-
     if (from_scratch) {
         $('#loss_graph').children().remove();
         $('#metric_graph').children().remove();
@@ -176,23 +174,21 @@ function update_graphs(data, from_scratch) {
         return;
 
     let keys = Object.keys(data.train);
-    let divs = ['loss_graph', 'metric_graph'];
 
     for (var i = 0; i < keys.length; i++) {
-        line_plot_2_variables(divs[i], getCol(data.train[keys[i]], 0), getCol(data.train[keys[i]], 1),
-            getCol(data.eval[keys[i]], 0), getCol(data.eval[keys[i]], 1), 'train', 'val', 'steps', '');
+        if (keys[i] === 'steps')
+            continue;
+        let div = 'loss_graph';
+
+        if (keys[i] !== 'loss') {
+            div = 'metric_graph'
+        }
+        line_plot_2_variables(div, data.train.steps, data.train[keys[i]], data.eval.steps, data.eval[keys[i]], 'train', 'val', 'steps', '');
 
     }
 
 }
 
-function getCol(matrix, col) {
-    var column = [];
-    for (var i = 0; i < matrix.length; i++) {
-        column.push(matrix[i][col]);
-    }
-    return column;
-}
 
 function ConfirmDelete(elem, all) {
     let message = "Are you sure you want to delete the selected checkpoint?";
