@@ -1,7 +1,10 @@
-$(document).ready(function () {
-    if (!jQuery.isEmptyObject(appConfig.handle_key.checkpoints))
-        create_checkpoint_table(appConfig.handle_key.checkpoints, appConfig.handle_key.metric)
+var table_created = false;
 
+$(document).ready(function () {
+    if (!jQuery.isEmptyObject(appConfig.handle_key.checkpoints)) {
+        create_checkpoint_table(appConfig.handle_key.checkpoints, appConfig.handle_key.metric)
+        table_created = true;
+    }
 });
 
 function create_checkpoint_table(checkpoints, metric) {
@@ -42,10 +45,18 @@ function get_rows(checkpoints) {
     return rows;
 }
 
-function update_checkpoint_table(checkpoints) {
-    $('#table_checkpoints').DataTable().clear().rows.add(get_rows(checkpoints)).draw();
+function update_checkpoint_table(checkpoints, metric) {
+    if (table_created) {
+        $('#table_checkpoints').DataTable().clear().rows.add(get_rows(checkpoints)).draw();
+        if (metric !== '') {
+            let head_item = $('#table_checkpoints').DataTable().columns(1).header();
+            $(head_item).html(metric);
+        }
+    } else {
+        create_checkpoint_table(checkpoints, metric);
+        table_created = true;
+    }
 }
-
 
 function ConfirmDelete(elem, all) {
     let message = "Are you sure you want to delete the selected checkpoint?";
@@ -63,7 +74,7 @@ function ConfirmDelete(elem, all) {
             },
             data: JSON.stringify({'deleteID': $(elem).attr('data-id')}),
             success: function (data) {
-                update_checkpoint_table(data.checkpoints)
+                update_checkpoint_table(data.checkpoints, '')
             }
         })
     }

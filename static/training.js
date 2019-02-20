@@ -1,9 +1,7 @@
 var playing = false;
 
 $(document).ready(function () {
-
     draw_models_select(appConfig.handle_key.models, appConfig.handle_key.datasets);
-
     if (appConfig.handle_key.running) {
         playing = true;
         toggle_play();
@@ -19,6 +17,19 @@ $(document).ready(function () {
 
     $('#model_name').on('change', function () {
         enable_run();
+        $.ajax({
+            url: "/params_run",
+            type: 'POST',
+            dataType: 'json',
+            contentType: 'application/json;charset=UTF-8',
+            data: JSON.stringify({'model_name': $(this).val()}),
+            success: function (data) {
+                if (!jQuery.isEmptyObject(data.parameters)) {
+                    update_parameters_form(data.parameters);
+                }
+                update_checkpoint_table(data.checkpoints, data.metric);
+            }
+        })
     });
 
     setInterval(function () {
@@ -33,7 +44,7 @@ $(document).ready(function () {
                         toggle_play();
                         enable_run_config();
                     }
-                    update_checkpoint_table(data.checkpoints)
+                    update_checkpoint_table(data.checkpoints, '')
 
                     // if (data.data !== '')
                     //     $('#log').append(data.data).scrollTop($('#log')[0].scrollHeight);
@@ -57,7 +68,6 @@ function draw_models_select(models, datasets) {
     label.addClass('control-label');
     label.html('<b> Model </b>');
 
-    $('#models-select-div').append(label);
 
     let select = $("<select></select>")
         .attr('id', 'model_name')
@@ -67,13 +77,15 @@ function draw_models_select(models, datasets) {
     let option_list = Object.keys(models).map((key) => $('<option>').val(key).text(key));
     option_list.unshift($('<option disabled selected value> Please select an option </option>'));
     select.append(option_list);
-    $('#models-select-div').append(select);
+
+    $('#models-select-div').append(label)
+        .append(select);
 
 }
 
 function enable_run() {
     $('#run_div').removeClass('disabled-custom');
-
+    $('#checkpoints_div').removeClass('disabled-custom');
 }
 
 function enable_run_config() {
@@ -135,3 +147,14 @@ function set_epochs(val) {
     }
 }
 
+function update_parameters_form(params) {
+    $('#experiment-keep_checkpoint_max').val(params['keep_checkpoint_max']);
+    $('#experiment-save_checkpoints_steps').val(params['save_checkpoints_steps']);
+    $('#experiment-save_summary_steps').val(params['save_summary_steps']);
+    $('#experiment-throttle').val(params['throttle']);
+
+    $('#training-num_epochs').val(params['num_epochs']);
+    $('#training-batch_size').val(params['batch_size']);
+    $('#training-optimizer').val(params['optimizer']);
+    $('#training-learning_rate').val(params['learning_rate']);
+}

@@ -45,7 +45,6 @@ $(document).ready(function () {
     $('#model_search').keyup(function () {
         models_table.search($(this).val()).draw();
 
-
     });
 
 

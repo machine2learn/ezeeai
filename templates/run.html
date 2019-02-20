@@ -28,18 +28,14 @@
                 </header>
                 <div class="widget-body margin-top-15">
                     <form id="parameters_form">
-
+                        <div id="models-select-div">
+{#                            <h5 class="param-section"><span>Model</span></h5>#}
+                        </div>
                         <h5 class="param-section"><span>Experiment</span></h5>
                         {{ render_gener_field(form.experiment) }}
                         <h5 class="param-section"><span>Training</span></h5>
                         {{ render_gener_field(form.training) }}
-
-                        <div id="models-select-div">
-                            <h5 class="param-section"><span>Model</span></h5>
-                        </div>
                     </form>
-
-
                 </div>
 
             </section>
@@ -104,39 +100,39 @@
 
             <div class="row">
                 <div class="col-6">
-                    <section class="widget widget-overflow" id="checpoints_div">
+                    <section class="widget widget-overflow disabled-custom" id="checkpoints_div">
                         <header>
                             <h6>
                                 <span class="fw-semi-bold">Checkpoints</span>
                             </h6>
                         </header>
-                        <div class="widget-body margin-top-15">
-                            <div class="table-responsive">
-                                <div class="navbar-form" role="search">
-                                    <div class="form-group">
-                                        <div class="input-group input-group-no-border">
-                                            <input id="checkpoint_search" class="form-control" type="text"
-                                                   placeholder="Search Checkpoint">
-                                            <span class="input-group-append">
+
+                        <div class="table-responsive">
+                            <div class="navbar-form" role="search">
+                                <div class="form-group">
+                                    <div class="input-group input-group-no-border">
+                                        <input id="checkpoint_search" class="form-control" type="text"
+                                               placeholder="Search Checkpoint">
+                                        <span class="input-group-append">
                                                     <span class="input-group-text">
                                                         <i class="la la-search"></i>
                                                     </span>
                                         </span>
-                                        </div>
                                     </div>
                                 </div>
-                                <table id="table_checkpoints" class="table table-hover table-striped"
-                                       style="width:100%">
-                                    <tfoot align="right">
-                                    <tr>
-                                        <td colspan="4">Clear all <a data-id=all onclick="ConfirmDelete(this, true)">
-                                            <i class="fi flaticon-trash"></i></a>
-                                        </td>
-                                    </tr>
-                                    </tfoot>
-                                </table>
                             </div>
+                            <table id="table_checkpoints" class="table table-hover table-striped"
+                                   style="width:100%">
+                                <tfoot align="right">
+                                <tr>
+                                    <td colspan="4">Clear all <a data-id=all onclick="ConfirmDelete(this, true)">
+                                        <i class="fi flaticon-trash"></i></a>
+                                    </td>
+                                </tr>
+                                </tfoot>
+                            </table>
                         </div>
+
 
                     </section>
                 </div>
