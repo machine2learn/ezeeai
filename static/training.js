@@ -1,6 +1,10 @@
 var playing = false;
 
 $(document).ready(function () {
+    $('.widget').widgster();
+    var collapsed = $("a[data-widgster='collapse']");
+    collapsed.click();
+
     draw_models_select(appConfig.handle_key.models, appConfig.handle_key.datasets);
     if (appConfig.handle_key.running) {
         playing = true;
@@ -12,12 +16,16 @@ $(document).ready(function () {
     if (appConfig.handle_key.model_name !== '') {
         $('#model_name').val(appConfig.handle_key.model_name);
         enable_run();
+        $('.waiting-selection').addClass('hide-element');
+        $('.visualization').removeClass('hide-element');
     }
     update_graphs(appConfig.handle_key.graphs, true);
 
 
     $('#model_name').on('change', function () {
         enable_run();
+        $('.waiting-selection').addClass('hide-element');
+        $('.loader').removeClass('hide-element');
         $.ajax({
             url: "/params_run",
             type: 'POST',
@@ -25,12 +33,11 @@ $(document).ready(function () {
             contentType: 'application/json;charset=UTF-8',
             data: JSON.stringify({'model_name': $(this).val()}),
             success: function (data) {
-
                 update_parameters_form(data.parameters);
-
                 update_checkpoint_table(data.checkpoints, data.metric);
-
                 update_graphs(data.graphs, true);
+                $('.loader').addClass('hide-element');
+                $('.visualization').removeClass('hide-element');
             }
         })
     });
@@ -49,16 +56,8 @@ $(document).ready(function () {
                     }
                     update_checkpoint_table(data.checkpoints, '');
                     update_graphs(data.graphs, false);
-
-                    // if (data.data !== '')
-                    //     $('#log').append(data.data).scrollTop($('#log')[0].scrollHeight);
-                    // let $checkp_table = $('#checkp_table').DataTable();
-                    // let row_selected = $checkp_table.rows({selected: true});
-                    // let rows = get_rows(data.checkpoints);
-                    // // $("#next_button").attr("disabled", rows.length < 1);
-                    // $checkp_table
-                    //     .clear().rows.add(rows).draw()
-                    //     .row(row_selected).select();
+                    // $('.log').text(data.data);
+                    $('.log').append(data.data).scrollTop($('.log')[0].scrollHeight);
                 }
             })
         }
@@ -89,12 +88,14 @@ function draw_models_select(models, datasets) {
 
 function enable_run() {
     $('#run_div').removeClass('disabled-custom');
-    $('#checkpoints_div').removeClass('disabled-custom');
+    $('#train_results').removeClass('disabled-custom');
+
+    $('.visualization').addClass('hide-element');
+
 }
 
 function enable_run_config() {
     $('#run_config_div').removeClass('disabled-custom');
-
 }
 
 function disable_run_config() {
@@ -165,6 +166,7 @@ function update_parameters_form(params) {
 
 
 function update_graphs(data, from_scratch) {
+
     if (from_scratch) {
         $('#loss_graph').children().remove();
         $('#metric_graph').children().remove();

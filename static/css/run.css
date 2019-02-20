@@ -48,15 +48,15 @@
 }
 
 .l--page {
-    padding: 5px;
-    margin: 5px 0;
-    border: 1px solid #eee;
-    border-left-width: 0px;
-    border-radius: 6px;
-    border-bottom: 1px solid #ddd;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-    background: whitesmoke;
-    overflow-x: scroll;
+    /*padding: 5px;*/
+    /*margin: 5px 0;*/
+    /*border: 1px solid #eee;*/
+    /*border-left-width: 0px;*/
+    /*border-radius: 6px;*/
+    /*border-bottom: 1px solid #ddd;*/
+    /*box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);*/
+    /*background: whitesmoke;*/
+    /*overflow-x: scroll;*/
 }
 
 .l--page .row {
@@ -124,4 +124,16 @@
 .param-section span {
     background: #fff;
     padding-left: 10px;
+}
+
+.log-div {
+    max-height: 132px;
+    overflow-y: auto;
+}
+
+.log {
+    background-color: #fbfcff;
+    padding: 21px;
+    white-space: pre;
+    margin-top: 20px;
 }

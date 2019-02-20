@@ -19,164 +19,200 @@
     </ol>
 
     <div class="row">
-        <div class="col-3">
-            <section class="widget widget-overflow" id="run_config_div">
-                <header>
-                    <h5>
-                        Run <span class="fw-semi-bold">Config</span>
-                    </h5>
-                </header>
-                <div class="widget-body margin-top-15">
-                    <form id="parameters_form">
-                        <div id="models-select-div">
-                            {#                            <h5 class="param-section"><span>Model</span></h5>#}
-                        </div>
-                        <h5 class="param-section"><span>Experiment</span></h5>
-                        {{ render_gener_field(form.experiment) }}
-                        <h5 class="param-section"><span>Training</span></h5>
-                        {{ render_gener_field(form.training) }}
-                    </form>
-                </div>
-
-            </section>
-
-        </div>
-        <div class="col-9">
-            <div class="row">
-                <div class="col-12">
-                    <section class="widget disabled-custom" id="run_div">
-                        <div id="top-controls" class="l--page">
-                            <div class="container">
-                                <div class="row">
-
-                                    <div class="timeline-controls icon-bar">
-                                        <a data-id=all onclick="ConfirmDelete(this, true)">
-                                            <i class="fas fa-undo-alt"></i>
-                                        </a>
-
-                                        <a id="run_button" name="run_button" onclick="button_play()">
-                                            <svg id="play" class="button-play">
-                                                <circle cx="36" cy="36" r="33"
-                                                        style="fill:#617586;stroke:#ddd"></circle>
-                                                <polygon id="shape" points="28,21 51,36 28,51"
-                                                         style="fill:#fcfcfc;">
-                                                    <animate id="animate_to_stop"
-                                                             begin="indefinite"
-                                                             fill="freeze"
-                                                             attributeName="points"
-                                                             dur="500ms"
-                                                             to="23,23 48,23 48,48, 23,48"
-                                                             keySplines="0.1 0.8 0.2 1; 0.1 0.8 0.2 1;0.1 0.8 0.2 1; 0.1 0.8 0.2 1; 0.1 0.8 0.2 1;0.1 0.8 0.2 1"
-                                                             keyTimes="0;0.22;0.33;0.55;0.66;0.88;1"
-                                                             calcMode="spline"></animate>
-
-                                                    <animate
-                                                            id="animate_to_play"
-                                                            begin="indefinite"
-                                                            fill="freeze"
-                                                            attributeName="points"
-                                                            dur="500ms"
-                                                            to="28,21 51,36 28,51"
-                                                            keySplines="0.1 0.8 0.2 1; 0.1 0.8 0.2 1; 0.1 0.8 0.2 1; 0.1 0.8 0.2 1; 0.1 0.8 0.2 1;0.1 0.8 0.2 1"
-                                                            keyTimes="0;0.22;0.33;0.55;0.66;0.88;1"
-                                                            calcMode="spline"></animate>
-                                                </polygon>
-                                            </svg>
-                                        </a>
-
-                                        <div class="control">
-                                            <span class="label">Epoch</span>
-                                            <span class="value" id="iter-number">000,000</span>
-                                        </div>
-
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                    </section>
-                </div>
+    <div class="col-3">
+        <section class="widget widget-overflow" id="run_config_div">
+            <header>
+                <h5>
+                    Run <span class="fw-semi-bold">Config</span>
+                </h5>
+            </header>
+            <div class="widget-body margin-top-15">
+                <form id="parameters_form">
+                    <div id="models-select-div">
+                        {#                            <h5 class="param-section"><span>Model</span></h5>#}
+                    </div>
+                    <h5 class="param-section"><span>Experiment</span></h5>
+                    {{ render_gener_field(form.experiment) }}
+                    <h5 class="param-section"><span>Training</span></h5>
+                    {{ render_gener_field(form.training) }}
+                </form>
             </div>
 
-            <div class="row">
-                <div class="col-6">
-                    <section class="widget widget-overflow disabled-custom" id="checkpoints_div">
-                        <header>
-                            <h6>
-                                <span class="fw-semi-bold">Checkpoints</span>
-                            </h6>
-                        </header>
+        </section>
 
-                        <div class="table-responsive">
-                            <div class="navbar-form" role="search">
-                                <div class="form-group">
-                                    <div class="input-group input-group-no-border">
-                                        <input id="checkpoint_search" class="form-control" type="text"
-                                               placeholder="Search Checkpoint">
-                                        <span class="input-group-append">
+    </div>
+    <div class="col-9">
+        <div class="row">
+            <div class="col-12">
+                <section class="widget disabled-custom" id="run_div" style="padding: 10px 20px;">
+                    <div id="top-controls" class="l--page">
+
+                        <div class="row">
+
+                            <div class="timeline-controls icon-bar">
+                                <a data-id=all onclick="ConfirmDelete(this, true)">
+                                    <i class="fas fa-undo-alt"></i>
+                                </a>
+
+                                <a id="run_button" name="run_button" onclick="button_play()">
+                                    <svg id="play" class="button-play">
+                                        <circle cx="36" cy="36" r="33"
+                                                style="fill:#0190af;stroke:#ddd"></circle>
+                                        <polygon id="shape" points="28,21 51,36 28,51"
+                                                 style="fill:#fcfcfc;">
+                                            <animate id="animate_to_stop"
+                                                     begin="indefinite"
+                                                     fill="freeze"
+                                                     attributeName="points"
+                                                     dur="500ms"
+                                                     to="23,23 48,23 48,48, 23,48"
+                                                     keySplines="0.1 0.8 0.2 1; 0.1 0.8 0.2 1;0.1 0.8 0.2 1; 0.1 0.8 0.2 1; 0.1 0.8 0.2 1;0.1 0.8 0.2 1"
+                                                     keyTimes="0;0.22;0.33;0.55;0.66;0.88;1"
+                                                     calcMode="spline"></animate>
+
+                                            <animate
+                                                    id="animate_to_play"
+                                                    begin="indefinite"
+                                                    fill="freeze"
+                                                    attributeName="points"
+                                                    dur="500ms"
+                                                    to="28,21 51,36 28,51"
+                                                    keySplines="0.1 0.8 0.2 1; 0.1 0.8 0.2 1; 0.1 0.8 0.2 1; 0.1 0.8 0.2 1; 0.1 0.8 0.2 1;0.1 0.8 0.2 1"
+                                                    keyTimes="0;0.22;0.33;0.55;0.66;0.88;1"
+                                                    calcMode="spline"></animate>
+                                        </polygon>
+                                    </svg>
+                                </a>
+
+                                <div class="control">
+                                    <span class="label">Epoch</span>
+                                    <span class="value" id="iter-number">000,000</span>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+
+                </section>
+            </div>
+        </div>
+
+        <div class="row disabled-custom" id="train_results">
+            <div class="col-6">
+                <section class="widget widget-overflow" id="checkpoints_div">
+                    <header>
+                        <h6>
+                            <span class="fw-semi-bold">Checkpoints</span>
+                        </h6>
+                    </header>
+
+                    <div class="table-responsive visualization hide-element">
+                        <div class="navbar-form" role="search">
+                            <div class="form-group">
+                                <div class="input-group input-group-no-border">
+                                    <input id="checkpoint_search" class="form-control" type="text"
+                                           placeholder="Search Checkpoint">
+                                    <span class="input-group-append">
                                                     <span class="input-group-text">
                                                         <i class="la la-search"></i>
                                                     </span>
                                         </span>
-                                    </div>
                                 </div>
                             </div>
-                            <table id="table_checkpoints" class="table table-hover table-striped"
-                                   style="width:100%">
-                                <tfoot align="right">
-                                <tr>
-                                    <td colspan="4">Clear all <a data-id=all onclick="ConfirmDelete(this, true)">
-                                        <i class="fi flaticon-trash"></i></a>
-                                    </td>
-                                </tr>
-                                </tfoot>
-                            </table>
                         </div>
-
-
-                    </section>
-                </div>
-                <div class="col-6">
-                    <div class="row">
-                        <div class="col-12">
-                            <section class="widget widget-overflow" id="graph1_div">
-                                <header>
-                                    <h6>
-                                        <span class="fw-semi-bold">Loss</span>
-                                    </h6>
-                                </header>
-                                <div class="widget-body">
-                                    <div class="visualization" id="loss_graph">
-
-                                    </div>
-                                </div>
-                            </section>
-                        </div>
+                        <table id="table_checkpoints" class="table table-hover table-striped"
+                               style="width:100%">
+                            <tfoot align="right">
+                            <tr>
+                                <td colspan="4">Clear all <a data-id=all onclick="ConfirmDelete(this, true)">
+                                    <i class="fi flaticon-trash"></i></a>
+                                </td>
+                            </tr>
+                            </tfoot>
+                        </table>
                     </div>
-                    <div class="row">
-                        <div class="col-12">
-                            <section class="widget widget-overflow" id="graph2_div">
-                                <header>
-                                    <h6>
-                                        <span class="fw-semi-bold" id="metric_span">Metric</span>
-                                    </h6>
-                                </header>
-                                <div class="widget-body">
-                                    <div class="visualization" id="metric_graph">
 
-                                    </div>
+                    <div class="loader hide-element">Loading...</div>
+
+                    <div class="waiting-selection">
+                        Select a Model to display
+                    </div>
+
+
+                </section>
+            </div>
+            <div class="col-6">
+                <div class="row">
+                    <div class="col-12">
+                        <section class="widget widget-overflow" id="graph1_div">
+                            <header>
+                                <h6>
+                                    <span class="fw-semi-bold">Loss</span>
+                                </h6>
+                            </header>
+                            <div class="widget-body">
+                                <div class="visualization" id="loss_graph">
+
                                 </div>
-                            </section>
-                        </div>
+                            </div>
+
+                            <div class="loader hide-element">Loading...</div>
+
+                            <div class="waiting-selection">
+                                Select a Model to display
+                            </div>
+                        </section>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <section class="widget widget-overflow" id="graph2_div">
+                            <header>
+                                <h6>
+                                    <span class="fw-semi-bold" id="metric_span">Metric</span>
+                                </h6>
+                            </header>
+                            <div class="widget-body">
+                                <div class="visualization" id="metric_graph">
+
+                                </div>
+                            </div>
+
+                            <div class="loader hide-element">Loading...</div>
+
+                            <div class="waiting-selection">
+                                Select a Dataset to display
+                            </div>
+                        </section>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="row">
 
-
+        <div class="row visualization">
+            <div class="col-12">
+                <section class="widget widget-overflow" id="graph1_div">
+                    <header>
+                        <h6>
+                            <span class="fw-semi-bold">Log</span>
+                        </h6>
+                        <div class="widget-controls">
+                            <a data-widgster="expand" title="Expand" href="#"><i
+                                    class="glyphicon glyphicon-chevron-up"></i></a>
+                            <a data-widgster="collapse" title="Collapse" href="#"><i
+                                    class="glyphicon glyphicon-chevron-down"></i></a>
+                            <a href="#" data-widgster="close"><i class="glyphicon glyphicon-remove"></i></a>
+                        </div>
+                    </header>
+                    <div class="widget-body log-div">
+                        <div class="log"></div>
+                    </div>
+                </section>
+            </div>
         </div>
     </div>
+
 
 
 {% endblock %}
