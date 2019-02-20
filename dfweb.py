@@ -290,6 +290,27 @@ def parameters():
                            token=session['token'])
 
 
+@app.route('/params_run', methods=['POST'])
+@login_required
+@check_config
+def params_run():
+    try:
+        model_name = get_model_name(request)
+        config_file = sys_ops.get_config_path(APP_ROOT, session['user'], model_name)
+        parameters = param_utils.get_params(config_file)
+        # all_params_config = config_reader.read_config(config_file)
+        sess.set_config_file(config_file)
+        sess.load_config()
+        sess.set_model_name(model_name)
+        hlp = sess.get_helper()
+        export_dir = config_reader.read_config(sess.get_config_file()).export_dir()
+        checkpoints = run_utils.get_eval_results(export_dir, sess.get_writer(), sess.get_config_file())
+        metric = sess.get_metric()
+        return jsonify(checkpoints=checkpoints, parameters=parameters, metric=metric)
+    except (KeyError, NoSectionError):
+        return jsonify(checkpoints='', parameters='', metric='')
+
+
 @app.route('/run', methods=['GET', 'POST'])
 @login_required
 @check_config

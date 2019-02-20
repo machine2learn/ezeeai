@@ -39,8 +39,6 @@ table.dataTable thead th, table.dataTable thead td {
     background: linear-gradient(to bottom, #fff 0%, #dcdcdc 100%);
 }
 
-
-
 .dataTables_wrapper .dataTables_paginate .paginate_button.disabled, .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover, .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:active {
     cursor: default;
     color: #666 !important;
@@ -94,37 +92,45 @@ th:focus {
     margin-bottom: 0;
     background-color: transparent;
 }
+
 .dataTables_wrapper .dataTables_filter {
     float: right;
     text-align: right;
     visibility: hidden;
     display: none;
 }
-.table-responsive {
-    overflow: hidden;
 
+.table-responsive {
+    /*overflow: hidden;*/
+    overflow-x: auto;
 }
 
 .table-responsive .navbar-form {
     padding: 0;
     float: right;
     width: 180px;
+
 }
 
-table.dataTable tbody>tr.selected, table.dataTable tbody>tr>.selected {
-   background-color: #deeaee;
+.table > thead > tr > th {
+    font-size: 12px;
+}
+
+table.dataTable tbody > tr.selected, table.dataTable tbody > tr > .selected {
+    background-color: #deeaee;
 }
 
 .select-info {
     margin-left: 5px;
     font-weight: 600;
 }
+
 .trash-icon {
     text-align: right;
     cursor: pointer;
-    
+
 }
 
-.head-no-transform thead>tr>th {
+.head-no-transform thead > tr > th {
     text-transform: none;
 }
