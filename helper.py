@@ -284,7 +284,7 @@ class Tabular(Helper):
     def get_mode(self):
         return self._dataset.get_mode()
 
-    def explain_return(self, sess, request, result):
+    def explain_return(self, request, result):
 
         new_features = self.get_new_features(request)
         targets = self.get_targets()
@@ -300,7 +300,7 @@ class Tabular(Helper):
         params['graphs'] = graphs
         params['predict_table'] = predict_table
 
-        sess.set('explain_params', params)
+        return params
 
     def get_df_test(self, df_test, has_targets):
         return df_test[self.get_targets()].values if has_targets else None
@@ -562,7 +562,7 @@ class Image(Helper):
     def write_dataset(self, data_path):
         pickle.dump(self._dataset, open(data_path, 'wb'))
 
-    def explain_return(self, sess, request, results):
+    def explain_return(self, request, results):
 
         result, probs = results
         params = {}
@@ -590,7 +590,7 @@ class Image(Helper):
 
         params['predict_table'] = clean_predict_table(predict_table)
         params['graphs'] = None
-        sess.set('explain_params', params)
+        return params
 
     def get_df_test(self, df_test, has_targets):
         if not has_targets:
