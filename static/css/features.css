@@ -63,3 +63,10 @@ img {
     background-color: transparent !important;
     color: grey;
 }
+
+.table-pred td{
+  text-align: center;
+}
+.table-pred th{
+  border: 0;
+}

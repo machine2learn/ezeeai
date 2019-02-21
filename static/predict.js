@@ -6,7 +6,7 @@ $(document).ready(function () {
         enable_checkpoints();
         $('.waiting-selection-ckpt').removeClass('hide-element');
         $('#feature-div').addClass('hide-element');
-        // $('#prediction_div').addClass('disabled-custom');
+        $('#prediction_div').addClass('hide-element');
 
 
         let model_name = $(this).val();
@@ -65,6 +65,9 @@ $(document).ready(function () {
     });
 
     $('#predict').on('click', function () {
+        $('#prediction_div').removeClass('hide-element');
+        $('#pred-loader').removeClass('hide-element');
+        $('#table_prediction').addClass('hide-element');
 
         if ($("#image_upload").hasClass("hide-element")) {
             let data_form = $("#predict_form").serializeArray();
@@ -79,8 +82,9 @@ $(document).ready(function () {
                 dataType: 'json',
                 data: data_form,
                 success: function (data) {
-                    console.log('hi');
-                    $('#prediction_div').removeClass('hide-element');
+                    $('#pred-loader').addClass('hide-element');
+                     $('#table_prediction').removeClass('hide-element');
+                    create_table_predictions(data);
                 }
             });
 
@@ -245,22 +249,15 @@ function serialize_form() {
 function completeHandler(event) {
     $("#predict_button").attr('disabled', false);
     $("#loading_predict").addClass('hidden');
+    $('#pred-loader').addClass('hide-element');
+     $('#table_prediction').removeClass('hide-element');
 
     let data = JSON.parse(event.target.responseText);
     if ('error' in data) {
         alert(data.error);
     } else {
-        console.log('ok')
         $('#prediction_div').removeClass('hide-element');
-        // $('#predict_val').empty();
-        //
-        // $.each(data, function (key, val) {
-        //     $('#predict_val')
-        //         .append(key)
-        //         .append(' : ')
-        //         .append(val)
-        //         .append('<br>');
-        // });
+        create_table_predictions(data);
     }
 }
 
@@ -290,4 +287,34 @@ function errorHandler(event) {
     alert('Error prediction');
     $("#predict_button").attr('disabled', false);
     $("#loading_predict").addClass('hidden');
+}
+
+function create_table_predictions(data) {
+    let rows = [];
+    $.each(data, function (key, val) {
+        rows.push([key, val])
+    });
+
+    if ($.fn.DataTable.isDataTable('#table_prediction')) {
+        $('#table_prediction').DataTable().destroy();
+        $('#table_prediction tbody').empty();
+        $('#table_prediction thead').empty();
+    }
+
+    let table_predictions = $('#table_prediction').DataTable({
+        data: rows,
+        columns: [{title: 'Target'}, {title: 'Prediction'}],
+        searching: true,
+        'select': false,
+        "lengthChange": false,
+        "drawCallback": function () {
+            if ($(this).DataTable().rows()[0].length <= 10) {
+                let id = '#' + $(this).attr('id');
+                $(id + '_paginate').remove();
+                $(id + '_info').remove();
+            }
+        }
+    })
+
+
 }

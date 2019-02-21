@@ -18,8 +18,8 @@
         <li class="breadcrumb-item"> Predict</li>
     </ol>
 
-    <div class="row">
-        <div class="col-lg-4">
+    <div class="row justify-content-sm-center">
+        <div class="col-lg-3">
             <section class="widget widget-overflow" id="run_config_div">
                 <header>
                     <h6>
@@ -115,8 +115,11 @@
                 </header>
 
                 <div class="widget-body margin-top-15">
-                    <div class="pre-scrollable">
-                        <table id="table_prediction" align="center">
+
+                    <div id="pred-loader" class="loader hide-element">Loading...</div>
+
+                    <div class="pre-scrollable table-pred">
+                        <table class="table-pred" id="table_prediction" align="center">
                         </table>
                     </div>
                 </div>
