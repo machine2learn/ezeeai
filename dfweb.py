@@ -404,19 +404,22 @@ def run():
     #                        running=sess.get_status(), metric=sess.get_metric(), params=params, hh=explain)
 
 
-@app.route('/predict', methods=['POST'])
+@app.route('/predict', methods=['POST', 'GET'])
 @login_required
-@check_config
 def predict():
-    hlp = sess.get_helper()
-    all_params_config = run_utils.create_result_parameters(request, sess)
-    new_features = hlp.get_new_features(request, default_features=False)
-    if sess.mode_is_canned():
-        all_params_config.set_canned_data(sess.get_canned_data())
-    final_pred, success = th.predict_estimator(all_params_config, new_features)
-    return jsonify(error=final_pred) if not success else jsonify(
-        run_utils.get_predictions(hlp.get_targets(), final_pred))
-
+    # hlp = sess.get_helper()
+    # all_params_config = run_utils.create_result_parameters(request, sess)
+    # new_features = hlp.get_new_features(request, default_features=False)
+    # if sess.mode_is_canned():
+    #     all_params_config.set_canned_data(sess.get_canned_data())
+    # final_pred, success = th.predict_estimator(all_params_config, new_features)
+    # return jsonify(error=final_pred) if not success else jsonify(
+    #     run_utils.get_predictions(hlp.get_targets(), final_pred))
+    username = session['user']
+    _, param_configs = config_ops.get_configs_files(APP_ROOT, username)
+    # user_dataset = config_ops.get_datasets_type(APP_ROOT, username)
+    return render_template('predict.html',  user=session['user'], token=session['token'],
+                           parameters=param_configs)
 
 @app.route('/explain', methods=['POST', 'GET'])
 @login_required

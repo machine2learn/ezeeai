@@ -2,7 +2,7 @@ var table_created = false;
 
 $(document).ready(function () {
     if (!jQuery.isEmptyObject(appConfig.handle_key.checkpoints)) {
-        create_checkpoint_table(appConfig.handle_key.checkpoints, appConfig.handle_key.metric)
+        create_checkpoint_table(appConfig.handle_key.checkpoints, appConfig.handle_key.metric);
         table_created = true;
     }
 });

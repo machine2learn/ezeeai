@@ -8,7 +8,7 @@
 
         <link href="{{ url_for('.static', filename='base/css/application.css') }}" rel="stylesheet">
         <link href="{{ url_for('.static', filename='base/css/tables.css') }}" rel="stylesheet">
-         <link href="{{ url_for('.static', filename='base/fonts/flaticon-2/flaticon.css') }}" rel="stylesheet">
+        <link href="{{ url_for('.static', filename='base/fonts/flaticon-2/flaticon.css') }}" rel="stylesheet">
 
         <link rel="shortcut icon" href="{{ url_for('.static', filename='base/img/logotext-brain.png') }}">
     {% endblock %}
@@ -82,7 +82,8 @@
                     <i class="toggle fa fa-angle-down"></i>
                 </a>
                 <ul id="sidebar-data" class="collapse ">
-                    <li id="upload_tabular" class=""><a href="#" onclick="location.href='/upload_tabular'">Tabular</a></li>
+                    <li id="upload_tabular" class=""><a href="#" onclick="location.href='/upload_tabular'">Tabular</a>
+                    </li>
                     <li id="upload_image" class=""><a href="#" onclick="location.href='/upload_image'">Image</a></li>
                 </ul>
             </li>
@@ -109,36 +110,36 @@
                     <li id="li_tb" class=""><a href="#" onclick="location.href='/tensorboard'">Tensorboard</a></li>
                 </ul>
             </li>
-            <li class="">
+            <li class="sb-predict">
                 <!-- an example of nested submenu. basic bootstrap collapse component -->
-                <a href="tables.html">
+                <a href="#" onclick="location.href='/predict'">
                         <span class="icon">
                             <i class="fi flaticon-prediction"></i>
                         </span>
                     Predict
                 </a>
             </li>
-            <li class="">
+            <li class="sb-explain">
                 <!-- an example of nested submenu. basic bootstrap collapse component -->
-                <a href="tables.html">
+                <a href="#" onclick="location.href='/explain'">
                         <span class="icon">
                             <i class="fi flaticon-analysis-1"></i>
                         </span>
                     Explain
                 </a>
             </li>
-            <li class="">
+            <li class=sb-test"">
                 <!-- an example of nested submenu. basic bootstrap collapse component -->
-                <a href="tables.html">
+                <a href="#" onclick="location.href='/test'">
                         <span class="icon">
                             <i class="fi flaticon-exam"></i>
                         </span>
                     Test
                 </a>
             </li>
-            <li class="">
+            <li class="sb-deploy">
                 <!-- an example of nested submenu. basic bootstrap collapse component -->
-                <a href="tables.html">
+                <a href="#" nclick="location.href='/predict'">
                         <span class="icon">
                             <i class="fi flaticon-cloud-computing"></i>
                         </span>
