@@ -1,21 +1,4 @@
-function define_steps(page, tam) {
-    var element = document.getElementById(page);
-    element.className.replace("btn btn-default", "btn btn-primary");
-    for (var i = page + 2; i < tam; i++) {
-        var nelement = document.getElementById(i);
-        nelement.classList.add('disabled');
-        nelement.disabled = true;
-    }
-    element.className = element.className.replace("btn btn-default", "btn btn-primary");
-    if (page > 0) {
-        for (var i = page + 1; i < tam; i++) {
-            var nelement = document.getElementById(i);
-            nelement.classList.add('disabled');
-            nelement.disabled = true;
-        }
-    }
-
-}
+var playing = true;
 
 function token_session(token) {
     if (window.sessionStorage.getItem('token') == null) {
@@ -27,11 +10,24 @@ function token_session(token) {
         }
     }
 }
-//
-// $(document).ready(function () {
-//
-//     $('#sidebarCollapse').on('click', function () {
-//         $('#sidebar').toggleClass('active');
-//     });
-//
-// });
+
+function activate_toggler(data) {
+    $('#no-active-run').addClass('hide-element');
+    $('#active-run').removeClass('hide-element');
+    $('.theme-helper .theme-helper-toggler i ').css('animation-play-state', 'running');
+
+    if (data.epochs != null) {
+        let str = data.epochs.toString().padStart(6, "0");
+        let txt = str.slice(0, 3) + ',' + str.slice(3);
+        $("#iter-number-toggler").text(txt);
+    }
+
+    $("#model-toggler").text(data.model_name);
+
+}
+
+function deactivate_toggler() {
+    $('#no-active-run').removeClass('hide-element');
+    $('#active-run').addClass('hide-element');
+    $('.theme-helper .theme-helper-toggler i ').css('animation-play-state', 'paused');
+}

@@ -23286,7 +23286,8 @@ a {
 .theme-helper .theme-helper-toggler i {
     animation-duration: 6500ms;
     animation-iteration-count: infinite;
-    animation-timing-function: linear
+    animation-timing-function: linear;
+    animation-play-state: paused;
 }
 
 .theme-helper .theme-helper-toggler i:first-of-type {

@@ -232,10 +232,23 @@
                     <i class="la la-cog fs-smaller"></i>
                 </div>
             </div>
-            <h6>TODO RUNNING</h6>
-        </header>
-        <div class="widget-body mt-3">
+            <h6>Current Session</h6>
 
+        </header>
+        <div class="widget-body">
+            <div class="theme-helper-body-paused" id="no-active-run">
+                <h6>No active training</h6>
+            </div>
+            <div id="active-run" class="hide-element">
+                <div class="theme-helper-body-active">
+                    <span class="label"><b>Model</b></span>
+                    <span class="value" id="model-toggler"></span>
+                </div>
+                <div class="theme-helper-body-active">
+                    <span class="label"><b>Epoch</b></span>
+                    <span class="value" id="iter-number-toggler">000,000</span>
+                </div>
+            </div>
         </div>
     </section>
 </div>
@@ -270,6 +283,31 @@
         $(document).ready(function () {
             var token = {{ token | tojson | safe}};
             token_session(token);
+            $.ajax({
+                url: "/running_check",
+                type: 'GET',
+                success: function (data) {
+                   playing = data.running;
+                }
+            });
+            setInterval(function () {
+                if (playing) {
+                    $.ajax({
+                        url: "/running_check",
+                        type: 'GET',
+                        success: function (data) {
+                            if (data.running) {
+                                activate_toggler(data);
+                            } else {
+                                deactivate_toggler();
+                            }
+                        }
+                    });
+                }else {
+                    deactivate_toggler();
+                }
+
+            }, 1000);
         });
     </script>
 {% endblock %}

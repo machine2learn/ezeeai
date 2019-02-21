@@ -448,6 +448,7 @@ def explain():
     return render_template('explain.html', user=session['user'], token=session['token'],
                            parameters=param_configs)
 
+
 #
 # @app.route('/explain', methods=['POST', 'GET'])
 # @login_required
@@ -587,6 +588,32 @@ def refresh():
                        running=running, epochs=epochs, graphs=graphs)
     except (KeyError, NoSectionError):
         return jsonify(checkpoints='', data='', running=running, epochs=0, graphs={})
+
+
+@app.route('/running_check', methods=['GET'])
+@login_required
+@check_config
+def running_check():
+    running, config_file = th.check_running(session['user'])
+    epochs = 0
+    model_name = ''
+    sess.run_or_pause(running)
+    if running:
+        if config_file is not None and not sess.check_key('config_file'):
+            sess.set_config_file(config_file)
+            sess.load_config()
+
+            sess.set_model_name(model_name)
+        try:
+            config_file = sess.get_config_file()
+            hlp = sess.get_helper()
+            all_params_config = config_reader.read_config(sess.get_config_file())
+            epochs = run_utils.get_step(hlp.get_train_size(), all_params_config.train_batch_size(),
+                                    all_params_config.checkpoint_dir())
+            model_name = config_file.split('/')[-2]
+        except (KeyError, NoSectionError):
+            pass
+    return jsonify(running=running, epochs=epochs, model_name=model_name)
 
 
 @app.route('/generate', methods=['GET', 'POST'])

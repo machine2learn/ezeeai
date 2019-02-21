@@ -24634,6 +24634,12 @@ a {
     z-index: 100;
     transition: right 0.3s ease-in-out;
 }
+.theme-helper-body-paused{
+    text-align: center;
+}
+.theme-helper-body-active{
+    margin-left: 15px;
+}
 
 @media screen and (prefers-reduced-motion: reduce) {
     .theme-helper {
@@ -24655,6 +24661,7 @@ a {
     animation-duration: 6500ms;
     animation-iteration-count: infinite;
     animation-timing-function: linear;
+    animation-play-state: paused;
 }
 
 .theme-helper .theme-helper-toggler i:first-of-type {
@@ -26390,18 +26397,17 @@ input.text-error {
     }
 }
 
-.form-control-inline{
+.form-control-inline {
     margin-top: 5px;
     display: inline;
     width: 70%;
 }
 
-.disabled-custom
-{
-  pointer-events: none;
-  opacity: 0.5;
+.disabled-custom {
+    pointer-events: none;
+    opacity: 0.5;
 }
 
-.js-plotly-plot{
+.js-plotly-plot {
     height: 30vh;
 }
