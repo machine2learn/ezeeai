@@ -45,7 +45,7 @@ h1 {
 .cy-buttons {
     height: 2vh;
     color: #939393;
-    background-color: white
+    background-color: white;
 }
 
 .right-align {
@@ -58,6 +58,7 @@ h1 {
     background: none;
     margin-right: 15px;
     color: #939393;
+    cursor: pointer;
 }
 
 .cy-buttons button:focus, button:active {
@@ -102,6 +103,7 @@ h1 {
     background-color: #607D8B;
     background-image: none;
     padding: 10px;
+    cursor: pointer;
 }
 
 .buttonbar button:focus, button:active {
