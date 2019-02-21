@@ -1,0 +1,65 @@
+
+img {
+    width: 22vh;
+}
+
+.inputDnD .form-control-file {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 6em;
+    outline: none;
+    visibility: hidden;
+    cursor: pointer;
+    background-color: #c61c23;
+    box-shadow: 0 0 3px solid currentColor;
+    font-size: 1.48vh;
+    font-weight: 300 !important;
+}
+
+.inputDnD .form-control-file:before {
+    content: attr(data-title);
+    position: absolute;
+    left: 0;
+    width: 100%;
+    min-height: 13.5em;
+    line-height: 10em;
+    padding-top: 1.5em;
+    visibility: visible;
+    text-align: center;
+    border: 0.15em dashed currentColor;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    overflow: hidden;
+}
+
+.inputDnD .form-control-file:hover:before {
+    border-style: solid;
+    box-shadow: inset 0px 0px 0px 0.15em currentColor;
+    background-blend-mode: overlay !important;
+
+}
+
+.inputDnD:hover {
+    background-blend-mode: overlay !important;
+
+}
+
+#image_upload {
+    width: auto;
+    padding: 0px;
+    height: 20vh;
+}
+
+.inputDnD {
+    background-repeat: round;
+    background-size: 100%;
+    height: 20vh;
+    background-color: hsla(0, 0%, 100%, 0.70);
+    background-blend-mode: initial;
+
+}
+
+.modebar {
+    background-color: transparent !important;
+    color: grey;
+}

@@ -3,9 +3,11 @@
 {% block styles %}
     {{ super() }}
     <link href="{{ url_for('.static', filename='base/css/tables.css') }}" rel="stylesheet">
+    <link href="{{ url_for('.static', filename='css/features.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css"
           integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU"
           crossorigin="anonymous">
+
 {% endblock %}
 
 
@@ -48,13 +50,6 @@
                             </div>
                             <table id="table_checkpoints" class="table table-hover table-striped"
                                    style="width:100%">
-                                <tfoot align="right">
-                                <tr>
-                                    <td colspan="4">Clear all <a data-id=all onclick="ConfirmDelete(this, true)">
-                                        <i class="fi flaticon-trash"></i></a>
-                                    </td>
-                                </tr>
-                                </tfoot>
                             </table>
                         </div>
 
@@ -68,14 +63,62 @@
             </section>
         </div>
 
-        <div class="col-lg-8">
-            <section class="widget widget-overflow" id="run_config_div">
+        <div class="col-lg-3">
+            <section class="widget widget-overflow disabled-custom" id="features_div">
+                <header>
+                    <h6>
+                        Your <span class="fw-semi-bold">Features</span>
+                    </h6>
+                </header>
+
+                <div class="waiting-selection-ckpt margin-top-15">
+                    Select a Checkpoint to display
+                </div>
+
+                <form id="predict_form">
+                    <div class="widget-body margin-top-15">
+                        <div id="feature-div" class="hide-element">
+                            <div class="container hide-element" id="image_upload">
+                                <div class="form-group inputDnD">
+                                    <label class="sr-only" for="inputFile">File Upload</label>
+                                    <input type="file"
+                                           class="form-control-file text-primary font-weight-bold"
+                                           id="inputFile"
+                                           name="inputFile"
+                                           accept="image/*" onchange="readUrl(this)"
+                                           data-title="Click or drag and drop a file">
+                                </div>
+                            </div>
+
+                            <div class="pre-scrollable">
+                                <table id="table_features" align="center">
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+                </form>
+
+                <div class="btn-next-parent margin-top-15">
+                    <button class="btn btn-primary btn-next" id="predict"> Predict</button>
+                </div>
+            </section>
+        </div>
+
+
+        <div class="col-lg-3">
+            <section class="widget widget-overflow hide-element" id="prediction_div">
                 <header>
                     <h6>
                         Your <span class="fw-semi-bold">Prediction</span>
                     </h6>
                 </header>
+
                 <div class="widget-body margin-top-15">
+                    <div class="pre-scrollable">
+                        <table id="table_prediction" align="center">
+                        </table>
+                    </div>
                 </div>
             </section>
         </div>
@@ -93,7 +136,6 @@
     </script>
 
     <script src="{{ url_for('.static', filename='predict.js') }}"></script>
-    <script src="{{ url_for('.static', filename='checkpoints.js') }}"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.js"></script>
     <script type=text/javascript>
         var handle_key = {};

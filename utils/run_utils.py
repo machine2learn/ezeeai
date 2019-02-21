@@ -100,9 +100,6 @@ def get_predictions(targets, final_pred):
 
 
 def create_result_parameters(request, sess, checkpoint=None):
-    if 'radiob' in request.form:
-        sess.set('model', request_util.get_radiob(request))
-        sess.set('exp_target', request.form['exp_target'])
     all_params_config = config_reader.read_config(sess.get_config_file())
     rb = request_util.get_radiob(request) if checkpoint is None else checkpoint
     all_params_config.set('PATHS', 'checkpoint_dir', os.path.join(all_params_config.export_dir(), rb))

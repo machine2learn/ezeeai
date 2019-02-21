@@ -2,7 +2,7 @@ var table_created = false;
 
 $(document).ready(function () {
     if (!jQuery.isEmptyObject(appConfig.handle_key.checkpoints)) {
-        create_checkpoint_table(appConfig.handle_key.checkpoints, appConfig.handle_key.metric);
+        create_checkpoint_table(appConfig.handle_key.checkpoints, appConfig.handle_key.metric)
         table_created = true;
     }
 });
@@ -35,9 +35,9 @@ function get_rows(checkpoints) {
     let rows = [];
     $.each(checkpoints, function (key, value) {
         let val = 0;
-        if (value.hasOwnProperty('accuracy'))
+        if ('accuracy' in value)
             val = value['accuracy'];
-        else if (value.hasOwnProperty('r_squared'))
+        else if ('r_squared' in value)
             val = value['r_squared'];
         rows.push([key, val, value['loss'], '<a data-id=' + key + ' onclick="ConfirmDelete(this, false)" >' +
         '<span class="fi flaticon-trash"></span></a>']);
@@ -57,4 +57,3 @@ function update_checkpoint_table(checkpoints, metric) {
         table_created = true;
     }
 }
-

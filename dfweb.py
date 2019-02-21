@@ -293,6 +293,27 @@ def params_run():
         return jsonify(checkpoints='', parameters='', metric='', graphs={})
 
 
+@app.route('/params_predict', methods=['POST'])
+@login_required
+@check_config
+def params_predict():
+    try:
+        local_sess = Session(app)
+        local_sess.add_user((session['user'], session['_id']))
+        model_name = get_model_name(request)
+        config_file = sys_ops.get_config_path(APP_ROOT, session['user'], model_name)
+        local_sess.set_config_file(config_file)
+        local_sess.load_config()
+        local_sess.set_model_name(model_name)
+        export_dir = config_reader.read_config(local_sess.get_config_file()).export_dir()
+        checkpoints = run_utils.get_eval_results(export_dir, local_sess.get_writer(), local_sess.get_config_file())
+        metric = local_sess.get_metric()
+        params, _ = local_sess.get_helper().get_default_data_example()
+        return jsonify(checkpoints=checkpoints, metric=metric, params=params)
+    except (KeyError, NoSectionError):
+        return jsonify(checkpoints='', metric='', params={})
+
+
 @app.route('/run', methods=['GET', 'POST'])
 @login_required
 @check_config
