@@ -448,27 +448,27 @@ def explain():
     return render_template('explain.html', user=session['user'], token=session['token'],
                            parameters=param_configs)
 
-
-@app.route('/explain', methods=['POST', 'GET'])
-@login_required
-@check_config
-def explain():
-    if request.method == 'POST':
-        hlp = sess.get_helper()
-        all_params_config = run_utils.create_result_parameters(request, sess)
-        ep = hlp.process_explain_request(request)
-        if 'explanation' in ep:
-            return jsonify(**ep)
-        if sess.mode_is_canned():
-            all_params_config.set_canned_data(sess.get_canned_data())
-
-        result, success = th.explain_estimator(all_params_config, ep)
-        if success:
-            hlp.explain_return(sess, request, result)
-        return jsonify(error=result) if not success else jsonify({})
-    params = sess.get_explain_params()
-    return render_template('explain.html', title="Explain", page=5, model=sess.get_model(), user=session['user'],
-                           token=session['token'], exp_target=sess.get_exp_target(), **params)
+#
+# @app.route('/explain', methods=['POST', 'GET'])
+# @login_required
+# @check_config
+# def explain():
+#     if request.method == 'POST':
+#         hlp = sess.get_helper()
+#         all_params_config = run_utils.create_result_parameters(request, sess)
+#         ep = hlp.process_explain_request(request)
+#         if 'explanation' in ep:
+#             return jsonify(**ep)
+#         if sess.mode_is_canned():
+#             all_params_config.set_canned_data(sess.get_canned_data())
+#
+#         result, success = th.explain_estimator(all_params_config, ep)
+#         if success:
+#             hlp.explain_return(sess, request, result)
+#         return jsonify(error=result) if not success else jsonify({})
+#     params = sess.get_explain_params()
+#     return render_template('explain.html', title="Explain", page=5, model=sess.get_model(), user=session['user'],
+#                            token=session['token'], exp_target=sess.get_exp_target(), **params)
 
 
 @app.route('/upload_test_file', methods=['POST', 'GET'])
