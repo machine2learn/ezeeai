@@ -185,8 +185,10 @@ function update_graphs(data, from_scratch) {
 
         if (keys[i] !== 'loss') {
             div = 'metric_graph'
+            $('#metric_span').text(keys[i].charAt(0).toUpperCase() + keys[i].slice(1));
+
         }
-        line_plot_2_variables(div, data.train.steps, data.train[keys[i]], data.eval.steps, data.eval[keys[i]], 'train', 'val', 'steps', '');
+        line_plot_2_variables(div, data.train.steps, data.train[keys[i]], data.eval.steps, data.eval[keys[i]], 'train', 'val', 'Steps', '');
 
     }
 
