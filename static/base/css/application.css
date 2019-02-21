@@ -20705,7 +20705,7 @@ legend {
 }
 
 .navbar-form .input-group {
-    width: 245px;
+    /*width: 245px;*/
     display: flex;
 }
 
