@@ -399,7 +399,6 @@ class Image(Helper):
         augmentation_options = request.get_json()['augmentation_options']
         features_params = request.get_json()['augmentation_params']
 
-        # TODO augmentation
         self._dataset.set_normalization_method(request.get_json()['normalization'])
         h, w, c = self._dataset.get_sample().shape
         self._dataset.set_image_size(request.get_json()['height'], request.get_json()['width'], c)

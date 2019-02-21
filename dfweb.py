@@ -180,23 +180,22 @@ def gui():
 @login_required
 @check_config
 def gui_load():
-    sess.reset_user()
+    local_sess = Session(app)
+    local_sess.add_user((session['user'], session['_id']))
     username = session['user']
     _, param_configs = config_ops.get_configs_files(APP_ROOT, username)
     user_dataset = config_ops.get_datasets_and_types(APP_ROOT, username)
 
     model_name = request.form['model']
-    sess.set_config_file(sys_ops.get_config_path(APP_ROOT, username, model_name))
+    local_sess.set_config_file(sys_ops.get_config_path(APP_ROOT, username, model_name))
 
-    if sess.load_config():
-        hlp = sess.get_helper()
-        sess.reset_user()
+    if local_sess.load_config():
+        hlp = local_sess.get_helper()
         return render_template('gui.html', token=session['token'], page=1, user=username, user_dataset=user_dataset,
                                parameters=param_configs, dataset_params=hlp.get_dataset_params(), data=hlp.get_data(),
                                cy_model=sys_ops.load_cy_model(model_name, username),
                                model_name=model_name, num_outputs=hlp.get_num_outputs())
     #  TODO send error config not loaded
-    sess.reset_user()
     return render_template('gui.html', token=session['token'], page=1, user=username, user_dataset=user_dataset,
                            dataset_params={}, data=None, parameters=param_configs, cy_model=[], model_name='new_model',
                            num_outputs=None)
@@ -206,14 +205,14 @@ def gui_load():
 @login_required
 @check_config
 def gui_input():
-    sess.reset_user()
+    local_sess = Session(app)
+    local_sess.add_user((session['user'], session['_id']))
     dataset_name, user = get_dataset(request), session['user']
-    upload_util.new_config(dataset_name, user, sess, APP_ROOT)
-    hlp = sess.get_helper()
+    upload_util.new_config(dataset_name, user, local_sess, APP_ROOT)
+    hlp = local_sess.get_helper()
     hlp.set_split(get_split(request))
     hlp.process_features_request(request)
     result = hlp.process_targets_request(request)
-    sess.reset_user()
     return jsonify(**result)
 
 
@@ -221,11 +220,11 @@ def gui_input():
 @login_required
 @check_config
 def gui_select_data():
-    sess.reset_user()
+    local_sess = Session(app)
+    local_sess.add_user((session['user'], session['_id']))
     dataset_name, user = get_dataset(request), session['user']
-    upload_util.new_config(dataset_name, user, sess, APP_ROOT)
-    data = sess.get_helper().get_data()
-    sess.reset_user()
+    upload_util.new_config(dataset_name, user, local_sess, APP_ROOT)
+    data = local_sess.get_helper().get_data()
     return jsonify(data=data)
 
 
@@ -233,25 +232,25 @@ def gui_select_data():
 @login_required
 @check_config
 def save_model():
-    # TODO sep sess
-    sess.reset_user()
+    local_sess = Session(app)
+    local_sess.add_user((session['user'], session['_id']))
     dataset_name, user = get_dataset(request), session['user']
-    upload_util.new_config(dataset_name, user, sess, APP_ROOT)
-    hlp = sess.get_helper()
+    upload_util.new_config(dataset_name, user, local_sess, APP_ROOT)
+    hlp = local_sess.get_helper()
     hlp.set_split(get_split(request))
-    sess.get_helper().process_features_request(request)
-    sess.get_helper().process_targets_request(request)
+    local_sess.get_helper().process_features_request(request)
+    local_sess.get_helper().process_targets_request(request)
 
     model_name = get_model_name(request)
-    sess.set_model_name(model_name)
-    sess.set_mode(get_mode(request))
+    local_sess.set_model_name(model_name)
+    local_sess.set_mode(get_mode(request))
     if get_mode(request) == 'custom':
-        sess.set_custom(request.get_json())  # TODO
+        local_sess.set_custom(request.get_json())
         path = sys_ops.get_models_pat(APP_ROOT, session['user'])
         os.makedirs(path, exist_ok=True)
-        c_path, t_path = custom.save_model_config(sess.get_model(), path, sess.get_cy_model(), model_name)
-        sess.set_custom_path(c_path)  # TODO
-        sess.set_transform_path(t_path)  # TODO
+        c_path, t_path = custom.save_model_config(local_sess.get_model(), path, local_sess.get_cy_model(), model_name)
+        local_sess.set_custom_path(c_path)  #
+        local_sess.set_transform_path(t_path)
     else:
         custom_path = sys_ops.create_custom_path(APP_ROOT, session['user'], model_name)
         cy_model = get_cy_model(request)
@@ -261,36 +260,17 @@ def save_model():
         data['loss_function'] = get_loss(request)
         custom.save_canned_data(data, custom_path)
 
-        sess.set_canned_data(data)  # TODO
-        sess.set_cy_model(cy_model)  # TODO
+        local_sess.set_canned_data(data)
+        local_sess.set_cy_model(cy_model)
 
     username = session['user']
-    config_path = sys_ops.get_config_path(APP_ROOT, username, sess.get_model_name())
-    sess.set_config_file(config_path)
-    sess.write_config()
+    config_path = sys_ops.get_config_path(APP_ROOT, username, local_sess.get_model_name())
+    local_sess.set_config_file(config_path)
+    local_sess.write_config()
 
-    config_ops.define_new_model(APP_ROOT, username, sess.get_writer(), sess.get_model_name())
-    sess.write_params()
-    sess.reset_user()
+    config_ops.define_new_model(APP_ROOT, username, local_sess.get_writer(), local_sess.get_model_name())
+    local_sess.write_params()
     return jsonify(explanation='ok')
-
-
-@app.route('/parameters', methods=['GET', 'POST'])
-@login_required
-@check_config
-def parameters():
-    sess.reset_user()
-    form = GeneralParamForm()
-    if form.validate_on_submit():
-        sess.get_writer().populate_config(request.form)
-        return redirect(url_for('run'))
-    username = session['user']
-    config_path = sys_ops.get_config_path(APP_ROOT, username, sess.get_model_name())
-    sess.set_config_file(config_path)
-    param_utils.set_form(form, sess.get_config_file())
-    sess.write_config()
-    return render_template('parameters.html', title="Parameters", form=form, page=2, user=username,
-                           token=session['token'])
 
 
 @app.route('/params_run', methods=['POST'])
@@ -376,50 +356,38 @@ def run():
                            user_models=model_configs, dataset_params=user_datasets, running=running,
                            model_name=model_name, checkpoints=checkpoints, metric=metric, graphs=graphs)
 
-    # sess.reset_user()
-    # username = session['user']
-    # config_ops.define_new_model(APP_ROOT, username, sess.get_writer(),
-    #                             sess.get_model_name())  # TODO model already saved
-    # sess.write_params()
-    # all_params_config = config_reader.read_config(sess.get_config_file())
-    # if sess.mode_is_canned():
-    #     all_params_config.set_canned_data(sess.get_canned_data())
-    # all_params_config.set_email(db_ops.get_email(username))
-    # export_dir = all_params_config.export_dir()
-    #
-    # checkpoints = run_utils.get_eval_results(export_dir, sess.get_writer(), sess.get_config_file())
-    # th.run_tensor_board(username, sess.get_config_file())
-    # running = th.check_running(username)
-    # sess.run_or_pause(running)
-    #
-    # if request.method == 'POST':
-    #     sess.run_or_pause(is_run(request))
-    #     sess.check_log_fp(all_params_config)
-    #     th.handle_request(get_action(request), all_params_config, username, get_resume_from(request))
-    #     return jsonify(True)
-    #
-    # params, explain = sess.get_helper().get_default_data_example()
-    # return render_template('run.html', title="Run", page=3, checkpoints=checkpoints, user=username,
-    #                        token=session['token'], port=th.get_port(username, sess.get_config_file()),
-    #                        running=sess.get_status(), metric=sess.get_metric(), params=params, hh=explain)
-
 
 @app.route('/predict', methods=['POST', 'GET'])
 @login_required
+@check_config
 def predict():
-    # hlp = sess.get_helper()
-    # all_params_config = run_utils.create_result_parameters(request, sess)
-    # new_features = hlp.get_new_features(request, default_features=False)
-    # if sess.mode_is_canned():
-    #     all_params_config.set_canned_data(sess.get_canned_data())
-    # final_pred, success = th.predict_estimator(all_params_config, new_features)
-    # return jsonify(error=final_pred) if not success else jsonify(
-    #     run_utils.get_predictions(hlp.get_targets(), final_pred))
+    if request.method == 'POST':
+        local_sess = Session(app)
+        local_sess.add_user((session['user'], session['_id']))
+
+        config_path = sys_ops.get_config_path(APP_ROOT, session['user'], request.form['model_name'])
+        local_sess.set_model_name(request.form['model_name'])
+
+        local_sess.set_config_file(config_path)
+        local_sess.load_config()
+        hlp = local_sess.get_helper()
+        all_params_config = run_utils.create_result_parameters(request, local_sess)
+        new_features = hlp.get_new_features(request, default_features=False)
+
+        canned_data = os.path.join(APP_ROOT, 'user_data', session['user'], 'models', request.form['model_name'],
+                                   'custom',
+                                   'canned_data.json')
+        if os.path.isfile(canned_data):
+            all_params_config.set_canned_data(json.load(open(canned_data)))
+
+        final_pred, success = th.predict_estimator(all_params_config, new_features)
+        return jsonify(error=final_pred) if not success else jsonify(
+            run_utils.get_predictions(hlp.get_targets(), final_pred))
     username = session['user']
     _, param_configs = config_ops.get_configs_files(APP_ROOT, username)
-    # user_dataset = config_ops.get_datasets_type(APP_ROOT, username)
-    return render_template('predict.html',  user=session['user'], token=session['token'],
+    return render_template('predict.html', user=session['user'], token=session['token'],
                            parameters=param_configs)
+
 
 @app.route('/explain', methods=['POST', 'GET'])
 @login_required
@@ -494,10 +462,11 @@ def data_graphs():
 @login_required
 @check_config
 def image_graphs():
-    sess.reset_user()
+    local_sess = Session(app)
+    local_sess.add_user((session['user'], session['_id']))
     dataset_name = get_datasetname(request)
-    upload_util.new_config(dataset_name, session['user'], sess, APP_ROOT)
-    data = sess.get_helper().get_data()
+    upload_util.new_config(dataset_name, session['user'], local_sess, APP_ROOT)
+    data = local_sess.get_helper().get_data()
     return jsonify(data=data)
 
 
@@ -524,8 +493,8 @@ def delete_model():
     username = session['user']
     sys_ops.delete_models(get_all(request), [get_model(request)], username)
     _, models = config_ops.get_configs_files(APP_ROOT, username)
-    datasets = config_ops.get_datasets(APP_ROOT, username)
-    return jsonify(datasets=datasets, models=models)
+    datasets = config_ops.get_datasets_type(APP_ROOT, username)
+    return jsonify(datasets=datasets, models=models, data_types=config_ops.get_datasets_type(APP_ROOT, username))
 
 
 @app.route('/delete_dataset', methods=['POST'])
@@ -545,7 +514,6 @@ def delete_dataset():
 def refresh():
     running, config_file = th.check_running(session['user'])
     sess.run_or_pause(running)
-
     try:
         hlp = sess.get_helper()
         all_params_config = config_reader.read_config(sess.get_config_file())

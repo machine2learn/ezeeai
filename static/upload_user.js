@@ -136,9 +136,9 @@ function ConfirmModelDelete(elem, all) {
 }
 
 function upload_tables(data) {
-    appConfig.handle_key.datasets = data.datasets;
+    appConfig.handle_key.datasets = data.data_types;
     appConfig.handle_key.parameters = data.models;
-    let r_d = get_rows(data.datasets);
+    let r_d = get_rows(data.data_types);
     let r_m = get_rows_model(data.models);
     $('#table_datasets').DataTable().clear().rows.add(r_d).draw();
     $('#table_models').DataTable().clear().rows.add(r_m).draw();
