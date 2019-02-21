@@ -89,7 +89,7 @@ function draw_models_select(models, datasets) {
 function enable_run() {
     $('#run_div').removeClass('disabled-custom');
     $('#train_results').removeClass('disabled-custom');
-
+    $('#log_div').removeClass('disabled-custom');
     $('.visualization').addClass('hide-element');
 
 }
