@@ -15,10 +15,10 @@
 
     <ol class="breadcrumb">
         <li class="breadcrumb-item">YOU ARE HERE</li>
-        <li class="breadcrumb-item"> Predict</li>
+        <li class="breadcrumb-item active"> Predict</li>
     </ol>
 
-    <div class="row justify-content-sm-center">
+    <div class="row  justify-content-sm-center ">
         <div class="col-lg-3">
             <section class="widget widget-overflow" id="run_config_div">
                 <header>
@@ -51,6 +51,8 @@
                             <table id="table_checkpoints" class="table table-hover table-striped"
                                    style="width:100%">
                             </table>
+
+
                         </div>
 
                         <div class="loader hide-element">Loading...</div>
@@ -139,6 +141,7 @@
     </script>
 
     <script src="{{ url_for('.static', filename='predict.js') }}"></script>
+    <script src="{{ url_for('.static', filename='checkpoint_features.js') }}"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.js"></script>
     <script type=text/javascript>
         var handle_key = {};

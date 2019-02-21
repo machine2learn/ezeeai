@@ -4,10 +4,10 @@ $(document).ready(function () {
 
     $('#model_name').on('change', function () {
         enable_checkpoints();
+        clear_graphs();
         $('.waiting-selection-ckpt').removeClass('hide-element');
         $('#feature-div').addClass('hide-element');
         $('#prediction_div').addClass('hide-element');
-
 
         let model_name = $(this).val();
         $('#perf').text(appConfig.handle_key.models[model_name]['perf']);
@@ -23,19 +23,22 @@ $(document).ready(function () {
             contentType: 'application/json;charset=UTF-8',
             data: JSON.stringify({'model_name': $(this).val()}),
             success: function (data) {
+                // show_error_has_hash(data.params.has_test);
+                $('#exp_target').remove();
+                let explain_select_target = add_select("exp_target", data.params.targets);
+                $('#target_input').append(explain_select_target);
+
+
                 $('.loader').addClass('hide-element');
                 $('.visualization').removeClass('hide-element');
 
                 if ($.fn.DataTable.isDataTable('#table_checkpoints')) {
                     $('#table_checkpoints').DataTable().destroy();
-
                     $('#table_checkpoints tbody').empty();
                     $('#table_checkpoints thead').empty();
-
                 }
 
                 create_checkpoint_table(data.checkpoints, data.metric);
-
                 $('#features_div').addClass('disabled-custom');
 
                 let $feature_div = $('.pre-scrollable')[0];
@@ -64,39 +67,42 @@ $(document).ready(function () {
         })
     });
 
-    $('#predict').on('click', function () {
-        $('#prediction_div').removeClass('hide-element');
-        $('#pred-loader').removeClass('hide-element');
-        $('#table_prediction').addClass('hide-element');
+    $('#explain').on('click', function () {
+        $('#explain_div_out').removeClass('hide-element');
+        $('#explain_div_expl').removeClass('hide-element');
+        $('.loader-pred').removeClass('hide-element');
+
+        clear_graphs();
 
         if ($("#image_upload").hasClass("hide-element")) {
-            let data_form = $("#predict_form").serializeArray();
+            let data_form = $("#explain_form").serializeArray();
             data_form.push({
                 name: 'radiob',
                 value: $('#table_checkpoints').DataTable().rows({selected: true}).data()[0][0]
             });
             data_form.push({name: 'model_name', value: $('#model_name').val()});
             $.ajax({
-                url: "/predict",
+                url: "/explain",
                 type: 'POST',
                 dataType: 'json',
                 data: data_form,
                 success: function (data) {
-                    $('#pred-loader').addClass('hide-element');
-                    $('#table_prediction').removeClass('hide-element');
-                    create_table_predictions(data);
+                    $('.loader-pred').addClass('hide-element');
+                    $('#prediction_probabilities').removeClass('hide-element');
+                    $('#explain_graphs').removeClass('hide-element');
+                    generate_explain_plots(data);
                 }
             });
 
         } else {
-            var data_form = new FormData($("#predict_form")[0]);
+            var data_form = new FormData($("#explain_form")[0]);
             if ($('#inputFile').val() === '') {
                 data_form.set('inputFile', dataURItoBlob('data:image/' + appConfig.handle_key.extension + ';base64,' + appConfig.handle_key.image))
             }
             data_form.append('radiob', $('#table_checkpoints').DataTable().rows({selected: true}).data()[0][0]);
             data_form.append('model_name', $('#model_name').val());
             var ajax = new XMLHttpRequest();
-            ajax.open("POST", "/predict");
+            ajax.open("POST", "/explain");
             ajax.send(data_form);
             ajax.addEventListener("load", completeHandler, false);
             ajax.addEventListener("error", errorHandler, false);
@@ -105,29 +111,41 @@ $(document).ready(function () {
     });
 });
 
+function generate_explain_plots(data) {
+    var predict = data.predict_table;
+    var graphics = data.graphs;
 
-function serialize_form() {
-    let data_form = $("#predict_form").serializeArray();
-    data_form.push({name: 'radiob', value: get_checkpoint_selected()});
-    return data_form;
+    if (data.type === 'regression') {
+        create_bar(predict);
+    } else {
+        create_donut(predict);
+    }
+
+    for (var key in graphics) {
+        create_graph(graphics[key]['labels'], graphics[key]['data'], key);
+    }
+
 }
 
 
 function completeHandler(event) {
-    $("#predict_button").attr('disabled', false);
-    $("#loading_predict").addClass('hidden');
-    $('#pred-loader').addClass('hide-element');
-    $('#table_prediction').removeClass('hide-element');
+    $('.loader-pred').addClass('hide-element');
+    $('#prediction_probabilities').removeClass('hide-element');
+    $('#explain_graphs').removeClass('hide-element');
+
 
     let data = JSON.parse(event.target.responseText);
     if ('error' in data) {
         alert(data.error);
     } else {
-        $('#prediction_div').removeClass('hide-element');
-        create_table_predictions(data);
+        $('#result_explain').removeClass('hide-element');
+        create_donut(data.predict_table);
+
+        let im2 = new Image();
+        im2.src = 'data:image/jpg;base64,' + data.features;
+        $("#explain_graphs").append(im2);
     }
 }
-
 
 
 function errorHandler(event) {
@@ -136,32 +154,12 @@ function errorHandler(event) {
     $("#loading_predict").addClass('hidden');
 }
 
-function create_table_predictions(data) {
-    let rows = [];
-    $.each(data, function (key, val) {
-        rows.push([key, val])
-    });
+function clear_graphs() {
+    $('#probs').remove();
+    let canvas = $("<canvas>")
+        .attr("id", 'probs');
+    $('#prediction_probabilities').append(canvas);
 
-    if ($.fn.DataTable.isDataTable('#table_prediction')) {
-        $('#table_prediction').DataTable().destroy();
-        $('#table_prediction tbody').empty();
-        $('#table_prediction thead').empty();
-    }
-
-    let table_predictions = $('#table_prediction').DataTable({
-        data: rows,
-        columns: [{title: 'Target'}, {title: 'Prediction'}],
-        searching: true,
-        'select': false,
-        "lengthChange": false,
-        "drawCallback": function () {
-            if ($(this).DataTable().rows()[0].length <= 10) {
-                let id = '#' + $(this).attr('id');
-                $(id + '_paginate').remove();
-                $(id + '_info').remove();
-            }
-        }
-    })
-
-
+    $('canvas').children().remove();
+    $('#explain_graphs').children().remove();
 }

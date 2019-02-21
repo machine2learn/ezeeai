@@ -64,9 +64,40 @@ img {
     color: grey;
 }
 
-.table-pred td{
-  text-align: center;
+.table-pred td {
+    text-align: center;
 }
-.table-pred th{
-  border: 0;
+
+.table-pred th {
+    border: 0;
+}
+
+.explain-parameters {
+    text-align: center;
+}
+
+.explain-parameters input {
+    margin-left: 15px;
+}
+
+#table_features th {
+    border: 0;
+}
+.align-content-right{
+    text-align: right;
+}
+.align-content-left{
+    text-align: left;
+}
+.align-content-left input{
+    margin-bottom: 10px;
+    width: 80px;
+}
+.align-content-left select{
+    width: 80px;
+    margin-left: 13px;
+}
+
+.explain-graphs{
+    text-align: -webkit-center;
 }

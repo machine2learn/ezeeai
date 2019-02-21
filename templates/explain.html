@@ -1,25 +1,194 @@
 {% extends "base.html" %}
+{% block styles %}
+    {{ super() }}
+    <link href="{{ url_for('.static', filename='base/css/tables.css') }}" rel="stylesheet">
+    <link href="{{ url_for('.static', filename='css/features.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css"
+          integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU"
+          crossorigin="anonymous">
+
+{% endblock %}
 
 {% block content %}
 
     <ol class="breadcrumb">
         <li class="breadcrumb-item">YOU ARE HERE</li>
-        <li class="breadcrumb-item"> Explain</li>
+        x
+        <li class="breadcrumb-item active"> Explain</li>
     </ol>
 
     <div class="row">
-        <div class="col-lg-2">
+        <div class="col-lg-3">
             <section class="widget widget-overflow" id="run_config_div">
                 <header>
-                    <h5>
-                        Your <span class="fw-semi-bold">Config</span>
-                    </h5>
+                    <h6>
+                        Your <span class="fw-semi-bold">Model</span>
+                    </h6>
                 </header>
                 <div class="widget-body margin-top-15">
+                    <div id="models-select-div"></div>
+                    <div id="checkpoints_div" class="disabled-custom margin-top-15">
+                        <header>
+                            <h6>
+                                <span class="fw-semi-bold">Checkpoints</span>
+                            </h6>
+                        </header>
+                        <div class="table-responsive visualization hide-element">
+                            <div class="navbar-form" role="search">
+                                <div class="form-group">
+                                    <div class="input-group input-group-no-border">
+                                        <input id="checkpoint_search" class="form-control" type="text"
+                                               placeholder="Search Checkpoint">
+                                        <span class="input-group-append">
+                                                    <span class="input-group-text">
+                                                        <i class="la la-search"></i>
+                                                    </span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <table id="table_checkpoints" class="table table-hover table-striped"
+                                   style="width:100%">
+                            </table>
+                        </div>
+
+                        <div class="loader hide-element">Loading...</div>
+
+                        <div class="waiting-selection">
+                            Select a Model to display
+                        </div>
+                    </div>
                 </div>
             </section>
-
         </div>
+
+        <div class="col-lg-3">
+            <section class="widget widget-overflow disabled-custom" id="features_div">
+                <header>
+                    <h6>
+                        Your <span class="fw-semi-bold">Features</span>
+                    </h6>
+                </header>
+
+                <div class="waiting-selection-ckpt margin-top-15">
+                    Select a Checkpoint to display
+                </div>
+
+                <form id="explain_form">
+                    <div class="widget-body margin-top-15">
+                        <div id="feature-div" class="hide-element">
+                            <h6 class="margin-top-15">
+                                <span class="fw-semi-bold">Features</span>
+                            </h6>
+                            <div class="container hide-element" id="image_upload">
+                                <div class="form-group inputDnD">
+                                    <label class="sr-only" for="inputFile">File Upload</label>
+                                    <input type="file"
+                                           class="form-control-file text-primary font-weight-bold"
+                                           id="inputFile"
+                                           name="inputFile"
+                                           accept="image/*" onchange="readUrl(this)"
+                                           data-title="Click or drag and drop a file">
+                                </div>
+                            </div>
+
+                            <div class="pre-scrollable">
+                                <table id="table_features" align="center">
+                                </table>
+                            </div>
+
+                            <div id="explain_params_div" class="margin-top-15">
+                                <h6 class="margin-top-15">
+                                    <span class="fw-semi-bold">Explain Params</span>
+                                </h6>
+                                <div class="explain-parameters margin-top-15" id="explain_form">
+                                    <div class="row justify-content-sm-center padding-small">
+                                        <div class="col-5 align-content-right">
+                                            <label class="cust_label" for="top_labels"> <b>Top labels:</b></label>
+                                        </div>
+                                        <div class="col-7 align-content-left">
+                                            <input type="number" name="top_labels" id="top_labels" value="1" step="1"
+                                                   min="1">
+                                        </div>
+                                    </div>
+
+                                    <div class="row justify-content-sm-center ">
+                                        <div class="col-5 align-content-right">
+                                            <label class="cust_label" for="num_feat"> <b>#Features: </b></label>
+                                        </div>
+                                        <div class="col-7 align-content-left">
+                                            <input type="number" name="num_feat" id="num_feat" value="3" step="1"
+                                                   min="2">
+                                        </div>
+                                    </div>
+
+                                    <div class="row justify-content-sm-center ">
+                                        <div class="col-5 align-content-right">
+                                            <label id="exp_label" class="cust_label" for="exp_target">
+                                                <b>Target: </b>
+                                            </label>
+                                        </div>
+                                        <div class="col-7 align-content-left" id="target_input"></div>
+                                    </div>
+
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="btn-next-parent margin-top-15">
+                    <button class="btn btn-primary btn-next" id="explain"> Explain</button>
+                </div>
+            </section>
+        </div>
+
+
+        <div class="col-lg-6" id="result_explain">
+            <div class="row">
+                <div class="col-lg-12">
+                    <section class="widget widget-overflow hide-element" id="explain_div_out">
+                        <header>
+                            <h6>
+                                Prediction<span class="fw-semi-bold"> Output</span>
+                            </h6>
+                        </header>
+                        <div class="widget-body">
+                            <div id="prediction_probabilities_title" style="{font-weight: bold;}">
+                            </div>
+                            <div id="prediction_probabilities" class="explain-graphs">
+                                <canvas id="probs"></canvas>
+                            </div>
+
+                            <div class="loader loader-pred hide-element">Loading...</div>
+                        </div>
+                    </section>
+
+
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <section class="widget widget-overflow hide-element" id="explain_div_expl">
+                        <header>
+                            <h6>
+                                Your<span class="fw-semi-bold"> Explanation</span>
+                            </h6>
+                        </header>
+                        <div class="widget-body">
+                            <div id="explain_graphs" class=" explain-graphs">
+                            </div>
+                            <div class="loader loader-pred hide-element">Loading...</div>
+                        </div>
+                    </section>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
 
 {% endblock %}
 
@@ -30,6 +199,19 @@
         $(document).ready(function () {
             $('#sb-explain').addClass('active');
         });
+    </script>
+    <script src="{{ url_for('.static', filename='explainig.js') }}"></script>
+    <script src="{{ url_for('.static', filename='checkpoint_features.js') }}"></script>
+    <script src="{{ url_for('.static', filename='explain_plots.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.js"></script>
+    <script type=text/javascript>
+        var handle_key = {};
+        handle_key.models = {{  parameters | tojson | safe }};
+        window.appConfig = {
+            handle_key: handle_key
+        };
     </script>
 {% endblock %}
 
