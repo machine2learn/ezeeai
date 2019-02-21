@@ -134,6 +134,6 @@
 .log {
     background-color: #fbfcff;
     padding: 21px;
-    white-space: pre;
+    white-space: pre-wrap;
     margin-top: 20px;
 }

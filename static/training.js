@@ -39,6 +39,7 @@ $(document).ready(function () {
                 update_parameters_form(data.parameters);
                 update_checkpoint_table(data.checkpoints, data.metric);
                 update_graphs(data.graphs, true);
+                 $('.log').text('');
             }
         })
     });
@@ -57,7 +58,8 @@ $(document).ready(function () {
                     }
                     update_checkpoint_table(data.checkpoints, '');
                     update_graphs(data.graphs, false);
-                    $('.log').append(data.data).scrollTop($('.log')[0].scrollHeight);
+                    $('.log').append(data.data);
+                    $('.log-div').animate({scrollTop: $('.log')[0].scrollHeight});
                 }
             })
         }
