@@ -1,9 +1,9 @@
-var playing = false;
 
 $(document).ready(function () {
     $('.widget').widgster();
     var collapsed = $("a[data-widgster='collapse']");
     collapsed.click();
+
 
     draw_models_select(appConfig.handle_key.models, appConfig.handle_key.datasets);
     if (appConfig.handle_key.running) {
