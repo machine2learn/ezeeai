@@ -88,7 +88,9 @@ def clean_field_names_df(file, filename):
     args = {}
     if not has_header(file):
         args['header'] = None
+    print(file)
     df = pd.read_csv(file, sep=None, engine='python', **args)
+    print(df)
     df.columns = df.columns.astype(str)
     df.columns = df.columns.str.strip().str.lower().str.replace(' ', '_').str.replace('(', '').str.replace(')', '')
     df.to_csv(filename, index=False)

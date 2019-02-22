@@ -101,3 +101,14 @@ img {
 .explain-graphs{
     text-align: -webkit-center;
 }
+
+.pre-scrollable{
+     max-height: 40vh!important;
+}
+.upload-file .label-title{
+    font-weight: 800;
+    font-size: 12px;
+}
+#table_test_files{
+    width: 90%!important; ;
+}

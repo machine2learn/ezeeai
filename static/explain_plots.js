@@ -97,15 +97,15 @@ function get_donut_colors(new_Data) {
     var colors_palette = ['#0190af',
         '#2fc6a2',
         '#ffbc0a',
-        '#0082c8',
+        '#0c6cc8',
         '#f58231',
-        '#911eb4',
+        '#c47ade',
         '#9cd1f0',
-        '#f032e6',
+        '#f0777f',
         '#fabebe',
-        '#008080',
-        '#800000',
-        '#000080'];
+        '#7d89d5',
+        '#67b754',
+        '#80447e'];
     for (var i = 0; i < new_Data.length; i++) {
         if (i > colors_palette.length) {
             new_colors.push('#' + Math.floor(Math.random() * 16777215).toString(16));

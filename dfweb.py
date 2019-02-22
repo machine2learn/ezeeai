@@ -476,7 +476,16 @@ def explain():
 @login_required
 @check_config
 def upload_test_file():
-    result = sess.get_helper().test_upload(request)
+    model_name = request.get_json()['model_name']
+    local_sess = Session(app)
+    local_sess.add_user((session['user'], session['_id']))
+
+    config_path = sys_ops.get_config_path(APP_ROOT, session['user'], model_name)
+    local_sess.set_model_name(model_name)
+
+    local_sess.set_config_file(config_path)
+    local_sess.load_config()
+    result = local_sess.get_helper().test_upload(request)
     return jsonify(result=result)
 
 
@@ -484,29 +493,35 @@ def upload_test_file():
 @login_required
 @check_config
 def test():
-    hlp = sess.get_helper()
-    try:
-        has_targets, test_filename, df_test, result = hlp.test_request(request)
-    except Exception as e:
-        return jsonify(result='Test\'s file structure is not correct')
+    if request.method == 'POST':
+        hlp = sess.get_helper()
+        try:
+            has_targets, test_filename, df_test, result = hlp.test_request(request)
+        except Exception as e:
+            return jsonify(result='Test\'s file structure is not correct')
 
-    all_params_config = config_reader.read_config(sess.get_config_file())
-    all_params_config.set('PATHS', 'checkpoint_dir', os.path.join(all_params_config.export_dir(), get_model(request)))
+        all_params_config = config_reader.read_config(sess.get_config_file())
+        all_params_config.set('PATHS', 'checkpoint_dir',
+                              os.path.join(all_params_config.export_dir(), get_model(request)))
 
-    if sess.mode_is_canned():
-        all_params_config.set_canned_data(sess.get_canned_data())
+        if sess.mode_is_canned():
+            all_params_config.set_canned_data(sess.get_canned_data())
 
-    final_pred, success = th.predict_test_estimator(all_params_config, test_filename)
-    if not success:
-        return jsonify(error=final_pred)
-    try:
-        predict_file = hlp.process_test_predict(df_test, final_pred, test_filename)
-    except Exception as e:
-        return jsonify(error=str(e))
-    sess.set_has_targets(has_targets)
-    sess.set_predict_file(predict_file)
-    store_predictions(has_targets, sess, final_pred, hlp.get_df_test(df_test, has_targets))
-    return jsonify(result="ok")
+        final_pred, success = th.predict_test_estimator(all_params_config, test_filename)
+        if not success:
+            return jsonify(error=final_pred)
+        try:
+            predict_file = hlp.process_test_predict(df_test, final_pred, test_filename)
+        except Exception as e:
+            return jsonify(error=str(e))
+        sess.set_has_targets(has_targets)
+        sess.set_predict_file(predict_file)
+        store_predictions(has_targets, sess, final_pred, hlp.get_df_test(df_test, has_targets))
+        return jsonify(result="ok")
+
+    username = session['user']
+    _, param_configs = config_ops.get_configs_files(APP_ROOT, username)
+    return render_template('test.html', user=session['user'], token=session['token'], parameters=param_configs)
 
 
 @app.route('/data_graphs', methods=['POST', 'GET'])
@@ -609,7 +624,7 @@ def running_check():
             hlp = sess.get_helper()
             all_params_config = config_reader.read_config(sess.get_config_file())
             epochs = run_utils.get_step(hlp.get_train_size(), all_params_config.train_batch_size(),
-                                    all_params_config.checkpoint_dir())
+                                        all_params_config.checkpoint_dir())
             model_name = config_file.split('/')[-2]
         except (KeyError, NoSectionError):
             pass

@@ -26270,6 +26270,14 @@ a.text-bg-sidebar:hover, a.text-bg-sidebar:focus {
 .margin-top-15 {
     margin-top: 15px;
 }
+.margin-top-20 {
+    margin-top: 20px;
+}
+
+.margin-top-25 {
+    margin-top: 25px;
+}
+
 
 .abort {
     margin: 0px !important;

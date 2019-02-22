@@ -256,9 +256,12 @@ class Tabular(Helper):
     def test_upload(self, request):
         test_file = get_filename(request)
         try:
+
             test_filename = os.path.join(self._dataset.get_base_path(), 'test', test_file)
             df_test = sys_ops.bytestr2df(request.get_json()['file'], test_filename)
+            print('ok')
             sys_ops.check_df(df_test, self._dataset.get_df(), self._dataset.get_targets(), test_filename)
+            print('pos aqui no ha sio')
         except ValueError:
             os.remove(test_filename)
             return "The file contents are not valid."

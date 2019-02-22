@@ -157,7 +157,8 @@ def save_filename(target, dataset_form_field, dataset_name):
 
 def bytestr2df(str_file, filename):
     data = StringIO(str_file)
-    return preprocessing.clean_field_names_df(data, filename)
+    p = preprocessing.clean_field_names_df(data, filename)
+    return p
 
 
 def change_checkpoints(config, resume_from):
