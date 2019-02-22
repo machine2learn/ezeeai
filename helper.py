@@ -273,8 +273,10 @@ class Tabular(Helper):
         else:
             test_filename = self._dataset.get_test_file()[0] if isinstance(self._dataset.get_test_file(),
                                                                            list) else self._dataset.get_test_file()
-        has_targets = True
         df_test = pd.read_csv(test_filename)
+        has_targets = df_test[self.get_targets()].isnull().any().any() == False
+        if not has_targets:
+            df_test.drop(columns=self.get_targets(), inplace=True)
         return has_targets, test_filename, df_test, None
 
     def process_test_predict(self, df, final_pred, test_filename):

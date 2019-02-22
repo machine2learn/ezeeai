@@ -86,26 +86,96 @@
                             class="glyphicon glyphicon-chevron-down"></i></a>
                     <a href="#" data-widgster="close"><i class="glyphicon glyphicon-remove"></i></a>
                 </div>
-                    <div class="widget-body" id="ddiv">
-                        <br>
-                        <h6><b>RESTful API with Tensorflow Serving</b></h6>
-                        <pre class="prettyprint">POST http://host:port/&lt;URI&gt;:&lt;VERB&gt;<br><br>URI: /v1/models/${MODEL_NAME}[/versions/${MODEL_VERSION}]<br>VERB: predict</pre>
-                        <br>
-                        <h6><b>Request format</b></h6>
-                        <pre class="prettyprint">{<br><p class="ind-p">"signature_name": "predict",</p><p class="ind-p">"instances": value|(nested)list|list-of-objects</p>}</pre>
-                        <br>
-                        <h6><b>Response format</b></h6>
-                        <pre class="prettyprint">{<br><p
-                                class="ind-p">"predictions": value|(nested)list|list-of-objects</p>}</pre>
-                    </div>
+                <div class="widget-body" id="ddiv">
+                    <br>
+                    <h6><b>RESTful API with Tensorflow Serving</b></h6>
+                    <pre class="prettyprint">POST http://host:port/&lt;URI&gt;:&lt;VERB&gt;<br><br>URI: /v1/models/${MODEL_NAME}[/versions/${MODEL_VERSION}]<br>VERB: predict</pre>
+                    <br>
+                    <h6><b>Request</b></h6>
+                    <pre class="prettyprint">{<br><p class="ind-p">"signature_name": "predict",</p><p class="ind-p">"instances": value|(nested)list|list-of-objects</p>}</pre>
+                    <br>
+                    <h6><b>Response</b></h6>
+                    <pre class="prettyprint">{<br><p
+                            class="ind-p">"predictions": value|(nested)list|list-of-objects</p>}</pre>
+                </div>
             </section>
         </div>
+    </div>
+
     <div class="row">
+        <div class="col-lg-3 disabled-custom" id="export_div">
+            <section class="widget widget-overflow">
+                <header>
+                    <h6>
+                        Deploy <span class="fw-semi-bold">Model</span>
+                    </h6>
+                </header>
+                <div class="widget-body margin-top-15">
+                    <div class="hide-element visualization-ckpt" id="form_export">
+                        <form action="/deploy" id="export_form" method="post" enctype="multipart/form-data">
+                            <div class="form-group">
+                                <label for="input_model_name"><b>Model name</b></label>
+                                <input name='model_name' type="text" class="form-control" id="input_model_name"
+                                       aria-describedby="model_name_help"
+                                       placeholder="Enter model name">
+                                <small id="model_name_help" class="form-text text-muted">All checkpoints will be saved
+                                    as
+                                    different versions of this model.
+                                </small>
+                            </div>
+                            <div class="form-check">
+                                <input name='script' type="checkbox" class="form-check-input" id="script_checkbox">
+                                <label class="form-check-label" for="script_checkbox">Generate deployment script</label>
+                            </div>
+                            <button type="submit" formmethod="post" id='export_button' class="btn btn-primary margin-top-15" style="float: right">
+                                Export
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="waiting-selection-ckpt">
+                        Select one or more Checkpoints to display
+                    </div>
+
+                </div>
+            </section>
+        </div>
+        <div class="col-lg-9 disabled-custom" id="example_format">
+            <section class="widget widget-overflow">
+                <header>
+                    <h6>
+                        Example <span class="fw-semi-bold">Format</span>
+                    </h6>
+                </header>
+                <div class="widget-controls">
+                    <a data-widgster="expand" title="Expand" href="#"><i
+                            class="glyphicon glyphicon-chevron-up"></i></a>
+                    <a data-widgster="collapse" title="Collapse" href="#"><i
+                            class="glyphicon glyphicon-chevron-down"></i></a>
+                    <a href="#" data-widgster="close"><i class="glyphicon glyphicon-remove"></i></a>
+                </div>
+                <div class="widget-body margin-top-15" id="efdiv">
+                    <div class="visualization hide-element" id="example_format">
+                        <h6><b>Request</b></h6>
+                        <pre class="prettyprint" id="req"></pre>
+                        <br>
+                        <h6><b>Response</b></h6>
+                        <pre class="prettyprint" id="cresp"></pre>
+                        <br>
+                    </div>
+                    <div class="loader hide-element">Loading...</div>
+
+                    <div class="waiting-selection">
+                        Select a Model to display
+                    </div>
+
+                </div>
+            </section>
+        </div>
 
     </div>
 
 
-    </div>
 
 {% endblock %}
 

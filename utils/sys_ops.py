@@ -252,6 +252,7 @@ def export_models(export_dir, selected_rows, model_name):
     tmp_dir = os.path.join(export_dir, model_name)
     shutil.rmtree(tmp_dir, ignore_errors=True)
     os.makedirs(tmp_dir, exist_ok=True)
+    selected_rows = selected_rows.split(',')
     for i in range(len(selected_rows)):
         c = selected_rows[i]
         shutil.copytree(os.path.join(export_dir, c), os.path.join(tmp_dir, str(i + 1)))

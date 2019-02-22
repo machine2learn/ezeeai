@@ -67,10 +67,20 @@ $(document).ready(function () {
             },
             data: JSON.stringify({
                 'filename': test_file,
-                'model': model_name,
+                'model_name': model_name,
                 'checkpoint': checkpoint
             }),
             success: function (data) {
+                if (data.hasOwnProperty('error')) {
+                    alert(data.error);
+                } else {
+                    var configs_table = $('#test_table_features').DataTable({
+                        data: data.predict_table['data'],
+                        columns: data.predict_table['columns'],
+                        scrollX: true
+                    });
+                    //TODO create_table(data.predict_table, 'test_table_features', '');
+                }
                 // test_success('show_test', data);
                 // $loading.addClass('hidden');
                 // $("#test_button").attr('disabled', false);
@@ -156,9 +166,9 @@ function uploadCSVFile($input) {
             success: function (data) {
                 if (data.result !== 'ok')
                     alert(data.result);
-                else{
+                else {
                     upload_test_table(filename);
-                     $.notify("File saved", "success");
+                    $.notify("File saved", "success");
                 }
 
             }

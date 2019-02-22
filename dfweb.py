@@ -471,30 +471,53 @@ def upload_test_file():
 @check_config
 def test():
     if request.method == 'POST':
-        hlp = sess.get_helper()
+        model_name = request.get_json()['model_name']
+        local_sess = Session(app)
+        local_sess.add_user((session['user'], session['_id']))
+        config_path = sys_ops.get_config_path(APP_ROOT, session['user'], model_name)
+        local_sess.set_model_name(model_name)
+
+        local_sess.set_config_file(config_path)
+        local_sess.load_config()
+        hlp = local_sess.get_helper()
+
         try:
             has_targets, test_filename, df_test, result = hlp.test_request(request)
         except Exception as e:
-            return jsonify(result='Test\'s file structure is not correct')
+            return jsonify(error='Test\'s file structure is not correct')
 
-        all_params_config = config_reader.read_config(sess.get_config_file())
+        all_params_config = config_reader.read_config(local_sess.get_config_file())
         all_params_config.set('PATHS', 'checkpoint_dir',
-                              os.path.join(all_params_config.export_dir(), get_model(request)))
-
-        if sess.mode_is_canned():
-            all_params_config.set_canned_data(sess.get_canned_data())
+                              os.path.join(all_params_config.export_dir(), model_name))
+        canned_data = os.path.join(APP_ROOT, 'user_data', session['user'], 'models', model_name,
+                                   'custom',
+                                   'canned_data.json')
+        if os.path.isfile(canned_data):
+            all_params_config.set_canned_data(json.load(open(canned_data)))
 
         final_pred, success = th.predict_test_estimator(all_params_config, test_filename)
         if not success:
             return jsonify(error=final_pred)
         try:
-            predict_file = hlp.process_test_predict(df_test, final_pred, test_filename)
+            file_path = hlp.process_test_predict(df_test, final_pred, test_filename)
         except Exception as e:
             return jsonify(error=str(e))
-        sess.set_has_targets(has_targets)
-        sess.set_predict_file(predict_file)
-        store_predictions(has_targets, sess, final_pred, hlp.get_df_test(df_test, has_targets))
-        return jsonify(result="ok")
+
+        df = pd.read_csv(file_path)
+        predict_table = {'data': df.as_matrix().tolist(),
+                         'columns': [{'title': v} for v in df.columns.values.tolist()]}
+        labels = hlp.get_target_labels()
+        metrics = {}
+        store_predictions(has_targets, local_sess, final_pred, hlp.get_df_test(df_test, has_targets))
+        if has_targets:
+            metrics = get_metrics('classification', local_sess.get_y_true(), local_sess.get_y_pred(), labels,
+                                  logits=local_sess.get_logits()) if hlp.get_mode() == 'classification' \
+                else get_metrics('regression', local_sess.get_y_true(), local_sess.get_y_pred(), labels,
+                                 target_len=len(hlp.get_targets()))
+
+        return jsonify(predict_table=predict_table,
+                       metrics=metrics,
+                       targets=hlp.get_targets())
 
     username = session['user']
     _, param_configs = config_ops.get_configs_files(APP_ROOT, username)
@@ -630,25 +653,6 @@ def download():
     return send_file(file_path, mimetype='text/csv', attachment_filename=filename, as_attachment=True)
 
 
-@app.route("/show_test", methods=['GET', 'POST'])
-def show_test():
-    hlp = sess.get_helper()
-    file_path = sess.get_predict_file()
-    df = pd.read_csv(file_path)
-    predict_table = {'data': df.as_matrix().tolist(),
-                     'columns': [{'title': v} for v in df.columns.values.tolist()]}
-    labels = hlp.get_target_labels()
-    metrics = None
-    if sess.get_has_targets():
-        metrics = get_metrics('classification', sess.get_y_true(), sess.get_y_pred(), labels,
-                              logits=sess.get_logits()) if hlp.get_mode() == 'classification' \
-            else get_metrics('regression', sess.get_y_true(), sess.get_y_pred(), labels,
-                             target_len=len(hlp.get_targets()))
-
-    return render_template('test_prediction.html', token=session['token'], predict_table=predict_table, metrics=metrics,
-                           targets=hlp.get_targets())
-
-
 @app.route("/default_prediction", methods=['GET', 'POST'])
 @login_required
 @check_config
@@ -685,9 +689,6 @@ def default_prediction():
         return jsonify(error=pred)
 
     example = hlp.generate_rest_call(pred)
-    # form = DeploymentForm()
-    # form.model_name.default = local_sess.get_model_name()
-    # form.process()
 
     return jsonify(example=example, checkpoints=checkpoints, metric=metric)
 
@@ -696,13 +697,16 @@ def default_prediction():
 @login_required
 @check_config
 def deploy():
-
-    # if request.method == 'POST' and 'model_name' in request.form:
-    #     file_path = sys_ops.export_models(export_dir, get_selected_rows(request), request.form['model_name'])
-    #     return send_file(file_path, mimetype='application/zip', attachment_filename=file_path.split('/')[-1],
-    #                      as_attachment=True)
     if request.method == 'POST' and 'model_name' in request.form:
-        pass
+        local_sess = Session(app)
+        local_sess.add_user((session['user'], session['_id']))
+        model_name = request.form['model_name']
+        config_path = sys_ops.get_config_path(APP_ROOT, session['user'], model_name)
+        all_params_config = config_reader.read_config(config_path)
+
+        file_path = sys_ops.export_models(all_params_config.export_dir(), request.form['selected_rows'], model_name)
+        return send_file(file_path, mimetype='application/zip', attachment_filename=file_path.split('/')[-1],
+                         as_attachment=True)
     username = session['user']
     _, param_configs = config_ops.get_configs_files(APP_ROOT, username)
     return render_template('deploy.html', user=session['user'], token=session['token'],

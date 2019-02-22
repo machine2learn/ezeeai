@@ -59,7 +59,22 @@ $(document).ready(function () {
     // });
     $('.widget').widgster();
 
+    Object.keys(appConfig.handle_key.models).map(function (key) {
+        if (!(appConfig.handle_key.models[key].hasOwnProperty('loss') && appConfig.handle_key.models[key].loss !== 'inf')) {
+            delete appConfig.handle_key.models[key];
+        }
+    });
+
     draw_models_select(appConfig.handle_key.models);
+
+    $('#input_model_name').on('input', function () {
+        if ($(this).val() === '') {
+            $('#export_button').attr('disabled', true);
+        } else {
+            $('#export_button').attr('disabled', false);
+        }
+
+    });
 
 
     $('#model_name').on('change', function () {
@@ -67,6 +82,7 @@ $(document).ready(function () {
         $('.waiting-selection-ckpt').removeClass('hide-element');
         $('#feature-div').addClass('hide-element');
         $('#prediction_div').addClass('hide-element');
+        $('#example_format').removeClass('disabled-custom');
 
 
         let model_name = $(this).val();
@@ -96,10 +112,68 @@ $(document).ready(function () {
 
                 draw_checkpoints(data.checkpoints, data.metric);
 
+                $('#req').text('');
+                $('#cresp').text('');
+
+                var t = document.createTextNode(JSON.stringify(data.example.d, null, 4));
+                document.getElementById('req').appendChild(t);
+                t = document.createTextNode(data.example.curl);
+                document.getElementById('cresp').appendChild(t);
+                t = document.createElement("br");
+                document.getElementById('cresp').appendChild(t);
+                t = document.createElement("br");
+                document.getElementById('cresp').appendChild(t);
+                t = document.createTextNode(JSON.stringify(data.example.output, null, 4));
+                document.getElementById('cresp').appendChild(t);
+
+                $('#input_model_name').val($('#model_name').val());
+
 
             }
         })
+
     });
+
+     $('form').submit(function () {
+        // let selected_rows = table.rows({selected: true}).data().map
+        let selected_rows = [];
+        $('#table_checkpoints').DataTable().rows({selected: true}).every(function () {
+            selected_rows.push(this.data()[0]);
+        });
+        $('#selected_rows').remove();
+        let input = $("<input>")
+            .attr("type", "hidden")
+            .attr('id', 'selected_rows')
+            .attr("name", "selected_rows").val(selected_rows);
+        $('form').append($(input));
+        //  let input_name = $("<input>")
+        //     .attr("type", "hidden")
+        //     .attr("name", "model_name").val($('#model_name').val());
+        // $('form').append($(input_name));
+    });
+
+
+
+    // $('#export_button').on('click', function () {
+    //     let data = {'model_name': $('#model_name').val()};
+    //     let selected_rows = [];
+    //     $('#table_checkpoints').DataTable().rows({selected: true}).every(function () {
+    //         selected_rows.push(this.data()[0]);
+    //     });
+    //     data['selected_rows'] = selected_rows;
+    //
+    //     $.ajax({
+    //         url: "/deploy",
+    //         type: 'POST',
+    //         dataType: 'json',
+    //         contentType: 'application/json;charset=UTF-8',
+    //         data: JSON.stringify(data),
+    //         success: function (data) {
+    //             console.log('hola');
+    //
+    //         }
+    //     });
+    // });
 
 });
 
@@ -120,13 +194,16 @@ function draw_checkpoints(checkpoints, metric) {
     })
         .on('select', function () {
             $('.waiting-selection-ckpt').addClass('hide-element');
-            $('#feature-div').removeClass('hide-element');
-            $('#features_div').removeClass('disabled-custom');
+            $('.visualization-ckpt').removeClass('hide-element');
+            $('#export_div').removeClass('disabled-custom');
         })
         .on('deselect', function () {
-            $('.waiting-selection-ckpt').removeClass('hide-element');
-            $('#feature-div').addClass('hide-element');
-            $('#features_div').addClass('disabled-custom');
+            if (!table_checkpoints.rows('.selected').any()) {
+                $('.waiting-selection-ckpt').removeClass('hide-element');
+                $('.visualization-ckpt').addClass('hide-element');
+                $('#export_div').addClass('disabled-custom');
+            }
+
         });
 
     $('#checkpoint_search').keyup(function () {

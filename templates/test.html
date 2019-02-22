@@ -114,10 +114,10 @@
 
 
         <div class="col-lg-6">
-            <section class="widget widget-overflow hide-element" id="">
+            <section class="widget widget-overflow" id="">
                 <header>
                     <h6>
-                        Your <span class="fw-semi-bold">Test</span>
+                        Your <span class="fw-semi-bold">Predictions</span>
                     </h6>
                 </header>
 
@@ -126,6 +126,9 @@
                     <div id="pred-loader" class="loader hide-element">Loading...</div>
 
                     <div class="pre-scrollable table-test">
+                        <table id="test_table_features" class="table table-hover table-striped"
+                               style="width:100%">
+                        </table>
                         {#                        <table class="table-pred" id="table_prediction" align="center">#}
                         {#                        </table>#}
 
@@ -163,6 +166,26 @@
             </section>
         </div>
     </div>
+    <div class="row">
+        <div class="col-lg-4">
+            <section class="widget widget-overflow" id="">
+                <header>
+                    <h6>
+                        Graph <span class="fw-semi-bold">1</span>
+                    </h6>
+                </header>
+            </section>
+        </div>
+        <div class="col-lg-4">
+            <section class="widget widget-overflow" id="">
+                <header>
+                    <h6>
+                        Graph <span class="fw-semi-bold">2</span>
+                    </h6>
+                </header>
+            </section>
+        </div>
+    </div>
 
 {% endblock %}
 
@@ -178,6 +201,8 @@
     <script src="{{ url_for('.static', filename='test.js') }}"></script>
     <script src="{{ url_for('.static', filename='notify.js') }}"></script>
     <script src="{{ url_for('.static', filename='checkpoint_features.js') }}"></script>
+    <script src="{{ url_for('.static', filename='data_graphs.js') }}"></script>
+
     <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.js"></script>
     <script type=text/javascript>
         var handle_key = {};
