@@ -87,10 +87,22 @@ $(document).ready(function () {
                 dataType: 'json',
                 data: data_form,
                 success: function (data) {
-                    $('.loader-pred').addClass('hide-element');
-                    $('#prediction_probabilities').removeClass('hide-element');
-                    $('#explain_graphs').removeClass('hide-element');
-                    generate_explain_plots(data);
+
+                    if (data.hasOwnProperty('error')) {
+                        alert(data.error);
+                        $('#explain_div_out').addClass('hide-element');
+                        $('#explain_div_expl').addClass('hide-element');
+                        $('.loader-pred').addClass('hide-element');
+
+
+                    } else {
+                        $('.loader-pred').addClass('hide-element');
+                        $('#prediction_probabilities').removeClass('hide-element');
+                        $('#explain_graphs').removeClass('hide-element');
+                        generate_explain_plots(data);
+                    }
+
+
                 }
             });
 
@@ -137,6 +149,8 @@ function completeHandler(event) {
     let data = JSON.parse(event.target.responseText);
     if ('error' in data) {
         alert(data.error);
+        $('#explain_div_out').addClass('hide-element');
+        $('#explain_div_expl').addClass('hide-element');
     } else {
         $('#result_explain').removeClass('hide-element');
         create_donut(data.predict_table);

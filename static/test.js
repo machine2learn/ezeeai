@@ -6,6 +6,8 @@ $(document).ready(function () {
         $('.waiting-selection-ckpt').removeClass('hide-element');
         $('.waiting-selection').addClass('hide-element');
         $('.loader').removeClass('hide-element');
+        $('#feature-div').addClass('hide-element');
+        $('#test_file_disabled').removeClass('hide-element');
 
         $.ajax({
             url: "/params_predict",
@@ -42,41 +44,39 @@ $(document).ready(function () {
         })
     });
 
-    $("#image-upload").on('change', function(){
+    $("#image-upload").on('change', function () {
         uploadZipFile(this);
     });
-     $("#tabular-upload").on('change', function(){
+    $("#tabular-upload").on('change', function () {
         uploadCSVFile(this);
     });
 
     $('#test').on('click', function () {
-        let test_file = get_testfile_selected();
+        let test_file = $('#table_test_files').DataTable().rows({selected: true}).data()[0][0];
         let checkpoint = $('#table_checkpoints').DataTable().rows({selected: true}).data()[0][0];
         let model_name = $('#model_name').val();
 
-        if (!test_file) {
-            alert("Please select a file.")
-        } else {
-            $.ajax({
-                url: "/test",
-                type: 'POST',
-                dataType: 'json',
-                contentType: 'application/json;charset=UTF-8',
-                accepts: {
-                    json: 'application/json',
-                },
-                data: JSON.stringify({
-                    'filename': test_file,
-                    'model': model_name,
-                    'checkpoint': checkpoint
-                }),
-                success: function (data) {
-                    // test_success('show_test', data);
-                    // $loading.addClass('hidden');
-                    // $("#test_button").attr('disabled', false);
-                }
-            })
-        }
+
+        $.ajax({
+            url: "/test",
+            type: 'POST',
+            dataType: 'json',
+            contentType: 'application/json;charset=UTF-8',
+            accepts: {
+                json: 'application/json',
+            },
+            data: JSON.stringify({
+                'filename': test_file,
+                'model': model_name,
+                'checkpoint': checkpoint
+            }),
+            success: function (data) {
+                // test_success('show_test', data);
+                // $loading.addClass('hidden');
+                // $("#test_button").attr('disabled', false);
+            }
+        })
+
 
     });
 });
@@ -96,7 +96,7 @@ function create_table_test_files(data) {
 
     let table_test = $('#table_test_files').DataTable({
         data: dataArr,
-        columns: [{title: 'Test file'}],
+        columns: [{title: ''}],
         // searching: true,
         'select': 'single',
         "lengthChange": false,
@@ -107,22 +107,16 @@ function create_table_test_files(data) {
                 $(id + '_info').remove();
             }
         }
+    }).on('select', function () {
+        $('#test').attr('disabled', false);
+
     })
+        .on('deselect', function () {
+            $('#test').attr('disabled', true);
+        });
 
 
 }
-
-
-function get_testfile_selected() {
-    let file = $('#test_table').DataTable().rows({selected: true}).data()[0];
-    if (file === undefined)
-        return false;
-    if (file[0].indexOf('TEST FROM SPLIT') > 0)
-        return 'TEST FROM SPLIT';
-    return file[0];
-}
-
-
 
 
 function uploadZipFile($input) {
@@ -162,16 +156,18 @@ function uploadCSVFile($input) {
             success: function (data) {
                 if (data.result !== 'ok')
                     alert(data.result);
-                else
+                else{
                     upload_test_table(filename);
+                     $.notify("File saved", "success");
+                }
+
             }
         })
     }
 }
 
-
 function upload_test_table(filename) {
-   console.log(filename)
+    $('#table_test_files').DataTable().row.add([filename]).draw();
 
 }
 

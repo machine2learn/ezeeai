@@ -1,13 +1,8 @@
-{% extends "base_tf3.html" %}
-{% import 'bootstrap/wtf.html' as wtf %}
+{% extends "base.html" %}
 
 {% block styles %}
     {{ super() }}
-    <link rel="stylesheet" type="text/css"
-          href="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.css"/>
-{% endblock %}
-
-{% block app_content %}
+    <link href="{{ url_for('.static', filename='base/css/tables.css') }}" rel="stylesheet">
     <style type="text/css">
         pre.prettyprint {
             border: 1px solid #ccc;
@@ -19,47 +14,119 @@
             text-indent: 30px;
         }
     </style>
-    <div align="center">
-        <th1> Deployment </th1>
+
+
+{% endblock %}
+
+
+{% block content %}
+
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">YOU ARE HERE</li>
+        <li class="breadcrumb-item active"> Deployment</li>
+    </ol>
+
+    <div class="row ">
+        <div class="col-lg-3">
+            <section class="widget widget-overflow" id="run_config_div">
+                <header>
+                    <h6>
+                        Your <span class="fw-semi-bold">Model</span>
+                    </h6>
+                </header>
+                <div class="widget-body margin-top-15">
+                    <div id="models-select-div"></div>
+                    <div id="checkpoints_div" class="disabled-custom margin-top-15">
+                        <header>
+                            <h6>
+                                <span class="fw-semi-bold">Checkpoints</span>
+                            </h6>
+                        </header>
+                        <div class="table-responsive visualization hide-element">
+                            <div class="navbar-form" role="search">
+                                <div class="form-group">
+                                    <div class="input-group input-group-no-border">
+                                        <input id="checkpoint_search" class="form-control" type="text"
+                                               placeholder="Search Checkpoint">
+                                        <span class="input-group-append">
+                                                    <span class="input-group-text">
+                                                        <i class="la la-search"></i>
+                                                    </span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <table id="table_checkpoints" class="table table-hover table-striped"
+                                   style="width:100%">
+                            </table>
+
+
+                        </div>
+
+                        <div class="loader hide-element">Loading...</div>
+
+                        <div class="waiting-selection">
+                            Select a Model to display
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <div class="col-lg-9">
+            <section class="widget widget-overflow">
+                <header>
+                    <h6>
+                        Standard <span class="fw-semi-bold">Format</span>
+                    </h6>
+                </header>
+                <div class="widget-controls">
+                    <a data-widgster="expand" title="Expand" href="#"><i
+                            class="glyphicon glyphicon-chevron-up"></i></a>
+                    <a data-widgster="collapse" title="Collapse" href="#"><i
+                            class="glyphicon glyphicon-chevron-down"></i></a>
+                    <a href="#" data-widgster="close"><i class="glyphicon glyphicon-remove"></i></a>
+                </div>
+                    <div class="widget-body" id="ddiv">
+                        <br>
+                        <h6><b>RESTful API with Tensorflow Serving</b></h6>
+                        <pre class="prettyprint">POST http://host:port/&lt;URI&gt;:&lt;VERB&gt;<br><br>URI: /v1/models/${MODEL_NAME}[/versions/${MODEL_VERSION}]<br>VERB: predict</pre>
+                        <br>
+                        <h6><b>Request format</b></h6>
+                        <pre class="prettyprint">{<br><p class="ind-p">"signature_name": "predict",</p><p class="ind-p">"instances": value|(nested)list|list-of-objects</p>}</pre>
+                        <br>
+                        <h6><b>Response format</b></h6>
+                        <pre class="prettyprint">{<br><p
+                                class="ind-p">"predictions": value|(nested)list|list-of-objects</p>}</pre>
+                    </div>
+            </section>
+        </div>
+    <div class="row">
+
     </div>
-    <br>
 
-    {{ checkpoints.to_html(classes="table table-striped display", table_id="deploy", index=False) | safe }}
-    <div class="hidden" id="ddiv">
-        <br>
-        <h5><b>RESTful API with Tensorflow Serving</b></h5>
-        <pre class="prettyprint">POST http://host:port/&lt;URI&gt;:&lt;VERB&gt;<br><br>URI: /v1/models/${MODEL_NAME}[/versions/${MODEL_VERSION}]<br>VERB: predict</pre>
-        <br>
-        <h5><b>Request format</b></h5>
-        <pre class="prettyprint">{<br><p class="ind-p">"signature_name": "predict",</p><p class="ind-p">"instances": value|(nested)list|list-of-objects</p>}</pre>
-        <br>
-        <h5><b>Response format</b></h5>
-        <pre class="prettyprint">{<br><p class="ind-p">"predictions": value|(nested)list|list-of-objects</p>}</pre>
-        <br>
-        <h5><b>Example request</b></h5>
-        <pre class="prettyprint" id="req"></pre>
-        <br>
-        <h5><b>Example call and response</b></h5>
-        <pre class="prettyprint" id="cresp"></pre>
-        <br>
 
-        {{ wtf.quick_form(form, id="depform", button_map={'submit': 'primary'}) }}
     </div>
 
 {% endblock %}
 
+
 {% block scripts %}
     {{ super() }}
-    <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.js"></script>
-    <script src="//google-code-prettify.googlecode.com/svn/loader/run_prettify.js"></script>
-    <script src="{{ url_for('.static', filename='deploy.js') }}"></script>
-    <script type=text/javascript>
-        var handle_key = {};
-        handle_key.example = {{ example | tojson | safe }};
-        window.appConfig = {
-            handle_key: handle_key
-        }
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#sb-deploy').addClass('active');
+        });
     </script>
 
+    <script src="{{ url_for('.static', filename='deploy.js') }}"></script>
+    <script src="{{ url_for('.static', filename='checkpoint_features.js') }}"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.js"></script>
+    <script type=text/javascript>
+        var handle_key = {};
+        handle_key.models = {{  parameters | tojson | safe }};
+        window.appConfig = {
+            handle_key: handle_key
+        };
+    </script>
 
 {% endblock %}

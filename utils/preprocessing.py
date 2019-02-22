@@ -86,11 +86,9 @@ def clean_field_names(filename):
 
 def clean_field_names_df(file, filename):
     args = {}
-    if not has_header(file):
+    if not has_header(file, False):
         args['header'] = None
-    print(file)
     df = pd.read_csv(file, sep=None, engine='python', **args)
-    print(df)
     df.columns = df.columns.astype(str)
     df.columns = df.columns.str.strip().str.lower().str.replace(' ', '_').str.replace('(', '').str.replace(')', '')
     df.to_csv(filename, index=False)
@@ -107,11 +105,14 @@ def check_train(train_file, targets):
     return True
 
 
-def has_header(csvfile):
+def has_header(csvfile, close=True):
     if isinstance(csvfile, str):
         csvfile = open(csvfile, 'r')
 
     sniffer = csv.Sniffer()
     has_header = sniffer.has_header(csvfile.read(2048))
-    csvfile.close()
+    if close:
+        csvfile.close()
+    else:
+        csvfile.seek(0)
     return has_header

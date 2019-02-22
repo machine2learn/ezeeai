@@ -449,29 +449,6 @@ def explain():
                            parameters=param_configs)
 
 
-#
-# @app.route('/explain', methods=['POST', 'GET'])
-# @login_required
-# @check_config
-# def explain():
-#     if request.method == 'POST':
-#         hlp = sess.get_helper()
-#         all_params_config = run_utils.create_result_parameters(request, sess)
-#         ep = hlp.process_explain_request(request)
-#         if 'explanation' in ep:
-#             return jsonify(**ep)
-#         if sess.mode_is_canned():
-#             all_params_config.set_canned_data(sess.get_canned_data())
-#
-#         result, success = th.explain_estimator(all_params_config, ep)
-#         if success:
-#             hlp.explain_return(sess, request, result)
-#         return jsonify(error=result) if not success else jsonify({})
-#     params = sess.get_explain_params()
-#     return render_template('explain.html', title="Explain", page=5, model=sess.get_model(), user=session['user'],
-#                            token=session['token'], exp_target=sess.get_exp_target(), **params)
-
-
 @app.route('/upload_test_file', methods=['POST', 'GET'])
 @login_required
 @check_config
@@ -672,35 +649,64 @@ def show_test():
                            targets=hlp.get_targets())
 
 
+@app.route("/default_prediction", methods=['GET', 'POST'])
+@login_required
+@check_config
+def default_prediction():
+    local_sess = Session(app)
+    local_sess.add_user((session['user'], session['_id']))
+    model_name = get_model_name(request)
+
+    config_path = sys_ops.get_config_path(APP_ROOT, session['user'], model_name)
+    local_sess.set_model_name(model_name)
+
+    local_sess.set_config_file(config_path)
+    local_sess.load_config()
+    hlp = local_sess.get_helper()
+    all_params_config = config_reader.read_config(local_sess.get_config_file())
+    export_dir = all_params_config.export_dir()
+    checkpoints = run_utils.get_eval_results(export_dir, local_sess.get_writer(), local_sess.get_config_file())
+    metric = local_sess.get_metric()
+    if len(checkpoints) == 0:
+        return jsonify(checkpoints={}, metric=metric)
+    checkpoints_df = run_utils.ckpt_to_table(checkpoints)
+
+    all_params_config = run_utils.create_result_parameters(request, local_sess,
+                                                           checkpoint=checkpoints_df['Model'].values[-1])
+    new_features = hlp.get_new_features(None, default_features=True)
+
+    canned_data = os.path.join(APP_ROOT, 'user_data', session['user'], 'models', model_name, 'custom',
+                               'canned_data.json')
+    if os.path.isfile(canned_data):
+        all_params_config.set_canned_data(json.load(open(canned_data)))
+
+    pred, success = th.predict_estimator(all_params_config, new_features, all=True)
+    if not success:
+        return jsonify(error=pred)
+
+    example = hlp.generate_rest_call(pred)
+    # form = DeploymentForm()
+    # form.model_name.default = local_sess.get_model_name()
+    # form.process()
+
+    return jsonify(example=example, checkpoints=checkpoints, metric=metric)
+
+
 @app.route("/deploy", methods=['GET', 'POST'])
 @login_required
 @check_config
 def deploy():
-    all_params_config = config_reader.read_config(sess.get_config_file())
-    hlp = sess.get_helper()
-    export_dir = all_params_config.export_dir()
 
+    # if request.method == 'POST' and 'model_name' in request.form:
+    #     file_path = sys_ops.export_models(export_dir, get_selected_rows(request), request.form['model_name'])
+    #     return send_file(file_path, mimetype='application/zip', attachment_filename=file_path.split('/')[-1],
+    #                      as_attachment=True)
     if request.method == 'POST' and 'model_name' in request.form:
-        file_path = sys_ops.export_models(export_dir, get_selected_rows(request), request.form['model_name'])
-        return send_file(file_path, mimetype='application/zip', attachment_filename=file_path.split('/')[-1],
-                         as_attachment=True)
-
-    checkpoints = run_utils.ckpt_to_table(
-        run_utils.get_eval_results(export_dir, sess.get_writer(), sess.get_config_file()))
-    all_params_config = run_utils.create_result_parameters(request, sess, checkpoint=checkpoints['Model'].values[-1])
-    new_features = hlp.get_new_features(request.form, default_features=True)
-    if sess.mode_is_canned():
-        all_params_config.set_canned_data(sess.get_canned_data())
-    pred = th.predict_estimator(all_params_config, new_features, all=True)
-    if pred is None:
-        return redirect(url_for('run'))  # flash('Deploy error.', 'error')
-    example = hlp.generate_rest_call(pred)
-
-    form = DeploymentForm()
-    form.model_name.default = sess.get_model_name()
-    form.process()
-    return render_template('deploy.html', token=session['token'], checkpoints=checkpoints, page=4,
-                           form=form, example=example)
+        pass
+    username = session['user']
+    _, param_configs = config_ops.get_configs_files(APP_ROOT, username)
+    return render_template('deploy.html', user=session['user'], token=session['token'],
+                           parameters=param_configs)
 
 
 @app.route('/explain_feature', methods=['POST'])

@@ -82,9 +82,16 @@ $(document).ready(function () {
                 dataType: 'json',
                 data: data_form,
                 success: function (data) {
+                    if (data.hasOwnProperty('error')) {
+                        alert(data.error);
+                        $('#prediction_div').addClass('hide-element');
+                    } else {
+
+                        create_table_predictions(data);
+                    }
                     $('#pred-loader').addClass('hide-element');
                     $('#table_prediction').removeClass('hide-element');
-                    create_table_predictions(data);
+
                 }
             });
 
@@ -116,18 +123,18 @@ function serialize_form() {
 function completeHandler(event) {
     $("#predict_button").attr('disabled', false);
     $("#loading_predict").addClass('hidden');
-    $('#pred-loader').addClass('hide-element');
     $('#table_prediction').removeClass('hide-element');
 
     let data = JSON.parse(event.target.responseText);
-    if ('error' in data) {
+    if (data.hasOwnProperty('error')) {
         alert(data.error);
+        $('#prediction_div').addClass('hide-element');
     } else {
+        $('#pred-loader').addClass('hide-element');
         $('#prediction_div').removeClass('hide-element');
         create_table_predictions(data);
     }
 }
-
 
 
 function errorHandler(event) {

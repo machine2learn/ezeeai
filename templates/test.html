@@ -19,7 +19,7 @@
     </ol>
 
     <div class="row ">
-        <div class="col-lg-4">
+        <div class="col-lg-3">
             <section class="widget widget-overflow" id="run_config_div">
                 <header>
                     <h6>
@@ -72,18 +72,14 @@
                     </h6>
                 </header>
 
-                <div class="waiting-selection-ckpt margin-top-15">
+                <div class="waiting-selection-ckpt margin-top-15" id="test_file_disabled">
                     Select a Checkpoint to display
                 </div>
 
-                <div class="pre-scrollable hide-element" id="feature-div">
-
-                    <h6 class="margin-top-15">
-                        <span class="fw-semi-bold ">Upload a new test file</span>
-                    </h6>
+                <div class="pre-scrollable hide-element margin-top-15" id="feature-div">
 
                     <div class="upload-file hide-element" id="tabular-upload-div">
-                        <label class="label-title">CSV file</label>
+                        <label class="label-title">Upload a new CSV file</label>
                         <div class="file-upload-tabular custom-file">
                             <label for="tabular-upload" class="custom-file-label"
                                    title="TEST DATASET">Choose file</label>
@@ -102,24 +98,22 @@
 
 
                     <h6 class="margin-top-25">
-                        <span class="fw-semi-bold ">Select a test file to test</span>
+                        <span class="fw-semi-bold ">Select a file</span>
                     </h6>
                     <table id="table_test_files" align="center"
                            class="table table-hover table-striped no-footer dataTable">
                     </table>
 
-
-
                 </div>
 
                 <div class="btn-next-parent margin-top-15">
-                    <button class="btn btn-primary btn-next" id="test"> Test</button>
+                    <button class="btn btn-primary btn-next" id="test" disabled> Test</button>
                 </div>
             </section>
         </div>
 
 
-        <div class="col-lg-3">
+        <div class="col-lg-6">
             <section class="widget widget-overflow hide-element" id="">
                 <header>
                     <h6>
@@ -182,6 +176,7 @@
     </script>
 
     <script src="{{ url_for('.static', filename='test.js') }}"></script>
+    <script src="{{ url_for('.static', filename='notify.js') }}"></script>
     <script src="{{ url_for('.static', filename='checkpoint_features.js') }}"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.js"></script>
     <script type=text/javascript>
