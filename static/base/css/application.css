@@ -23617,7 +23617,7 @@ a {
 .content {
     position: relative;
     min-height: 100%;
-    padding: 102px 40px 42px;
+    padding: 80px 40px 42px;
     background-color: #fafbff;
 }
 
@@ -24634,10 +24634,12 @@ a {
     z-index: 100;
     transition: right 0.3s ease-in-out;
 }
-.theme-helper-body-paused{
+
+.theme-helper-body-paused {
     text-align: center;
 }
-.theme-helper-body-active{
+
+.theme-helper-body-active {
     margin-left: 15px;
 }
 
@@ -26270,6 +26272,7 @@ a.text-bg-sidebar:hover, a.text-bg-sidebar:focus {
 .margin-top-15 {
     margin-top: 15px;
 }
+
 .margin-top-20 {
     margin-top: 20px;
 }
@@ -26277,7 +26280,6 @@ a.text-bg-sidebar:hover, a.text-bg-sidebar:focus {
 .margin-top-25 {
     margin-top: 25px;
 }
-
 
 .abort {
     margin: 0px !important;
@@ -26419,3 +26421,33 @@ input.text-error {
 .js-plotly-plot {
     height: 30vh;
 }
+
+.test-graph {
+    max-height: 30vh;
+}
+
+.input-inline {
+    display: inline;
+    width: 40%;
+    margin: 3px;
+}
+
+.align-center-custom {
+    margin-top: 6px;
+}
+
+.dt-buttons {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.dt-button {
+    margin: 3px !important;
+    color: dimgrey;
+}
+
+.dt-button:hover {
+    color: #019ebd ;
+    text-decoration: none;
+}
+

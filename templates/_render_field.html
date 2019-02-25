@@ -13,6 +13,14 @@
     <div class="clearfix"></div>
 {% endmacro %}
 
+
+{% macro render_single_field_no_label(field) %}
+   {{ field( **kwargs)|safe }}
+{% endmacro %}
+
+
+
+
 {% macro render_checkbox(field) %}
     <div class="form-group">
         <label for="{{ field.name }}" class="control-label">{{ field.label.text }}</label>

@@ -8,6 +8,10 @@ $(document).ready(function () {
         $('.loader').removeClass('hide-element');
         $('#feature-div').addClass('hide-element');
         $('#test_file_disabled').removeClass('hide-element');
+        $('#graph_test_div').addClass('disabled-custom');
+        $('#table_prediction_div').addClass('disabled-custom');
+        $('.waiting-test-file').addClass('hide-element');
+
 
         $.ajax({
             url: "/params_predict",
@@ -16,7 +20,6 @@ $(document).ready(function () {
             contentType: 'application/json;charset=UTF-8',
             data: JSON.stringify({'model_name': $(this).val()}),
             success: function (data) {
-                let test_params = data.params.test_files;
                 $('.loader').addClass('hide-element');
                 $('.visualization').removeClass('hide-element');
                 if ($.fn.DataTable.isDataTable('#table_checkpoints')) {
@@ -26,9 +29,7 @@ $(document).ready(function () {
                 }
 
                 create_checkpoint_table(data.checkpoints, data.metric);
-
                 $('#features_div').addClass('disabled-custom');
-
                 create_table_test_files(data.params.test_files);
 
                 if (data.params.hasOwnProperty('image')) {
@@ -55,7 +56,11 @@ $(document).ready(function () {
         let test_file = $('#table_test_files').DataTable().rows({selected: true}).data()[0][0];
         let checkpoint = $('#table_checkpoints').DataTable().rows({selected: true}).data()[0][0];
         let model_name = $('#model_name').val();
+        $('#graph_test_div').removeClass('disabled-custom');
+        $('#table_prediction_div').removeClass('disabled-custom');
 
+        $('.waiting-test-file').addClass('hide-element');
+        $('.loader-test-file').removeClass('hide-element');
 
         $.ajax({
             url: "/test",
@@ -71,19 +76,17 @@ $(document).ready(function () {
                 'checkpoint': checkpoint
             }),
             success: function (data) {
+                $('.loader-test-file').addClass('hide-element');
+                $('.waiting-test-file').removeClass('hide-element');
                 if (data.hasOwnProperty('error')) {
                     alert(data.error);
                 } else {
-                    var configs_table = $('#test_table_features').DataTable({
-                        data: data.predict_table['data'],
-                        columns: data.predict_table['columns'],
-                        scrollX: true
-                    });
-                    //TODO create_table(data.predict_table, 'test_table_features', '');
+                    appConfig.handle_key.metrics = data.metrics;
+                    appConfig.handle_key.targets = data.targets;
+                    create_table_predictions(data.predict_table['data'], data.predict_table['columns'])
+                    create_graphs(data.metrics, data.targets)
                 }
-                // test_success('show_test', data);
-                // $loading.addClass('hidden');
-                // $("#test_button").attr('disabled', false);
+
             }
         })
 
@@ -91,19 +94,39 @@ $(document).ready(function () {
     });
 });
 
+function remove_table(id) {
+    if ($.fn.DataTable.isDataTable('#' + id)) {
+        $('#' + id).DataTable().destroy();
+        $('#' + id + ' tbody').empty();
+        $('#' + id + ' thead').empty();
+    }
+}
+
+function create_table_predictions(data, columns) {
+    remove_table('test_table_features');
+    $('#test_table_features').DataTable({
+        data: data,
+        columns: columns,
+        scrollX: true,
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'csv',
+                title: 'pred-' + $('#table_test_files').DataTable().rows({selected: true}).data()[0][0]
+            },
+        ],
+        initComplete: function () {
+            $('.buttons-csv').html('<span class="fi flaticon-download" data-toggle="tooltip" title="Export To CSV"/></span>Download CSV ')
+        }
+    });
+
+}
 
 function create_table_test_files(data) {
-
     let dataArr = data.map(function (d) {
         return [d];
     });
-
-    if ($.fn.DataTable.isDataTable('#table_test_files')) {
-        $('#table_test_files').DataTable().destroy();
-        $('#table_test_files tbody').empty();
-        $('#table_test_files thead').empty();
-    }
-
+    remove_table('table_test_files');
     let table_test = $('#table_test_files').DataTable({
         data: dataArr,
         columns: [{title: ''}],
@@ -124,7 +147,6 @@ function create_table_test_files(data) {
         .on('deselect', function () {
             $('#test').attr('disabled', true);
         });
-
 
 }
 
@@ -182,6 +204,47 @@ function upload_test_table(filename) {
 }
 
 
+function create_graphs(metrics, targets) {
+    $('#exp_target').remove();
+    $('#exp_label').remove();
+
+    let len = targets.length;
 
 
+    $('#exp_div').append('<label id="exp_label" class="cust_label" for="exp_target"><b> Target</b> </label>')
+        .append('<select  id="exp_target" name="exp_target" class="form-control input-inline"></select>');
 
+    for (let i = 0; i < len; i++) {
+        $('#exp_target').append(new Option(targets[i], i));
+    }
+
+    $("#exp_target").change(function () {
+        multi_regression_plots(parseInt(get_target_idx()));
+        add_metric('R2 score', metrics.r2_score[get_target_idx()])
+    });
+
+    if (metrics != null) {
+        if ('y_pred' in metrics) {
+            let dim = [metrics.y_true.length, metrics.y_true[0].length];
+            if (typeof dim[1] === "undefined") {
+                regression_plots(metrics.y_true, metrics.y_pred);
+            } else {
+                multi_regression_plots(parseInt(get_target_idx()));
+            }
+            if (metrics.r2_score.length > 1) {
+                add_metric('R2 score', metrics.r2_score[0].toFixed(3))
+            } else {
+                add_metric('R2 score', metrics.r2_score.toFixed(3))
+            }
+
+        } else {
+            precision_recall_plots();
+            roc_plot();
+            add_metric('Accuracy', metrics.accuracy.toFixed(3))
+        }
+    }
+}
+
+function add_metric(label, value) {
+    $('#metric_acc').html('<b>' + label + '</b>  : ' + value)
+}

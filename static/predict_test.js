@@ -1,51 +1,51 @@
-$(document).ready(function () {
-    var configs_table = $('#test_table_features').DataTable({
-        data: appConfig.handle_key.predict_table['data'],
-        columns: appConfig.handle_key.predict_table['columns'],
-        scrollX: true
-    });
-    var targets = appConfig.handle_key.targets;
-    var len = targets.length;
-    $('#exp_label').append('<select  id="exp_target" name="exp_target"> Target: </select>');
-    var i;
-    for (i = 0; i < len; i++) {
-        $('#exp_target').append(new Option(targets[i], i));
-    }
-
-
-    $("#exp_target").change(function () {
-        multi_regression_plots(parseInt(get_target_idx()));
-        $('#metric_acc').text('R2 score : ' + appConfig.handle_key.metrics.r2_score[get_target_idx()]);
-    });
-
-    if (appConfig.handle_key.metrics != null) {
-        if ('y_pred' in appConfig.handle_key.metrics) {
-            var dim = [appConfig.handle_key.metrics.y_true.length, appConfig.handle_key.metrics.y_true[0].length];
-            if (typeof dim[1] == "undefined") {
-                regression_plots(appConfig.handle_key.metrics.y_true, appConfig.handle_key.metrics.y_pred);
-            } else {
-                multi_regression_plots(parseInt(get_target_idx()));
-            }
-            if (appConfig.handle_key.metrics.r2_score.length > 1) {
-                $('#metric_acc').text('R2 score : ' + appConfig.handle_key.metrics.r2_score[0].toFixed(3));
-            } else {
-                $('#metric_acc').text('R2 score : ' + appConfig.handle_key.metrics.r2_score.toFixed(3));
-            }
-
-        } else {
-            precision_recall_plots();
-            roc_plot();
-            $('#metric_acc').text('Accuracy : ' + appConfig.handle_key.metrics.accuracy.toFixed(3));
-        }
-
-    }
-
-
-    //
-    // }else()
-
-
-});
+// $(document).ready(function () {
+//     var configs_table = $('#test_table_features').DataTable({
+//         data: appConfig.handle_key.predict_table['data'],
+//         columns: appConfig.handle_key.predict_table['columns'],
+//         scrollX: true
+//     });
+//     var targets = appConfig.handle_key.targets;
+//     var len = targets.length;
+//     $('#exp_label').append('<select  id="exp_target" name="exp_target"> Target: </select>');
+//     var i;
+//     for (i = 0; i < len; i++) {
+//         $('#exp_target').append(new Option(targets[i], i));
+//     }
+//
+//
+//     $("#exp_target").change(function () {
+//         multi_regression_plots(parseInt(get_target_idx()));
+//         $('#metric_acc').text('R2 score : ' + appConfig.handle_key.metrics.r2_score[get_target_idx()]);
+//     });
+//
+//     if (appConfig.handle_key.metrics != null) {
+//         if ('y_pred' in appConfig.handle_key.metrics) {
+//             var dim = [appConfig.handle_key.metrics.y_true.length, appConfig.handle_key.metrics.y_true[0].length];
+//             if (typeof dim[1] == "undefined") {
+//                 regression_plots(appConfig.handle_key.metrics.y_true, appConfig.handle_key.metrics.y_pred);
+//             } else {
+//                 multi_regression_plots(parseInt(get_target_idx()));
+//             }
+//             if (appConfig.handle_key.metrics.r2_score.length > 1) {
+//                 $('#metric_acc').text('R2 score : ' + appConfig.handle_key.metrics.r2_score[0].toFixed(3));
+//             } else {
+//                 $('#metric_acc').text('R2 score : ' + appConfig.handle_key.metrics.r2_score.toFixed(3));
+//             }
+//
+//         } else {
+//             precision_recall_plots();
+//             roc_plot();
+//             $('#metric_acc').text('Accuracy : ' + appConfig.handle_key.metrics.accuracy.toFixed(3));
+//         }
+//
+//     }
+//
+//
+//     //
+//     // }else()
+//
+//
+// });
 
 function get_target_idx() {
     var sel = document.getElementById('exp_target');
@@ -84,12 +84,15 @@ function regression_plots(y_true, y_pred) {
         x: y_true,
         y: y_pred,
         type: 'scatter',
-
         mode: 'markers'
     };
     var data = [trace1, trace2];
     var layout = {
         title: 'Predicted vs. Actual Response',
+        font: {
+            family: '"Montserrat", sans-serif',
+            size: 11
+        },
         showlegend: false,
         xaxis: {
             title: 'True response'
@@ -97,10 +100,13 @@ function regression_plots(y_true, y_pred) {
         yaxis: {
             title: 'Predicted response'
         },
-        plot_bgcolor: 'rgba(0,0,0,0)',
-        paper_bgcolor: 'rgba(0,0,0,0)'
+        margin: {
+            t: 50,
+            pad: 4
+        },
+        plot_bgcolor: 'rgba(0,0,0,0)'
     }
-    Plotly.newPlot('pred_act_response', data, layout);
+    Plotly.newPlot('recall_div', data, layout, {responsive: true});
 
 
     var dif = arr_diff(y_true, y_pred);
@@ -108,6 +114,10 @@ function regression_plots(y_true, y_pred) {
 
     var layout2 = {
         title: 'Difference',
+        font: {
+            family: '"Montserrat", sans-serif',
+            size: 11
+        },
         showlegend: false,
         xaxis: {
             title: 'True response'
@@ -116,8 +126,11 @@ function regression_plots(y_true, y_pred) {
             title: 'Residuals',
             range: [-abs, abs]
         },
-        plot_bgcolor: 'rgba(0,0,0,0)',
-        paper_bgcolor: 'rgba(0,0,0,0)'
+        margin: {
+            t: 50,
+            pad: 4
+        },
+        plot_bgcolor: 'rgba(0,0,0,0)'
     }
     var data2 = [
         {
@@ -127,7 +140,7 @@ function regression_plots(y_true, y_pred) {
             mode: 'markers'
         }
     ];
-    Plotly.newPlot('myDiv2', data2, layout2);
+    Plotly.newPlot('roc_div', data2, layout2, {responsive: true});
 }
 
 function multi_regression_plots(target_idx) {
@@ -141,7 +154,6 @@ function multi_regression_plots(target_idx) {
 }
 
 function precision_recall_plots() {
-
     if ('bin' in appConfig.handle_key.metrics.pr.recall) {
         var trace1 = {
             x: appConfig.handle_key.metrics.pr.recall['bin'],
@@ -175,9 +187,17 @@ function precision_recall_plots() {
 
     var layout = {
         title: 'Precision-Recall',
+        font: {
+            family: '"Montserrat", sans-serif',
+            size: 11
+        },
         showlegend: true,
+        // legend: {
+        //     y: -0.3,
+        //     "orientation": "h"
+        // },
         legend: {
-            x: 1,
+            x: 1.1,
             y: 0.5
         },
         xaxis: {
@@ -188,10 +208,15 @@ function precision_recall_plots() {
             title: 'Precision',
             range: [0, 1]
         },
-        plot_bgcolor: 'rgba(0,0,0,0)',
-        paper_bgcolor: 'rgba(0,0,0,0)'
+        margin: {
+            l: 50,
+            r: 50,
+            t: 50,
+            pad: 4
+        },
+        plot_bgcolor: 'rgba(0,0,0,0)'
     };
-    Plotly.newPlot('pred_act_response', data, layout);
+    Plotly.newPlot('recall_div', data, layout, {responsive: true});
 }
 
 
@@ -261,9 +286,13 @@ function roc_plot() {
 
     var layout = {
         title: 'Receiver operating characteristic (ROC)',
+        font: {
+            family: '"Montserrat", sans-serif',
+            size: 11
+        },
         showlegend: true,
         legend: {
-            x: 1,
+            x: 1.1,
             y: 0.5
         },
         xaxis: {
@@ -274,8 +303,13 @@ function roc_plot() {
             title: 'True Positive Rate',
             range: [0, 1]
         },
-        plot_bgcolor: 'rgba(0,0,0,0)',
-        paper_bgcolor: 'rgba(0,0,0,0)'
+        margin: {
+            l: 50,
+            r: 50,
+            t: 50,
+            pad: 4
+        },
+        plot_bgcolor: 'rgba(0,0,0,0)'
     };
-    Plotly.newPlot('myDiv2', data, layout);
+    Plotly.newPlot('roc_div', data, layout, {responsive: true});
 }

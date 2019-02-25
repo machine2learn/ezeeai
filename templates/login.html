@@ -1,10 +1,15 @@
 {% extends "bootstrap/base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
+{% from '_render_field.html' import render_single_field_no_label %}
+
 
 {% block styles %}
     {{ super() }}
+      <link rel="stylesheet" href="{{ url_for('.static', filename='base/css/application.css') }}">
     <link rel="shortcut icon" href="{{ url_for('.static', filename='base/img/logotext-brain.png') }}">
     <link rel="stylesheet" href="{{ url_for('.static', filename='css/signin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('.static', filename='css/login.css') }}">
+    <link rel="stylesheet" href="{{ url_for('.static', filename='css/util.css') }}">
 {% endblock %}
 
 {% block title %}
@@ -12,28 +17,64 @@
 {% endblock %}
 
 {% block content %}
-    <!-- <body onload = "javascript: window.history.forward (1);">-->
-    <div class="container signup-section">
-        <div class="section-content">
-            <img id="brand-image" src="{{ url_for('static', filename='images/logotext.png') }}" alt="Machine2Learn"
-                 class="login-img">
 
-            <form class="form-signin" method="POST" action="/login">
-                <h2 class="form-signin-heading">Please sign in</h2>
-                {{ form.hidden_tag() }}
-                {{ wtf.form_field(form.username) }}
-                {% if error %}
-                    <div class=error> {{ error }}</div>
-                {% endif %}
-                {{ wtf.form_field(form.password) }}
-                {{ wtf.form_field(form.remember) }}
-                {#            <input type="email" id="inputEmail" class="form-control" placeholder="Email address" required autofocus>#}
-                <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
-            </form>
 
-            <br>
+    <div class="limiter">
+        <div class="container-login100">
+            <div class="wrap-login100">
+                <div class="login100-pic js-tilt" data-tilt>
+                    <img src="/static/base/img/logotext-brain.png" alt="m2l">
+                </div>
+
+                <form class="login100-form validate-form" method="POST" action="/login">
+					<span class="login100-form-title">
+						Member <b>Login</b>
+					</span>
+                    {{ form.hidden_tag() }}
+
+                    <div class="wrap-input100 validate-input" data-validate="Valid email is required: ex@abc.xyz">
+                        {{render_single_field_no_label(form.username,  class="input100", placeholder="Username") }}
+                        <span class="focus-input100"></span>
+                        <span class="symbol-input100">
+							<i class="fa fa-envelope" aria-hidden="true"></i>
+						</span>
+                    </div>
+
+                    <div class="wrap-input100 validate-input" data-validate="Password is required">
+                        {{ render_single_field_no_label(form.password, class="input100", placeholder="Password") }}
+                          <span class="focus-input100"></span>
+                        <span class="symbol-input100">
+							<i class="fa fa-lock" aria-hidden="true"></i>
+						</span>
+                    </div>
+
+                    <div class="container-login100-form-btn">
+                        <button class="login100-form-btn" type="submit">
+                            Login
+                        </button>
+                    </div>
+
+                    <div class="text-center p-t-12">
+                        {{ wtf.form_field(form.remember) }}
+                        <span class="txt1">
+							Forgot
+						</span>
+                        <a class="txt2" href="#">
+                            Username / Password?
+                        </a>
+                    </div>
+
+                    <div class="text-center p-t-136">
+                        <a class="txt2" href="#">
+                            Create your Account
+                            <i class="fa fa-long-arrow-right m-l-5" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
+
     <!-- </body> -->
 {% endblock %}
 
@@ -47,3 +88,37 @@
 
     </script>
 {% endblock %}
+ {#    <!-- <body onload = "javascript: window.history.forward (1);">-->#}
+    {#    <div class="container signup-section">#}
+    {#        <div class="section-content">#}
+    {#            <img id="brand-image" src="{{ url_for('static', filename='images/logotext.png') }}" alt="Machine2Learn"#}
+    {#                 class="login-img">#}
+    {##}
+    {#            <form class="form-signin login100-form validate-form" method="POST" action="/login">#}
+    {#                <h2 class="form-signin-heading">Please sign in</h2>#}
+    {#                {{ form.hidden_tag() }}#}
+    {#                <div class="wrap-input100 validate-input" data-validate="Valid email is required: ex@abc.xyz">#}
+    {##}
+    {#                    {{ wtf.form_field(form.username,  class="input100", placeholder="Username") }}#}
+    {##}
+    {#                    <span class="focus-input100"></span>#}
+    {#                    <span class="symbol-input100">#}
+    {#							<i class="fa fa-envelope" aria-hidden="true"></i>#}
+    {#						</span>#}
+    {#                </div>#}
+    {#                {% if error %}#}
+    {#                    <div class=error> {{ error }}</div>#}
+    {#                {% endif %}#}
+    {#                {{ wtf.form_field(form.password, class="input100", placeholder="Password") }}#}
+    {#                {{ wtf.form_field(form.remember) }}#}
+    {#            <input type="email" id="inputEmail" class="form-control" placeholder="Email address" required autofocus>#}
+    {#                <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>#}
+    {##}
+    {#            </form>#}
+    {##}
+    {##}
+    {#            wtf.form_field(form.name, class="form-control", placeholder='Name', maxlength=5, size=20)#}
+    {#            <br>#}
+    {#        </div>#}
+    {#    </div>#}
+    {#    #}

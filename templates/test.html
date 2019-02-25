@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css"
           integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU"
           crossorigin="anonymous">
-
 {% endblock %}
 
 
@@ -19,172 +18,170 @@
     </ol>
 
     <div class="row ">
-        <div class="col-lg-3">
-            <section class="widget widget-overflow" id="run_config_div">
-                <header>
-                    <h6>
-                        Your <span class="fw-semi-bold">Model</span>
-                    </h6>
-                </header>
-                <div class="widget-body margin-top-20">
-                    <div id="models-select-div"></div>
-                    <div id="checkpoints_div" class="disabled-custom margin-top-15">
+        <div class="col-lg-4">
+            <div class="row">
+                <div class="col-lg-12">
+                    <section class="widget widget-overflow" id="run_config_div">
                         <header>
                             <h6>
-                                <span class="fw-semi-bold">Checkpoints</span>
+                                Your <span class="fw-semi-bold">Model</span>
                             </h6>
                         </header>
-                        <div class="table-responsive visualization hide-element">
-                            <div class="navbar-form" role="search">
-                                <div class="form-group">
-                                    <div class="input-group input-group-no-border">
-                                        <input id="checkpoint_search" class="form-control" type="text"
-                                               placeholder="Search Checkpoint">
-                                        <span class="input-group-append">
+                        <div class="widget-body margin-top-20">
+                            <div id="models-select-div"></div>
+                            <div id="checkpoints_div" class="disabled-custom margin-top-15">
+                                <header>
+                                    <h6>
+                                        <span class="fw-semi-bold">Checkpoints</span>
+                                    </h6>
+                                </header>
+                                <div class="table-responsive visualization hide-element">
+                                    <div class="navbar-form" role="search">
+                                        <div class="form-group">
+                                            <div class="input-group input-group-no-border">
+                                                <input id="checkpoint_search" class="form-control" type="text"
+                                                       placeholder="Search Checkpoint">
+                                                <span class="input-group-append">
                                                     <span class="input-group-text">
                                                         <i class="la la-search"></i>
                                                     </span>
                                         </span>
+                                            </div>
+                                        </div>
                                     </div>
+                                    <table id="table_checkpoints" class="table table-hover table-striped"
+                                           style="width:100%">
+                                    </table>
+
+                                </div>
+
+                                <div class="loader hide-element">Loading...</div>
+
+                                <div class="waiting-selection">
+                                    Select a Model to display
                                 </div>
                             </div>
-                            <table id="table_checkpoints" class="table table-hover table-striped"
-                                   style="width:100%">
+                        </div>
+                    </section>
+                </div>
+            </div>
+            <div class="row ">
+                <div class="col-lg-12">
+                    <section class="widget widget-overflow disabled-custom" id="features_div">
+                        <header>
+                            <h6>
+                                Your <span class="fw-semi-bold">Test File</span>
+                            </h6>
+                        </header>
+
+                        <div class="waiting-selection-ckpt margin-top-15" id="test_file_disabled">
+                            Select a Checkpoint to display
+                        </div>
+
+                        <div class="hide-element margin-top-15" id="feature-div">
+
+                            <div class="upload-file hide-element" id="tabular-upload-div">
+                                <label class="label-title">Upload a new CSV file</label>
+                                <div class="file-upload-tabular custom-file">
+                                    <label for="tabular-upload" class="custom-file-label"
+                                           title="TEST DATASET">Choose file</label>
+                                    <input accept="text/csv" class="custom-file-input" id="tabular-upload"
+                                           name="tabular-upload" type="file">
+                                </div>
+                            </div>
+                            <div class="upload-file hide-element" id="image-upload-div">
+                                <label class="label-title">Test images file (.zip or .npz)</label>
+                                <div class="file-upload-image custom-file">
+                                    <label for="image-upload" class="custom-file-label" title="">Choose file</label>
+                                    <input accept=".zip,.npz" class="custom-file-input" id="image-upload"
+                                           name="image-upload" type="file">
+                                </div>
+                            </div>
+
+
+                            <h6 class="margin-top-25">
+                                <span class="fw-semi-bold ">Select a test file</span>
+                            </h6>
+                            <table id="table_test_files" align="center"
+                                   class="table table-hover table-striped no-footer dataTable">
                             </table>
 
                         </div>
 
-                        <div class="loader hide-element">Loading...</div>
-
-                        <div class="waiting-selection">
-                            Select a Model to display
+                        <div class="btn-next-parent margin-top-15">
+                            <button class="btn btn-primary btn-next" id="test" disabled> Test</button>
                         </div>
-                    </div>
+                    </section>
                 </div>
-            </section>
+            </div>
         </div>
 
-        <div class="col-lg-3">
-            <section class="widget widget-overflow disabled-custom" id="features_div">
-                <header>
-                    <h6>
-                        Your <span class="fw-semi-bold">Test File</span>
-                    </h6>
-                </header>
 
-                <div class="waiting-selection-ckpt margin-top-15" id="test_file_disabled">
-                    Select a Checkpoint to display
-                </div>
+        <div class="col-lg-8">
+            <div class="row">
+                <div class="col-lg-12 disabled-custom" id="graph_test_div">
+                    <section class="widget widget-overflow" id="">
+                        <header>
+                            <h6>
+                                Graph <span class="fw-semi-bold">Test</span>
+                            </h6>
+                        </header>
 
-                <div class="pre-scrollable hide-element margin-top-15" id="feature-div">
+                        <div class="loader hide-element loader-test-file">Loading...</div>
 
-                    <div class="upload-file hide-element" id="tabular-upload-div">
-                        <label class="label-title">Upload a new CSV file</label>
-                        <div class="file-upload-tabular custom-file">
-                            <label for="tabular-upload" class="custom-file-label"
-                                   title="TEST DATASET">Choose file</label>
-                            <input accept="text/csv" class="custom-file-input" id="tabular-upload"
-                                   name="tabular-upload" type="file">
+                        <div class="waiting-test-file hide-element">
+                            <div id="expdiv" class="container">
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-lg-6 align-content-right">
+                                            <div id="exp_div"></div>
+                                        </div>
+                                        <div class="col-lg-6 align-content-left align-middle align-center-custom">
+                                            <div id="metric_acc"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12 padding-small">
+                                    <div id="recall_div" class="test-graph"></div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 padding-small">
+                                    <div id="roc_div" class="test-graph"></div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="upload-file hide-element" id="image-upload-div">
-                        <label class="label-title">Test images file (.zip or .npz)</label>
-                        <div class="file-upload-image custom-file">
-                            <label for="image-upload" class="custom-file-label" title="">Choose file</label>
-                            <input accept=".zip,.npz" class="custom-file-input" id="image-upload"
-                                   name="image-upload" type="file">
+                    </section>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-12 disabled-custom" id="table_prediction_div">
+                    <section class="widget widget-overflow" id="">
+                        <header>
+                            <h6>
+                                Your <span class="fw-semi-bold">Predictions</span>
+                            </h6>
+                        </header>
+
+                        <div class="widget-body margin-top-15 max-height-900">
+
+                            <div id="pred-loader" class="loader hide-element loader-test-file">Loading...</div>
+
+                            <div class="table-test waiting-test-file hide-element">
+                                <table id="test_table_features" class="table table-hover table-striped"
+                                       style="width:100%">
+                                </table>
+                            </div>
                         </div>
-                    </div>
-
-
-                    <h6 class="margin-top-25">
-                        <span class="fw-semi-bold ">Select a file</span>
-                    </h6>
-                    <table id="table_test_files" align="center"
-                           class="table table-hover table-striped no-footer dataTable">
-                    </table>
-
+                    </section>
                 </div>
-
-                <div class="btn-next-parent margin-top-15">
-                    <button class="btn btn-primary btn-next" id="test" disabled> Test</button>
-                </div>
-            </section>
+            </div>
         </div>
 
-
-        <div class="col-lg-6">
-            <section class="widget widget-overflow" id="">
-                <header>
-                    <h6>
-                        Your <span class="fw-semi-bold">Predictions</span>
-                    </h6>
-                </header>
-
-                <div class="widget-body margin-top-15">
-
-                    <div id="pred-loader" class="loader hide-element">Loading...</div>
-
-                    <div class="pre-scrollable table-test">
-                        <table id="test_table_features" class="table table-hover table-striped"
-                               style="width:100%">
-                        </table>
-                        {#                        <table class="table-pred" id="table_prediction" align="center">#}
-                        {#                        </table>#}
-
-
-                        {#                        <th1>Prediction test file</th1>#}
-                        {#                        <div id="expdiv" class="container">#}
-                        {#                            <div class="panel-body">#}
-                        {#                                <label id="exp_label" class="cust_label" for="exp_target">#}
-                        {#                                    Target:#}
-                        {#                                </label>#}
-                        {#                                <div id="metric_acc"></div>#}
-                        {#                            </div>#}
-                        {#                        </div>#}
-                        {##}
-                        {#                        <div class="row">#}
-                        {#                            <div class="col-sm-6">#}
-                        {#                                <div id="pred_act_response" style="width: 680px; height: 400px;"></div>#}
-                        {#                            </div>#}
-                        {#                            <div class="col-sm-6">#}
-                        {#                                <div id="myDiv2" style="width: 680px; height: 400px;"></div>#}
-                        {#                            </div>#}
-                        {#                            <br>#}
-                        {##}
-                        {#                        </div>#}
-                        {##}
-                        {#                        <br>#}
-                        {#                        <table id="test_table_features" class="display stripe" style="width:100%">#}
-                        {#                        </table>#}
-                        {#                        <a href="download" class="btn btn-info" id="down-csv" download>#}
-                        {#                            <span id="span_run" lass="glyphicon glyphicon-download-alt"></span> Download file</a>#}
-                        {##}
-
-                    </div>
-                </div>
-            </section>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-lg-4">
-            <section class="widget widget-overflow" id="">
-                <header>
-                    <h6>
-                        Graph <span class="fw-semi-bold">1</span>
-                    </h6>
-                </header>
-            </section>
-        </div>
-        <div class="col-lg-4">
-            <section class="widget widget-overflow" id="">
-                <header>
-                    <h6>
-                        Graph <span class="fw-semi-bold">2</span>
-                    </h6>
-                </header>
-            </section>
-        </div>
     </div>
 
 {% endblock %}
@@ -199,11 +196,19 @@
     </script>
 
     <script src="{{ url_for('.static', filename='test.js') }}"></script>
+    <script src="{{ url_for('.static', filename='predict_test.js') }}"></script>
     <script src="{{ url_for('.static', filename='notify.js') }}"></script>
     <script src="{{ url_for('.static', filename='checkpoint_features.js') }}"></script>
     <script src="{{ url_for('.static', filename='data_graphs.js') }}"></script>
 
-    <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.js"></script>    <script type="text/javascript"
+            src="https://cdn.datatables.net/tabletools/2.2.4/js/dataTables.tableTools.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.1.2/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.1.2/js/buttons.html5.min.js"></script>
+
     <script type=text/javascript>
         var handle_key = {};
         handle_key.models = {{  parameters | tojson | safe }};
