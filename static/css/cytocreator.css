@@ -2,16 +2,16 @@ body {
     font-family: "Montserrat", sans-serif;
 }
 
-.gui_container {
-    max-width: none !important;
-    max-height: 74vh;
-    font-size: small;
-    display: flex;
-    background-color: white;
-}
+/*.gui_container {*/
+/*max-width: none !important;*/
+/*max-height: 74vh;*/
+/*font-size: small;*/
+/*display: flex;*/
+/*background-color: white;*/
+/*}*/
 
 .editor {
-    width: 75%;
+    width: 100%;
     height: 100%;
     background-color: #f7f7f7;
     background-image: linear-gradient(white 2px, transparent 2px),
@@ -34,12 +34,13 @@ h1 {
 
 #properties {
     z-index: 9997 !important;
-    margin-top: 4vh;
+    /*margin-top: 4vh;*/
 }
 
 #accordion {
     z-index: 9998 !important;
-    margin-top: 4vh;
+    padding-rignt: 0;
+    /*margin-top: 4vh;*/
 }
 
 .cy-buttons {
@@ -50,6 +51,23 @@ h1 {
 
 .right-align {
     float: right;
+}
+
+.col-2 {
+    padding-right: 0;
+    padding-left: 5px;
+}
+
+.col-2 > .buttonbar {
+    padding-left: 20px;
+}
+.padding-right-20{
+    padding-right: 20px;
+}
+
+.col-8 {
+    padding-right: 0;
+    padding-left: 5px;
 }
 
 .cy-buttons button {
@@ -74,9 +92,10 @@ h1 {
 .buttonbar {
     display: block;
     text-align: center;
-    width: 10%;
+    /*width: 10%;*/
     flex-direction: column;
     overflow-y: scroll;
+    padding-right: 0;
 
 }
 
@@ -149,10 +168,10 @@ h1 {
 .properties {
     display: flex;
     text-align: center;
-    max-height: 70%;
-    width: 15%;
+    height: 100%;
+    width: 100%;
     flex-direction: column;
-    border-left: 4px solid #ffffff;
+    /*border-left: 4px solid #ffffff;*/
     background-color: #f9f9f9;
     overflow-y: scroll;
     color: gray;
@@ -160,7 +179,7 @@ h1 {
 }
 
 .properties select, input {
-    margin: 2px;
+    margin: 5px;
 }
 
 input:invalid + span:after {
@@ -531,7 +550,6 @@ input:invalid + span:after {
     top: 0;
 }
 
-
 .caption-container {
     text-align: center;
     background-color: black;
@@ -633,23 +651,26 @@ img.demo {
     margin-top: 1vh;
 }
 
-#normalization_explain{
+#normalization_explain {
     margin-top: 5px;
     color: dimgrey;
     font-size: 12px;
-     font-style: italic;
+    font-style: italic;
 }
-#slider-div{
+
+#slider-div {
     display: block;
     margin: 0;
 
 }
-.modal .btn-primary{
+
+.modal .btn-primary {
     float: right;
     margin-bottom: 10px;
 
 }
-.modal .btn-block{
+
+.modal .btn-block {
     margin-top: 10px;
 }
 
@@ -657,3 +678,13 @@ img.demo {
     margin: 0;
 }
 
+.buttonbar label {
+    border-color: #0000001c;
+    border-width: thin;
+    border-top-style: solid;
+}
+
+/*.properties select {*/
+
+    /*font-size: 11px;*/
+/*}*/
