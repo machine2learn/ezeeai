@@ -42,11 +42,12 @@ $range1.ionRangeSlider({
     max: 100,
     from: 70,
     grid: true,
+    skin: 'modern',
     onStart: function (data) {
         $result.text(prettify(r1 + r2 + r3));
     },
 
-    onChange: function (data) {
+    onFinish: function (data) {
         if (data.from < 50) {
             range_instance_1.update({
                 from: 50
@@ -54,7 +55,7 @@ $range1.ionRangeSlider({
         } else {
             if ((data.from + r2 + r3) > max) {
                 range_instance_1.update({
-                    from: r1
+                    from: max - r2 - r3
                 });
             }
         }
@@ -74,15 +75,15 @@ $range2.ionRangeSlider({
     onStart: function (data) {
         $result.text(prettify(r1 + r2 + r3));
     },
-    onChange: function (data) {
-        if (data.from < 5) {
+    onFinish: function (data) {
+        if (data.from <= 5) {
             range_instance_2.update({
                 from: 5
             });
         } else {
             if ((data.from + r1 + r3) > max) {
                 range_instance_2.update({
-                    from: r2
+                    from: max - r1 - r3
                 });
             }
         }
@@ -102,10 +103,10 @@ $range3.ionRangeSlider({
     onStart: function (data) {
         $result.text(prettify(r1 + r2 + r3));
     },
-    onChange: function (data) {
+    onFinish: function (data) {
         if ((data.from + r1 + r2) > max) {
             range_instance_3.update({
-                from: r3
+                from: max - r1 - r2
             });
         }
         r3 = data.from;

@@ -29,7 +29,7 @@ h1 {
 }
 
 #cy {
-    height: 70vh;
+    height: 100%;
 }
 
 #properties {
@@ -44,9 +44,12 @@ h1 {
 }
 
 .cy-buttons {
-    height: 2vh;
-    color: #939393;
-    background-color: white;
+    margin-left: 5px;
+}
+
+.no-horizontal-padding{
+        padding-right: 0;
+    padding-left: 0;
 }
 
 .right-align {
@@ -74,7 +77,7 @@ h1 {
     padding: 0;
     border: none;
     background: none;
-    margin-right: 15px;
+    margin-left: 10px;
     color: #939393;
     cursor: pointer;
 }
@@ -111,7 +114,7 @@ h1 {
 }
 
 .buttonbar label:hover {
-    color: #0474be;
+    color: #019ebd;
     font-weight: bold;
 }
 
@@ -140,7 +143,7 @@ h1 {
 .buttonbar input:checked + span {
     color: #607D8B;
     font-weight: bold;
-    background-color: #bfbfbf;
+    background-color: #7171710d;
     display: block;
     padding: 5px;
 }
@@ -178,7 +181,7 @@ h1 {
 
 }
 
-.properties select, input {
+.properties select {
     margin: 5px;
 }
 
@@ -293,7 +296,7 @@ input:invalid + span:after {
 }
 
 .inp input:focus + span {
-    color: #5a8cb9;
+    color: #019ebd;
     transform: translateY(-2px) scale(0.75);
 }
 
@@ -682,9 +685,11 @@ img.demo {
     border-color: #0000001c;
     border-width: thin;
     border-top-style: solid;
+    margin-bottom: 0px !important;
+
 }
+.buttonbar input + span {
+   display: inline-block;
+   padding: 5px;
 
-/*.properties select {*/
-
-    /*font-size: 11px;*/
-/*}*/
+}

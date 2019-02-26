@@ -16,7 +16,7 @@
 .irs-line {
     height: 10px; top: 33px;
     background: #EEE;
-    background: linear-gradient(to bottom, #DDD -50%, #FFF 150%); /* W3C */
+    /*background: linear-gradient(to bottom, #DDD -50%, #FFF 150%); !* W3C *!*/
     border: 1px solid #CCC;
     border-radius: 16px;
     -moz-border-radius: 16px;
@@ -33,18 +33,18 @@
 
 .irs-bar {
     height: 10px; top: 33px;
-    border-top: 1px solid #428bca;
-    border-bottom: 1px solid #428bca;
-    background: #428bca;
-    background: linear-gradient(to top, rgba(66,139,202,1) 0%,rgba(127,195,232,1) 100%); /* W3C */
+    border-top: 1px solid #019ebd;
+    border-bottom: 1px solid #019ebd;
+    background: #019ebd;
+    /*background: linear-gradient(to top, rgba(66,139,202,1) 0%,rgba(127,195,232,1) 100%); !* W3C *!*/
 }
     .irs-bar-edge {
         height: 10px; top: 33px;
-        width: 14px;
-        border: 1px solid #428bca;
+        width: 7px;
+        border: 1px solid #019ebd;
         border-right: 0;
-        background: #428bca;
-        background: linear-gradient(to top, rgba(66,139,202,1) 0%,rgba(127,195,232,1) 100%); /* W3C */
+        background: #019ebd;
+        /*background: linear-gradient(to top, rgba(66,139,202,1) 0%,rgba(127,195,232,1) 100%); !* W3C *!*/
         border-radius: 16px 0 0 16px;
         -moz-border-radius: 16px 0 0 16px;
     }
@@ -62,13 +62,14 @@
 
 .irs-slider {
     top: 25px;
-    width: 27px; height: 27px;
+    width: 7px;
+    height: 25px;
     border: 1px solid #AAA;
     background: #DDD;
-    background: linear-gradient(to bottom, rgba(255,255,255,1) 0%,rgba(220,220,220,1) 20%,rgba(255,255,255,1) 100%); /* W3C */
-    border-radius: 27px;
+    /* background: linear-gradient(to bottom, rgba(255,255,255,1) 0%,rgba(220,220,220,1) 20%,rgba(255,255,255,1) 100%); */
+    border-radius: 7px;
     -moz-border-radius: 27px;
-    box-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+    /* box-shadow: 1px 1px 3px rgba(0,0,0,0.3); */
     cursor: pointer;
 }
 
@@ -96,7 +97,7 @@
     font-size: 14px; line-height: 1.333;
     text-shadow: none;
     padding: 1px 5px;
-    background: #428bca;
+    background: #019ebd;
     border-radius: 3px;
     -moz-border-radius: 3px;
 }
@@ -109,7 +110,7 @@
 }
 .irs-grid-pol {
     opacity: 0.5;
-    background: #428bca;
+    background: #019ebd;
 }
 .irs-grid-pol.small {
     background: #999;

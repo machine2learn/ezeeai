@@ -1,7 +1,7 @@
 let selected_color = '#666666';
 let white = '#ffffff';
 
-let light_color1 = '#5194ac';
+let light_color1 = '#5b7aac';
 let light_color2 = '#939eac';
 let light_color3 = '#93a8b6';
 let light_color4 = '#93a8c0';
@@ -11,15 +11,8 @@ let light_color7 = '#93a898';
 let light_color8 = '#93a88e';
 let light_color9 = '#e29a47';
 
-let color1 = '#294857';
-let color2 = '#485157';
-let color3 = '#465257';
-let color4 = '#404b57';
-let color5 = '#3e4457';
-let color6 = '#505a55';
-let color7 = '#4d5850';
-let color8 = '#4c5749';
-let color9 = '#62441e';
+let selected = '#019ebd';
+
 
 var cyto_styles = [
     {
@@ -32,14 +25,14 @@ var cyto_styles = [
             'shape': 'roundrectangle'
         }
     },
-    {
-        selector: 'node:selected',
-        style: {
-            'border-width': 3,
-            'border-color': selected_color
-
-        }
-    },
+    // {
+    //     selector: 'node:selected',
+    //     style: {
+    //         'border-width': 2,
+    //         'border-color': selected_color
+    //
+    //     }
+    // },
     {
         selector: "node[root = 'Input Layers']",
         style: {
@@ -49,7 +42,7 @@ var cyto_styles = [
     {
         selector: "node[root = 'Input Layers']:selected",
         style: {
-            'background-color': color1,
+            'background-color': selected,
         }
     },
 
@@ -62,7 +55,7 @@ var cyto_styles = [
     {
         selector: "node[root = 'Convolutional Layers']:selected",
         style: {
-            'background-color': color2,
+            'background-color': selected,
         }
     },
     {
@@ -74,7 +67,7 @@ var cyto_styles = [
     {
         selector: "node[root = 'Merge Layers']:selected",
         style: {
-            'background-color': color3,
+            'background-color': selected,
         }
     },
     {
@@ -87,7 +80,7 @@ var cyto_styles = [
     {
         selector: "node[root = 'Normalization Layers']:selected",
         style: {
-            'background-color': color4,
+            'background-color': selected,
         }
     },
     {
@@ -99,7 +92,7 @@ var cyto_styles = [
     {
         selector: "node[root = 'Pooling Layers']:selected",
         style: {
-            'background-color': color5,
+            'background-color': selected,
         }
     },
     {
@@ -111,7 +104,7 @@ var cyto_styles = [
     {
         selector: "node[root = 'Recurrent Layers']:selected",
         style: {
-            'background-color': color6,
+            'background-color': selected,
         }
     },
 
@@ -124,7 +117,7 @@ var cyto_styles = [
     {
         selector: "node[root = 'Advanced Activations Layers']:selected",
         style: {
-            'background-color': color7,
+            'background-color': selected,
         }
     },
 
@@ -138,7 +131,7 @@ var cyto_styles = [
     {
         selector: "node[root = 'Core Layers']:selected",
         style: {
-            'background-color': color8,
+            'background-color': selected,
         }
     },
 
@@ -151,7 +144,7 @@ var cyto_styles = [
     {
         selector: "node[root = 'Loss Functions']:selected",
         style: {
-            'background-color': color8,
+            'background-color': selected,
         }
     },
 
@@ -166,7 +159,7 @@ var cyto_styles = [
     {
         selector: "node[root = 'Canned Models']:selected",
         style: {
-            'background-color': color9,
+            'background-color': selected,
         }
     },
 
@@ -228,7 +221,10 @@ var cyto_styles = [
         selector: ':parent',
         style: {
             'background-opacity': 0.333,
-            "background-color": '#e29a47'
+            "background-color": '#e29a47',
+             'border-width': 2,
+            'border-color': selected_color,
+            // 'z-index': 999999
         }
     },
 
