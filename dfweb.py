@@ -752,5 +752,3 @@ if __name__ == '__main__':
     sess = Session(app)
     app.run(debug=True, threaded=True, host='0.0.0.0')
     # app.run(debug=True, threaded=True)
-
-wheel==0.33.1
