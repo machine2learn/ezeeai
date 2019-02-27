@@ -26447,7 +26447,16 @@ input.text-error {
 }
 
 .dt-button:hover {
-    color: #019ebd ;
+    color: #019ebd;
     text-decoration: none;
+}
+
+.error {
+    margin-top: 3px;
+    text-align: center;
+    color: #ee3002;
+}
+.help-block{
+     color: #ee3002;
 }
 

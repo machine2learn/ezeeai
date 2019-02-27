@@ -74,11 +74,13 @@ def signup():
     form = RegisterForm()
     if form.validate_on_submit():
         if form.password.data != form.password2.data:
-            return render_template('signup.html', form=form, error="Passwords are not equals", user=session['user'])
+            return render_template('signup.html', form=form, error="Passwords are not equals", user=session['user'],
+                                   token=session['token'])
         if not db_ops.sign_up(form):
-            return render_template('signup.html', form=form, error="Username already exists", user=session['user'])
-        return render_template('login.html', form=LoginForm())
-    return render_template('signup.html', form=form, user=session['user'])
+            return render_template('signup.html', form=form, error="Username already exists", user=session['user'],
+                                   token=session['token'])
+        return render_template('login.html', form=LoginForm(), token=session['token'])
+    return render_template('signup.html', form=form, user=session['user'], token=session['token'])
 
 
 @app.route('/user_data', methods=['GET', 'POST'])
