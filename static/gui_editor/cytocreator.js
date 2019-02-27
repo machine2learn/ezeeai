@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
     $('#submit').prop('disabled', true);
     create_layers(corelayers);
 
+
     cy = cytoscape({
         container: document.getElementById('cy'),
         elements: appConfig.cy_model.elements,
@@ -226,6 +227,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         }
 
+    });
+    $('#nav-state-toggle').on('click', function (){
+        add_icons_nodes();
     });
 
 

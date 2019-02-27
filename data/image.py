@@ -153,10 +153,13 @@ class Image:
             image_string = tf.read_file(image)
             image = tf.image.decode_jpeg(image_string)
         image_decoded = tf.cast(image, tf.float32)
+        size = self.get_image_size().copy()
+        if len(size) > 2:
+            size = size[0:2]
 
         if label is not None:
-            return tf.image.resize_images(image_decoded, self.get_image_size().copy()), label
-        return tf.image.resize_images(image_decoded, self.get_image_size().copy())
+            return tf.image.resize_images(image_decoded, size), label
+        return tf.image.resize_images(image_decoded, size)
 
     def _norm_function(self, image, label=None):
         image = norm_tf_options[self.get_normalization_method()](image)
