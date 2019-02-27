@@ -84,6 +84,10 @@ $(document).ready(function () {
                     $('.loader').addClass('hide-element');
                     appConfig.handle_key['currentImg'] = 0;
                 }
+                // error: function () {
+                //     $('.loader').addClass('hide-element');
+                //     console.error('error')
+                // },
             });
         }
     });

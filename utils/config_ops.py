@@ -175,7 +175,7 @@ def new_image_dataset(app_root, username, option, file):
                 os.makedirs(dataset_test_path, exist_ok=True)
 
                 args = {}
-                if not has_header(info_file):
+                if not has_header(os.path.join(train_path, info_test_file[0])):
                     args['header'] = None
 
                 df = pd.read_csv(os.path.join(train_path, info_test_file[0]), sep=None, engine='python', **args)

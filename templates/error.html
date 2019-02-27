@@ -1,0 +1,49 @@
+{% extends "bootstrap/base.html" %}
+{% from '_render_field.html' import render_single_field_no_label %}
+
+
+{% block styles %}
+    {{ super() }}
+    <link rel="shortcut icon" href="{{ url_for('.static', filename='base/img/logotext-brain.png') }}">
+    <link rel="stylesheet" href="{{ url_for('.static', filename='css/login.css') }}">
+    <link rel="stylesheet" href="{{ url_for('.static', filename='css/util.css') }}">
+{% endblock %}
+
+{% block title %}
+    Unauthorized 401
+{% endblock %}
+
+{% block content %}
+
+
+    <div class="limiter">
+        <div class="container-login100">
+            <div class="wrap-login100" style="    padding: 129px 139px 115px 73px;">
+                <div class="login100-pic js-tilt" data-tilt>
+                    <img src="static/base/img/logotext-brain.png" alt="m2l">
+                    <h6 class="app-title">EZEE<b>AI</b></h6>
+                    <img class="m2l" src="static/base/img/logotextonly.png" alt="m2l">
+                </div>
+
+                <div class="login100-form validate-form" style="margin-top: 30px">
+
+					<span class="login100-form-title">
+						  {{ number }} <b> {{ error }}</b>
+					</span>
+
+
+                    <div class="text-center p-t-12">
+                        {{ message }}
+
+                    </div>
+
+
+                     <div class="text-center p-t-12" style="color:#019ebd">
+                       <a href="login" > Go to login page</a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

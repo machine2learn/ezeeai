@@ -52,8 +52,12 @@ function generateFile() {
             if (valid_mess === 'True') {
                 $.notify("Generated dataset saved", "success");
                 toogle_script(false);
-                appConfig.handle_key.datasets.push($('#dataset_name').val());
-                $('#dataset_name').val('');
+                let $dataset = $('#dataset_name')
+                appConfig.handle_key.datasets.push($dataset.val());
+                appConfig.handle_key.data_types.push([$dataset.val(), 'Tabular']);
+                update_dataset_table();
+
+                $dataset.val('');
                 $('#gen_error').html('');
             } else {
                 $('#gen_error').html(valid_mess);

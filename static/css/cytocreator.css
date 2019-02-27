@@ -47,8 +47,8 @@ h1 {
     margin-left: 5px;
 }
 
-.no-horizontal-padding{
-        padding-right: 0;
+.no-horizontal-padding {
+    padding-right: 0;
     padding-left: 0;
 }
 
@@ -64,7 +64,8 @@ h1 {
 .col-2 > .buttonbar {
     padding-left: 20px;
 }
-.padding-right-20{
+
+.padding-right-20 {
     padding-right: 20px;
 }
 
@@ -107,7 +108,7 @@ h1 {
     -moz-box-orient: vertical;
     vertical-align: middle;
     *vertical-align: auto;
-    color: #939393;;
+    color: #939393;
     font-size: small;
     font-family: Arial, Helvetica, sans-serif;
     cursor: pointer;
@@ -143,9 +144,9 @@ h1 {
 .buttonbar input:checked + span {
     color: #607D8B;
     font-weight: bold;
-    background-color: #7171710d;
+    background-color: rgba(214, 216, 218, 0.36);
     display: block;
-    padding: 5px;
+    padding: 7px;
 }
 
 .fa, .fas {
@@ -169,6 +170,7 @@ h1 {
 }
 
 .properties {
+    font-size: 13px;
     display: flex;
     text-align: center;
     height: 100%;
@@ -688,8 +690,9 @@ img.demo {
     margin-bottom: 0px !important;
 
 }
+
 .buttonbar input + span {
-   display: inline-block;
-   padding: 5px;
+    display: inline-block;
+    padding: 5px;
 
 }

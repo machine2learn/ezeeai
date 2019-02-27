@@ -1,7 +1,8 @@
 let selected_color = '#666666';
 let white = '#ffffff';
 
-let light_color1 = '#5b7aac';
+
+let light_color1 = '#8a93ac';
 let light_color2 = '#939eac';
 let light_color3 = '#93a8b6';
 let light_color4 = '#93a8c0';
@@ -11,8 +12,22 @@ let light_color7 = '#93a898';
 let light_color8 = '#93a88e';
 let light_color9 = '#e29a47';
 
-let selected = '#019ebd';
 
+//
+// let light_color1 = '#69a6a8';
+// let light_color2 = '#a58eac';
+// let light_color3 = '#ac7687';
+// let light_color4 = '#93a8c0';
+// let light_color5 = '#93a8ca';
+// let light_color6 = '#93a8a2';
+// let light_color7 = '#b3caa7';
+// let light_color8 = '#939eac';
+// let light_color9 = '#e29a47';
+//
+//
+//
+
+let selected = '#019ebd';
 
 var cyto_styles = [
     {
@@ -138,7 +153,7 @@ var cyto_styles = [
     {
         selector: "node[root = 'Loss Functions']",
         style: {
-            'background-color': light_color8,
+            'background-color': light_color3,
         }
     },
     {

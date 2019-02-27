@@ -127,8 +127,10 @@ $(document).ready(function () {
                 document.getElementById('cresp').appendChild(t);
 
                 $('#input_model_name').val($('#model_name').val());
-
-
+            },
+            error:function () {
+                 $('.loader').addClass('hide-element');
+                 $.notify('Deploy is not allow for this model', 'error')
             }
         })
 

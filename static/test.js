@@ -40,6 +40,10 @@ $(document).ready(function () {
                     $('#image-upload-div').addClass('hide-element');
 
                 }
+            },
+            error: function () {
+                $('.loader').addClass('hide-element');
+                $.notify('Checkpoints not available')
 
             }
         })
@@ -70,6 +74,7 @@ $(document).ready(function () {
             accepts: {
                 json: 'application/json',
             },
+            // timeout:12000,
             data: JSON.stringify({
                 'filename': test_file,
                 'model_name': model_name,
@@ -77,15 +82,21 @@ $(document).ready(function () {
             }),
             success: function (data) {
                 $('.loader-test-file').addClass('hide-element');
-                $('.waiting-test-file').removeClass('hide-element');
+
                 if (data.hasOwnProperty('error')) {
                     alert(data.error);
                 } else {
+                    $('.waiting-test-file').removeClass('hide-element');
                     appConfig.handle_key.metrics = data.metrics;
                     appConfig.handle_key.targets = data.targets;
                     create_table_predictions(data.predict_table['data'], data.predict_table['columns'])
                     create_graphs(data.metrics, data.targets)
                 }
+
+            },
+            error: function () {
+                $('.loader-test-file').addClass('hide-element');
+                $.notify('Test not successful')
 
             }
         })

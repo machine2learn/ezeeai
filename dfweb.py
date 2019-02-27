@@ -290,7 +290,11 @@ def params_run():
         checkpoints = run_utils.get_eval_results(export_dir, sess.get_writer(), sess.get_config_file())
         metric = sess.get_metric()
         graphs = train_eval_graphs(config_reader.read_config(sess.get_config_file()).checkpoint_dir())
-        return jsonify(checkpoints=checkpoints, parameters=parameters, metric=metric, graphs=graphs)
+
+        log_path = os.path.join('user_data', session['user'], 'models', model_name, 'log', 'tensorflow.log')
+        logfile = open(log_path, 'r').read() if os.path.isfile(log_path) else ''
+
+        return jsonify(checkpoints=checkpoints, parameters=parameters, metric=metric, graphs=graphs, log=logfile)
     except (KeyError, NoSectionError):
         return jsonify(checkpoints='', parameters='', metric='', graphs={})
 
@@ -473,53 +477,56 @@ def upload_test_file():
 @check_config
 def test():
     if request.method == 'POST':
-        model_name = request.get_json()['model_name']
-        local_sess = Session(app)
-        local_sess.add_user((session['user'], session['_id']))
-        config_path = sys_ops.get_config_path(APP_ROOT, session['user'], model_name)
-        local_sess.set_model_name(model_name)
-
-        local_sess.set_config_file(config_path)
-        local_sess.load_config()
-        hlp = local_sess.get_helper()
-
         try:
-            has_targets, test_filename, df_test, result = hlp.test_request(request)
+            model_name = request.get_json()['model_name']
+            local_sess = Session(app)
+            local_sess.add_user((session['user'], session['_id']))
+            config_path = sys_ops.get_config_path(APP_ROOT, session['user'], model_name)
+            local_sess.set_model_name(model_name)
+
+            local_sess.set_config_file(config_path)
+            local_sess.load_config()
+            hlp = local_sess.get_helper()
+
+            try:
+                has_targets, test_filename, df_test, result = hlp.test_request(request)
+            except Exception as e:
+                return jsonify(error='Test\'s file structure is not correct')
+
+            all_params_config = config_reader.read_config(local_sess.get_config_file())
+            all_params_config.set('PATHS', 'checkpoint_dir',
+                                  os.path.join(all_params_config.export_dir(), model_name))
+            canned_data = os.path.join(APP_ROOT, 'user_data', session['user'], 'models', model_name,
+                                       'custom',
+                                       'canned_data.json')
+            if os.path.isfile(canned_data):
+                all_params_config.set_canned_data(json.load(open(canned_data)))
+
+            final_pred, success = th.predict_test_estimator(all_params_config, test_filename)
+            if not success:
+                return jsonify(error=final_pred)
+            try:
+                file_path = hlp.process_test_predict(df_test, final_pred, test_filename)
+            except Exception as e:
+                return jsonify(error=str(e))
+
+            df = pd.read_csv(file_path)
+            predict_table = {'data': df.as_matrix().tolist(),
+                             'columns': [{'title': v} for v in df.columns.values.tolist()]}
+            labels = hlp.get_target_labels()
+            metrics = {}
+            store_predictions(has_targets, local_sess, final_pred, hlp.get_df_test(df_test, has_targets))
+            if has_targets:
+                metrics = get_metrics('classification', local_sess.get_y_true(), local_sess.get_y_pred(), labels,
+                                      logits=local_sess.get_logits()) if hlp.get_mode() == 'classification' \
+                    else get_metrics('regression', local_sess.get_y_true(), local_sess.get_y_pred(), labels,
+                                     target_len=len(hlp.get_targets()))
+
+            return jsonify(predict_table=predict_table,
+                           metrics=metrics,
+                           targets=hlp.get_targets())
         except Exception as e:
-            return jsonify(error='Test\'s file structure is not correct')
-
-        all_params_config = config_reader.read_config(local_sess.get_config_file())
-        all_params_config.set('PATHS', 'checkpoint_dir',
-                              os.path.join(all_params_config.export_dir(), model_name))
-        canned_data = os.path.join(APP_ROOT, 'user_data', session['user'], 'models', model_name,
-                                   'custom',
-                                   'canned_data.json')
-        if os.path.isfile(canned_data):
-            all_params_config.set_canned_data(json.load(open(canned_data)))
-
-        final_pred, success = th.predict_test_estimator(all_params_config, test_filename)
-        if not success:
-            return jsonify(error=final_pred)
-        try:
-            file_path = hlp.process_test_predict(df_test, final_pred, test_filename)
-        except Exception as e:
-            return jsonify(error=str(e))
-
-        df = pd.read_csv(file_path)
-        predict_table = {'data': df.as_matrix().tolist(),
-                         'columns': [{'title': v} for v in df.columns.values.tolist()]}
-        labels = hlp.get_target_labels()
-        metrics = {}
-        store_predictions(has_targets, local_sess, final_pred, hlp.get_df_test(df_test, has_targets))
-        if has_targets:
-            metrics = get_metrics('classification', local_sess.get_y_true(), local_sess.get_y_pred(), labels,
-                                  logits=local_sess.get_logits()) if hlp.get_mode() == 'classification' \
-                else get_metrics('regression', local_sess.get_y_true(), local_sess.get_y_pred(), labels,
-                                 target_len=len(hlp.get_targets()))
-
-        return jsonify(predict_table=predict_table,
-                       metrics=metrics,
-                       targets=hlp.get_targets())
+            return jsonify(predict_table='', metrics='', targets='', error=str(e))
 
     username = session['user']
     _, param_configs = config_ops.get_configs_files(APP_ROOT, username)
@@ -735,6 +742,22 @@ def explain_feature():
         return jsonify(error=final_pred)
     data = hlp.process_ice_request(request, unique_val_column, final_pred)
     return jsonify(data=data)
+
+
+@app.errorhandler(401)
+def unauthorized(e):
+    error = 'Unauthorized'
+    number = '401'
+    mess = 'The server could not verify that you are authorized to access the URL requested. You either supplied the wrong credentials (e.g. a bad password), or your browser does not understand how to  supply the credentials required.'
+    return render_template('error.html', error=error, number=number, message=mess)
+
+
+@app.errorhandler(404)
+def notfound(e):
+    error = 'Not found'
+    number = '404'
+    mess = 'The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.'
+    return render_template('error.html', error=error, number=number, message=mess)
 
 
 @app.route('/')

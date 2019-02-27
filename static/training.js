@@ -1,4 +1,3 @@
-
 $(document).ready(function () {
     $('.widget').widgster();
     var collapsed = $("a[data-widgster='collapse']");
@@ -33,13 +32,12 @@ $(document).ready(function () {
             contentType: 'application/json;charset=UTF-8',
             data: JSON.stringify({'model_name': $(this).val()}),
             success: function (data) {
-
                 $('.loader').addClass('hide-element');
                 $('.visualization').removeClass('hide-element');
                 update_parameters_form(data.parameters);
                 update_checkpoint_table(data.checkpoints, data.metric);
                 update_graphs(data.graphs, true);
-                 $('.log').text('');
+                $('.log').text(data.log);
             }
         })
     });

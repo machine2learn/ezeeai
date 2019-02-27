@@ -32,7 +32,7 @@ $(document).ready(function () {
             $('.waiting-selection').removeClass('hide-element');
         } else {
 
-            if ($(this).hasClass('trash-icon')){
+            if ($(this).hasClass('trash-icon')) {
                 return;
             }
 
@@ -64,13 +64,13 @@ $(document).ready(function () {
                 accepts: {
                     json: 'application/json',
                 },
+                timeout: 120000,
                 data: JSON.stringify({
                     'datasetname': table_datasets.row(this).data()[0]
                 }),
                 success: function (data) {
                     var collapsed = $("a[data-widgster='expand'][style='display: inline;']");
                     collapsed.click();
-
                     appConfig['vis_data'] = data.data;
                     appConfig['vis_norm'] = data.norm;
                     $('.visualization').removeClass('hide-element');
@@ -105,7 +105,24 @@ $(document).ready(function () {
 
                     $('.loader').addClass('hide-element');
 
+                },
+                error: function (xmlhttprequest, textstatus, message) {
+                    $('.loader').addClass('hide-element');
+                    if (textstatus === "timeout") {
+                        $.notify("Time out", "error");
+                    }
+                    else if (textstatus === "error") {
+                        $.notify("Server error", "error");
+                    }
+                    else {
+                        $.notify("Error loading dataset", "error");
+                    }
                 }
+
+                // error: function () {
+                //     $('.loader').addClass('hide-element');
+                //     $.notify("Error loading dataset", "error");
+                // },
 
             });
 
