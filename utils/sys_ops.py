@@ -308,6 +308,27 @@ def gen_example(targets, data, df, model_name, pred):
     return call, d, epred
 
 
+def gen_image_example(data, pred):
+    example = {'input': data.tolist()}
+
+    d = {
+        "signature_name": "predict",
+        "instances": [example]
+    }
+    call = 'DOCKER_HOST=\"...\"\n'
+    call += 'MODEL_NAME=\"...\"\n'
+    call += 'curl -X POST http://${DOCKER_HOST}:8501/v1/models/${MODEL_NAME}/versions/1' ':predict -d '
+
+    call += '\'' + str(d) + '\''
+
+    pred[0] = {k: v.tolist() for k, v in pred[0].items()}
+    if 'classes' in pred[0]:
+        pred[0]['classes'] = pred[0]['classes'][0].decode("utf-8")
+    epred = {'predictions': pred}
+
+    return call, d, epred
+
+
 def load_cy_model(model, user):
     custom_path = os.path.join('user_data', user, 'models', model, 'custom', 'model_cy.json')
     cy_model = 'None'

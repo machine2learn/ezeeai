@@ -628,23 +628,40 @@ img.demo {
 /* Bottom right text */
 .text-block {
     color: black;
-    padding-left: 1vh;
     padding-top: 3px;
-    font-size: 12px;
-}
-
-#image_demo {
-    margin: 0px;
-    align-content: center;
+    text-align: center;
 }
 
 #image_row {
     margin-left: 0;
+    width: 100%
 }
 
-#image_row .column {
+li > img {
+    width: 100%;
+    vertical-align: unset;
+}
+#image_col {
+    padding: 0;
+}
+
+ul.horizontal-slide {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    white-space: nowrap;
+    overflow-x: auto;
+    margin-bottom: 50px;
+    margin-top: 50px;
+}
+
+ul.horizontal-slide li[class*="col"] {
+    display: inline-block;
+    float: none;
+}
+
+ul.horizontal-slide li[class*="col"]:first-child {
     margin-left: 0;
-    width: 33%;
 }
 
 .modal {
