@@ -344,7 +344,9 @@ class Image(Helper):
         pass
 
     def generate_rest_call(self, pred):
-        pass
+        call, d, epred = sys_ops.gen_image_example(self._dataset._val_images[0], pred)
+        example = {'curl': call, 'd': d, 'output': epred}
+        return example
 
     def get_num_outputs(self):
         return self._dataset.get_num_outputs()
@@ -435,6 +437,8 @@ class Image(Helper):
         return result, False
 
     def get_new_features(self, request, default_features=False):
+        if default_features:
+            return self._dataset._val_images[0]
         b = request.files['inputFile'].read()
         request.files['inputFile'].seek(0)
         npimg = np.fromstring(b, np.uint8)

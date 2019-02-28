@@ -272,9 +272,7 @@ function clear_table(id) {
 function clear_input_modal(dict_wizard, clear_select) {
     wizard_next(1, dict_wizard);
     wizard_next(2, dict_wizard);
-    $('#image_row').empty();
-    $('#image_demo').empty();
-    $('#slides').empty();
+    $('.horizontal-slide').empty();
 
     if (table_target_created)
         clear_table('table_targets');
@@ -438,59 +436,15 @@ function get_load_rows(parameters) {
     return models;
 }
 
-function openModal() {
-    document.getElementById('image_modal').style.display = "block";
-}
-
-//
-function closeModal() {
-    document.getElementById('image_modal').style.display = "none";
-}
-
-var slideIndex = 1;
-//
-// showSlides(slideIndex);
-
-function plusSlides(n) {
-    showSlides(slideIndex += n);
-}
-
-function currentSlide(n) {
-    showSlides(slideIndex = n);
-}
-
-function showSlides(n) {
-    var i;
-    var slides = document.getElementsByClassName("mySlides");
-    var dots = document.getElementsByClassName("demo");
-    var captionText = document.getElementById("caption");
-    if (n > slides.length) {
-        slideIndex = 1
-    }
-    if (n < 1) {
-        slideIndex = slides.length
-    }
-    for (i = 0; i < slides.length; i++) {
-        slides[i].style.display = "none";
-    }
-    for (i = 0; i < dots.length; i++) {
-        dots[i].className = dots[i].className.replace(" active", "");
-    }
-    slides[slideIndex - 1].style.display = "block";
-    dots[slideIndex - 1].className += " active";
-    captionText.innerHTML = dots[slideIndex - 1].alt;
-}
 
 function create_images_targets(data) {
     wizard_next(4, dict_wizard);
     $('#tabular_target').attr('hidden', '');
     $('#image_target').removeAttr('hidden');
-    $('#image_row').empty();
-    $('#image_demo').empty();
-    $('#slides').empty();
+    $('.horizontal-slide').empty();
     let cont = 1;
     $.each(data, function (label, value) {
-        let column = $('<div></div>').addClass('column');
+        let column = $('<li></li>').addClass('col-md-2');
 
         let text = $('<div></div>').addClass('text-block');
         let my_label = $('<p>' + label + '</p>');
@@ -498,46 +452,14 @@ function create_images_targets(data) {
         let im = new Image();
         im.src = 'data:image/' + i['extension'] + ';base64,' + i['img'];
         im.id = cont;
-        im.onclick = function () {
-            openModal();
-            currentSlide(this.id);
-        };
 
-        im.classList = "hover-shadow cursor";
+        im.classList = "thumbnail";
 
         column.append(im);
         text.append(my_label);
         column.append(text);
-        $('#image_row').append(column);
+        $('.horizontal-slide').append(column);
 
-        let my_slides = $('<div></div>').addClass('mySlides');
-
-        let number_text = $('<div>' + cont + '</div>').addClass('numbertext');
-        let im2 = new Image();
-        im2.src = 'data:image/' + i['extension'] + ';base64,' + i['img'];
-        im2.style = "width:100%";
-
-        my_slides.append(number_text);
-        my_slides.append(im2);
-
-
-        $('#slides').append(my_slides);
-
-        let column_i = $('<div></div>').addClass('column');
-        let im3 = new Image();
-        if (i.hasOwnProperty('extension'))
-            im3.src = 'data:image/' + i['extension'] + ';base64,' + i['img'];
-        else
-            im3.src = 'data:image/jpg;base64,' + i['img'];
-        im3.style = "width:100%";
-        im3.addEventListener('click', function (e) {
-            currentSlide(this.id)
-        });
-        im3.alt = label;
-        im3.id = cont;
-        im3.classList = 'demo cursor';
-        column_i.append(im3);
-        $('#image_demo').append(column_i);
         cont += 1;
     });
 }
