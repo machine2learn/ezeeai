@@ -110,7 +110,7 @@ def has_header(csvfile, close=True):
         csvfile = open(csvfile, 'r')
 
     sniffer = csv.Sniffer()
-    has_header = sniffer.has_header(csvfile.read(2048))
+    has_header = sniffer.has_header(csvfile.read(100))
     if close:
         csvfile.close()
     else:
