@@ -220,9 +220,16 @@ function getRenderedCenter(target, renderedDimensions) {
   var dimensions = renderedDimensions(target);
   var offsetX = dimensions.w / 2;
   var offsetY = dimensions.h / 2;
+  var offset_navbar = 223;
+  if($('body').attr('class').indexOf('nav-collapsed') >= 0){
+    if ($('body').attr('class').indexOf('nav-static') >= 0)
+      offset_navbar = 223;
+    else
+       offset_navbar = 50;
+  }
 
   return {
-    x: pos.x - offsetX,
+    x: pos.x - offsetX - offset_navbar,
     y: pos.y - offsetY
   };
 }
