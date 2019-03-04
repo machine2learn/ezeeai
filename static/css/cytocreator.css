@@ -719,3 +719,6 @@ ul.horizontal-slide li[class*="col"]:first-child {
     padding: 5px;
 
 }
+/*#popper-container{*/
+    /*transform: translate3d(0, 0, 0);*/
+/*}*/

@@ -350,6 +350,7 @@ $(function(){
         var view = this;
         this.$loaderWrap.one(Util.TRANSITION_END, function () {
             view.$loaderWrap.addClass('hide');
+            console.log('aeadsgasdgadsg');
         }).emulateTransitionEnd(200)
     };
 

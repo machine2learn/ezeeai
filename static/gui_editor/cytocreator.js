@@ -228,9 +228,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
     });
-    $('#nav-state-toggle').on('click', function () {
-        add_icons_nodes();
-    });
+    // $('#nav-state-toggle').on('click', function () {
+    //     add_icons_nodes();
+    // });
 
 
     cy.on('doubleTap', 'node', function (event) {
@@ -1091,8 +1091,8 @@ function create_popper(cy, node, id, text) {
     let makeDiv = function (text, id) {
         let div = $('<div></div>').attr('id', id)
             .addClass('popper-div')
-            .text('(' + text + ')')
-            .appendTo('body');
+            .text('(' + text + ')');
+        $('#content').append(div);
         return div;
     };
     let popperA = node.popper({
@@ -1100,11 +1100,12 @@ function create_popper(cy, node, id, text) {
             return makeDiv(text, id);
         }
     });
+
     let updateA = function () {
         popperA.scheduleUpdate();
     };
     node.on('position', updateA);
-    cy.on('pan zoom resize', updateA);
+    cy.on('pan zoom resize drag tap', updateA);
 }
 
 function create_poppers(layers, nodes, cy, loss_node) {

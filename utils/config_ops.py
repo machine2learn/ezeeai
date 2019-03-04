@@ -26,6 +26,8 @@ def get_datasets_type(app_root, username):
             continue
         dt_type = [x for x in os.listdir(os.path.join(app_root, 'user_data', username, 'datasets', dataset)) if
                    x[0] == '.']
+        if len(dt_type) == 0:
+            continue
         dt_type = 'Tabular' if 'tabular' in dt_type[0] else 'Image'
         datasets.append([dataset, dt_type])
     return datasets
