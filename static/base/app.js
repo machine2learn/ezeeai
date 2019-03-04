@@ -547,6 +547,7 @@ $(function(){
     initAppPlugins();
     initAppFunctions();
     initAppFixes();
+    initDemoFunctions();
 });
 
 /**
@@ -713,3 +714,38 @@ function initAppFixes(){
     }
 }
 
+/**
+ * Demo-only functions. Does not affect the core Sing functionality.
+ * Should be removed when used in real app.
+ */
+function initDemoFunctions(){
+    !function($){
+        $('.theme-helper-toggler').click(() => {
+            $('.theme-helper').toggleClass('theme-helper-opened');
+        });
+        $('#load-notifications-btn').on('ajax-load:end', function () {
+            setTimeout(function(){
+                $('#notifications-list').find('.bg-attention').removeClass('bg-attention');
+            }, 10000)
+        });
+        $('#notifications-toggle').find('input').on('ajax-load:end', function(){
+            $('#notifications-list').find('[data-toggle=tooltip]').tooltip();
+        });
+
+        // theme switcher
+        let $darkStyles;
+        $('#css-dark').click(function () {
+            if (!$darkStyles) {
+                $darkStyles = $('<link href="css/application-dark.min.css" rel="stylesheet">').appendTo($('head'));
+            }
+
+            if ($darkStyles[0].isabled)
+                $darkStyles[0].disabled = false;
+        });
+
+        $('#css-light').click(function () {
+            if (!$darkStyles[0].disabled)
+                $darkStyles[0].disabled = true;
+        });
+    }(jQuery);
+}
