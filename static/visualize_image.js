@@ -78,6 +78,7 @@ $(document).ready(function () {
                     }
                     if ($('#label-dist').length > 0) {
                         bar_plot('label-dist', Object.keys(data.data.counts), Object.values(data.data.counts));
+
                     }
 
                     collapsed.next().click();

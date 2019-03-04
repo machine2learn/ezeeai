@@ -26269,6 +26269,14 @@ a.text-bg-sidebar:hover, a.text-bg-sidebar:focus {
     }
 }
 
+.margin-top-5 {
+    margin-top: 15px;
+}
+
+.margin-top-10 {
+    margin-top: 10px;
+}
+
 .margin-top-15 {
     margin-top: 15px;
 }
@@ -26456,7 +26464,7 @@ input.text-error {
     text-align: center;
     color: #ee3002;
 }
-.help-block{
-     color: #ee3002;
-}
 
+.help-block {
+    color: #ee3002;
+}

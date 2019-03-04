@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% import 'bootstrap/wtf.html' as wtf %}
-{% from '_render_field.html' import render_checkbox, render_option_field, render_field_two_col, render_single_field, render_field, render_gener_field %}
+{% from '_render_field.html' import render_checkbox, render_generate_field, render_option_field, render_field_two_col, render_single_field, render_field, render_gener_field %}
 {% block styles %}
     {{ super() }}
     <link href="{{ url_for('.static', filename='base/css/tables.css') }}" rel="stylesheet">
@@ -56,7 +56,8 @@
                     </h6>
                 </header>
                 <div class="margin-top-15">
-                    {{ render_gener_field(gen_form) }}
+                    {{ render_generate_field(gen_form) }}
+
 
                 </div>
                 <div class="btn-next-parent">

@@ -228,7 +228,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
     });
-    $('#nav-state-toggle').on('click', function (){
+    $('#nav-state-toggle').on('click', function () {
         add_icons_nodes();
     });
 
@@ -672,7 +672,6 @@ $(document).ready(function () {
     });
 
     $('#featuresContinue').click(function (e) {
-
         if (mode === 'tabular') {
             tabular_features_continue();
         } else {
@@ -830,7 +829,10 @@ $(document).ready(function () {
 
         let input_shape = "[" + $('#height').val() + ',' + $('#width').val() + ',' + data['n_channels'] + ']';
         $('#input_shape').val(input_shape);
-        appConfig.num_outputs = data['num_outputs'];
+
+        if (data.hasOwnProperty('num_outputs'))
+            appConfig.num_outputs = data['num_outputs'];
+
         cy.$(':selected').data()['content']['input_shape']['value'] = input_shape;
         inputs_layers[cy.$(':selected').data().name]['normalization'] = $('#normalization').val();
         inputs_layers[cy.$(':selected').data().name]['augmentation_options'] = augmentation_options;

@@ -641,6 +641,7 @@ li > img {
     width: 100%;
     vertical-align: unset;
 }
+
 #image_col {
     padding: 0;
 }
@@ -653,6 +654,11 @@ ul.horizontal-slide {
     overflow-x: auto;
     margin-bottom: 50px;
     margin-top: 50px;
+    flex-wrap: inherit !important;
+}
+
+.flex {
+    display: flex;
 }
 
 ul.horizontal-slide li[class*="col"] {

@@ -54,7 +54,7 @@ class NewTabularFileForm(FlaskForm):
 
 
 class NewImageFileForm(FlaskForm):
-    selector = SelectField("Select option",
+    selector = SelectField("Select format option",
                            choices=[('option1', 'Folder per class'),
                                     ('option2', 'All same folder with label file'),
                                     ('option3', 'Numpy file')],

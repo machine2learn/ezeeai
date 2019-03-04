@@ -315,7 +315,12 @@ def params_predict():
         checkpoints = run_utils.get_eval_results(export_dir, local_sess.get_writer(), local_sess.get_config_file())
         metric = local_sess.get_metric()
         params, _ = local_sess.get_helper().get_default_data_example()
-        return jsonify(checkpoints=checkpoints, metric=metric, params=params)
+
+        hlp = local_sess.get_helper()
+        has_test = False
+        if int(hlp._dataset.get_split().split(',')[2]) > 0:
+            has_test = True
+        return jsonify(checkpoints=checkpoints, metric=metric, params=params, has_test=has_test)
     except (KeyError, NoSectionError):
         return jsonify(checkpoints='', metric='', params={})
 
@@ -338,7 +343,7 @@ def run():
     if not running:
         config_file = sess.get_config_file() if sess.check_key('config_file') else None
 
-    if config_file is not None:
+    if config_file is not None and os.path.isfile(config_file):
         sess.set_config_file(config_file)
         sess.load_config()
         param_utils.set_form(form, sess.get_config_file())

@@ -36,7 +36,7 @@ def get_params(config_file):
         else:
             dict['keep_checkpoint_max'] = 5
             dict['save_checkpoints_steps'] = 50
-            dict['save_summary_steps'] = 50
+            dict['save_summary_steps'] = 5
             dict['throttle'] = 1
         if 'TRAINING' in reader.keys():
             dict['num_epochs'] = reader['TRAINING']['num_epochs']

@@ -186,7 +186,7 @@ function precision_recall_plots() {
 
 
     var layout = {
-        title: 'Precision-Recall',
+        // title: 'Precision-Recall',
         font: {
             family: '"Montserrat", sans-serif',
             size: 11
@@ -285,7 +285,7 @@ function roc_plot() {
 
 
     var layout = {
-        title: 'Receiver operating characteristic (ROC)',
+        // title: 'Receiver operating characteristic (ROC)',
         font: {
             family: '"Montserrat", sans-serif',
             size: 11

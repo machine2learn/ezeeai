@@ -150,6 +150,28 @@
             <label for="{{ subfield.name }}" class="control-label"
                    title="{{ subfield.description }}"><b>{{ subfield.label.text }}</b></label>
             {{ subfield(class_='form-control', **kwargs)|safe }}
+
+            <ul>
+                {% for error in subfield.errors %}
+                    <li style="color:red;">{{ error }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {%- endfor %}
+    {{ field.hidden_tag() }}
+{% endmacro %}
+
+
+{% macro render_generate_field(field) %}
+    {#    <h4><label> {{ field.label.text }} </label></h4>#}
+    {%- for subfield in field %}
+        {% if not bootstrap_is_hidden_field(subfield) %}
+            <label for="{{ subfield.name }}" class="control-label"
+                   title="{{ subfield.description }}"><b>{{ subfield.label.text }}</b></label>
+            {{ subfield(class_='form-control', **kwargs)|safe }}
+            {% if 'script' == subfield.name   %}
+                 <small class="text-muted" id="script_help"> You can expand this text area by dragging the bottom right corner.</small>
+            {% endif %}
             <ul>
                 {% for error in subfield.errors %}
                     <li style="color:red;">{{ error }}</li>

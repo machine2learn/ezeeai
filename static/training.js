@@ -10,6 +10,10 @@ $(document).ready(function () {
         toggle_play();
         enable_run();
         disable_run_config();
+        let loss_graph = document.getElementById('loss_graph');
+        if ((loss_graph.data === 'undefined') ||
+            ((loss_graph.data === 'undefined') && (loss_graph.data.length === 0)))
+            $('.loader-pretrain').removeClass('hide-element');
     }
 
     if (appConfig.handle_key.model_name !== '') {
@@ -38,6 +42,7 @@ $(document).ready(function () {
                 update_checkpoint_table(data.checkpoints, data.metric);
                 update_graphs(data.graphs, true);
                 $('.log').text(data.log);
+                 $('.log').animate({scrollTop: $('.log')[0].scrollHeight});
             }
         })
     });
@@ -53,11 +58,12 @@ $(document).ready(function () {
                         playing = data.running;
                         toggle_play();
                         enable_run_config();
+                        $('.loader-pretrain').addClass('hide-element')
                     }
                     update_checkpoint_table(data.checkpoints, '');
                     update_graphs(data.graphs, false);
                     $('.log').append(data.data);
-                    $('.log-div').animate({scrollTop: $('.log')[0].scrollHeight});
+                    $('.log').animate({scrollTop: $('.log')[0].scrollHeight});
                 }
             })
         }
@@ -104,9 +110,7 @@ function disable_run_config() {
 }
 
 function button_play() {
-
     playing = !playing;
-
     let formData = new FormData($('#parameters_form')[0]);
     let action = 'pause';
     if (playing)
@@ -115,6 +119,12 @@ function button_play() {
     formData.append('action', action);
     formData.append('resume_from', '');
     playing = !playing;
+
+    // update_graphs(appConfig.handle_key.graphs, true);
+    if ((!playing) && (document.getElementById('loss_graph').data.length == 0))
+        $('.loader-pretrain').removeClass('hide-element');
+    else
+        remove_preplot_loader();
 
     // form_data['resume_from'] = '';
     // if (document.getElementById("resume_training").checked === true)
@@ -166,13 +176,18 @@ function update_parameters_form(params) {
 
 
 function update_graphs(data, from_scratch) {
+
     if (from_scratch) {
         $('#loss_graph').children().remove();
         $('#metric_graph').children().remove();
     }
 
-    if (!data.hasOwnProperty('train'))
+    if (!data.hasOwnProperty('train')) {
+        document.getElementById('loss_graph').data = [];
+        document.getElementById('metric_graph').data = [];
         return;
+    }
+
 
     let keys = Object.keys(data.train);
 
@@ -180,16 +195,20 @@ function update_graphs(data, from_scratch) {
         if (keys[i] === 'steps')
             continue;
         let div = 'loss_graph';
-
         if (keys[i] !== 'loss') {
-            div = 'metric_graph'
+            div = 'metric_graph';
             $('#metric_span').text(keys[i].charAt(0).toUpperCase() + keys[i].slice(1));
 
         }
         line_plot_2_variables(div, data.train.steps, data.train[keys[i]], data.eval.steps, data.eval[keys[i]], 'train', 'val', 'Steps', '');
-
+        remove_preplot_loader()
     }
 
+}
+
+function remove_preplot_loader() {
+    if (!$('.loader-pretrain').hasClass('hide-element'))
+        $('.loader-pretrain').addClass('hide-element');
 }
 
 
@@ -213,6 +232,8 @@ function ConfirmDelete(elem, all) {
                 if (all) {
                     $('#loss_graph').children().remove();
                     $('#metric_graph').children().remove();
+                    document.getElementById('loss_graph').data = [];
+                    document.getElementById('metric_graph').data = [];
                 }
 
             }

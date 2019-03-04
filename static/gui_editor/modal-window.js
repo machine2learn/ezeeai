@@ -8,7 +8,7 @@ $(document).ready(function () {
         'select': 'single',
         "lengthChange": false,
         "drawCallback": function () {
-            if ( $(this).DataTable().rows()[0].length <= 10) {
+            if ($(this).DataTable().rows()[0].length <= 10) {
                 let id = '#' + $(this).attr('id');
                 $(id + '_paginate').remove();
                 $(id + '_info').remove();
@@ -45,7 +45,7 @@ $(document).ready(function () {
         fixedHeader: false,
         deferRender: false,
         "drawCallback": function () {
-            if ( $(this).DataTable().rows()[0].length <= 10) {
+            if ($(this).DataTable().rows()[0].length <= 10) {
                 let id = '#' + $(this).attr('id');
                 $(id + '_paginate').remove();
                 $(id + '_info').remove();
@@ -169,38 +169,47 @@ function create_features_table(data, category_list, dict_wizard) {
     $('#tabular_features').removeAttr('hidden');
     $('#image_features').attr('hidden', '');
 
-    if (table_feat_created) {
-        $('#table_features').DataTable().clear().rows.add(get_feature_rows(data, category_list)).draw();
-    } else {
-        var table_features = $('#table_features').DataTable({
-            data: get_feature_rows(data, category_list),
-            columns: [{title: 'Features', name: 'Features'},
-                {title: 'Category', name: 'Category'},
-                {title: '#Unique Values'},
-                {title: 'Most frequent'},
-                {title: 'Frequency'},
-                {title: 'Defaults', name: 'Defaults'}, {title: 'Sample 1'},
-                {title: 'Sample 2'}, {title: 'Sample 3'}, {title: 'Sample 4'}, {title: 'Sample 5'}],
-            fixedHeader: false,
-            deferRender: true,
-            scrollX: true,
-            scroller: true,
-            "lengthChange": false,
-            "drawCallback": function () {
-            if ( $(this).DataTable().rows()[0].length <= 10) {
+    if (table_feat_created)
+        remove_table('table_features');
+    // $('#table_features').DataTable().clear().rows.add(get_feature_rows(data, category_list)).draw();
+    // } else {
+    var table_features = $('#table_features').DataTable({
+        data: get_feature_rows(data, category_list),
+        columns: [{title: 'Features', name: 'Features'},
+            {title: 'Category', name: 'Category'},
+            {title: '#Unique Values'},
+            {title: 'Most frequent'},
+            {title: 'Frequency'},
+            {title: 'Defaults', name: 'Defaults'}, {title: 'Sample 1'},
+            {title: 'Sample 2'}, {title: 'Sample 3'}, {title: 'Sample 4'}, {title: 'Sample 5'}],
+        fixedHeader: false,
+        deferRender: true,
+        scrollX: true,
+        scroller: true,
+        "lengthChange": false,
+        "drawCallback": function () {
+            if ($(this).DataTable().rows()[0].length <= 10) {
                 let id = '#' + $(this).attr('id');
                 $(id + '_paginate').remove();
                 $(id + '_info').remove();
             }
 
         }
-        });
-        $('#feature_search').keyup(function () {
-            table_features.search($(this).val()).draw();
+    });
+    $('#feature_search').keyup(function () {
+        table_features.search($(this).val()).draw();
 
-        });
-    }
+    });
+
     return true;
+}
+
+function remove_table(id) {
+    if ($.fn.DataTable.isDataTable('#' + id)) {
+        $('#' + id).DataTable().destroy();
+        $('#' + id + ' tbody').empty();
+        $('#' + id + ' thead').empty();
+    }
 }
 
 
@@ -224,9 +233,10 @@ function create_target_table(data, category_list, targets, dict_wizard) {
     $('#tabular_target').removeAttr('hidden');
     $('#image_target').attr('hidden', '');
     var $target_table = $('#table_targets');
-    if (table_target_created) {
-        $target_table.DataTable().clear().rows.add(get_target_rows(data, category_list)).draw();
-    } else {
+    if (table_target_created)
+        remove_table('table_targets');
+        // $target_table.DataTable().clear().rows.add(get_target_rows(data, category_list)).draw();
+    // } else {
         var target_table = $target_table.DataTable({
             data: get_target_rows(data, category_list),
             columns: [{title: 'Features'}, {title: 'Category', name: 'Category'}, {title: '#Unique Values'},
@@ -240,21 +250,21 @@ function create_target_table(data, category_list, targets, dict_wizard) {
             scroller: true,
             "lengthChange": false,
             "drawCallback": function () {
-            if ( $(this).DataTable().rows()[0].length <= 10) {
-                let id = '#' + $(this).attr('id');
-                $(id + '_paginate').remove();
-                $(id + '_info').remove();
-            }
+                if ($(this).DataTable().rows()[0].length <= 10) {
+                    let id = '#' + $(this).attr('id');
+                    $(id + '_paginate').remove();
+                    $(id + '_info').remove();
+                }
 
-        }
+            }
         });
         $('#target_search').keyup(function () {
             target_table.search($(this).val()).draw();
 
         });
-    }
+
     $target_table.DataTable().rows().every(function () {
-        var data = this.data()[0];
+        let data = this.data()[0];
         if ((targets !== null) && (targets.indexOf(data) >= 0))
             this.select();
     });

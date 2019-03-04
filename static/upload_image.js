@@ -36,6 +36,23 @@ function _(el) {
     return $('#' + el);
 }
 
+function clearFileInput(id)
+{
+    var oldInput = document.getElementById(id);
+
+    var newInput = document.createElement("input");
+
+    newInput.type = "file";
+    newInput.id = oldInput.id;
+    newInput.name = oldInput.name;
+    newInput.className = oldInput.className;
+    newInput.style.cssText = oldInput.style.cssText;
+    // TODO: copy any other relevant attributes
+
+    oldInput.parentNode.replaceChild(newInput, oldInput);
+}
+
+
 $(document).ready(function () {
 
     $('#format-content').html(formats[$('#selector-selector').val()]);
@@ -47,6 +64,8 @@ $(document).ready(function () {
         $('.img-select').addClass('hide-element');
         $('#' + $(this).val()).removeClass('hide-element');
         id_file_uploading = $(this).val();
+        // $('.custom-file-input').val('');
+        $('.custom-file-input').val('');
 
     });
     $('.custom-file-input').on('change', function () {
@@ -84,7 +103,10 @@ function uploadFile() {
         }
         var response = JSON.parse(this.responseText);
         if (this.readyState === 4 && response.status === 'error') {
-            alert('Upload failed: ' + response.msg);
+            if (response.msg === '')
+                response.msg = 'Dataset format is not correct';
+
+            $.notify("Upload error: " + response.msg, "error");
             clear_upload_status();
         } else if (this.readyState === 4 && response.status === 'ok') {
             $.notify("New dataset saved", "success");

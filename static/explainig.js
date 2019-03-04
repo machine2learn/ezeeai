@@ -1,7 +1,6 @@
 $(document).ready(function () {
     draw_models_select(appConfig.handle_key.models);
 
-
     $('#model_name').on('change', function () {
         enable_checkpoints();
         clear_graphs();
@@ -25,10 +24,16 @@ $(document).ready(function () {
             success: function (data) {
                 // show_error_has_hash(data.params.has_test);
                 $('#exp_target').remove();
-                let explain_select_target = add_select("exp_target", data.params.targets);
-                $('#target_input').append(explain_select_target);
+                $('#target_input').empty();
+                if (data.params.targets.length > 1) {
+                    let explain_select_target = add_select("exp_target", data.params.targets);
+                    $('#target_input').append(explain_select_target);
 
+                } else {
+                    appConfig.exp_target = data.params.targets[0];
+                    $('#target_input').append(data.params.targets[0]);
 
+                }
                 $('.loader').addClass('hide-element');
                 $('.visualization').removeClass('hide-element');
 
@@ -45,6 +50,7 @@ $(document).ready(function () {
                 $('#table_features').children().remove();
 
                 if (data.params.hasOwnProperty('image')) {
+                    $('#explain_params_div').addClass('hide-element');
                     $('#image_upload').removeClass('hide-element');
                     $('#feature-div').addClass('hide-element');
                     let result = 'data:image/' + data.params.extension + ';base64,' + data.params.image;
@@ -53,6 +59,8 @@ $(document).ready(function () {
                     appConfig.handle_key['image'] = data.params.image;
 
                 } else {
+                    $('#explain_params_div').removeClass('hide-element');
+                    $('#image_upload').addClass('hide-element');
                     $('#image_upload').addClass('hide-element');
                     $('#features_div').removeClass('hide-element');
                     $.each(data.params.features, function (key, value) {
@@ -81,6 +89,9 @@ $(document).ready(function () {
                 value: $('#table_checkpoints').DataTable().rows({selected: true}).data()[0][0]
             });
             data_form.push({name: 'model_name', value: $('#model_name').val()});
+            if (!('exp_target' in data_form)) {
+                data_form.push({name: 'exp_target', value: appConfig.exp_target});
+            }
             $.ajax({
                 url: "/explain",
                 type: 'POST',
@@ -113,6 +124,9 @@ $(document).ready(function () {
             }
             data_form.append('radiob', $('#table_checkpoints').DataTable().rows({selected: true}).data()[0][0]);
             data_form.append('model_name', $('#model_name').val());
+            if (!('exp_target' in data_form)) {
+                data_form.append('exp_target', appConfig.exp_target);
+            }
             var ajax = new XMLHttpRequest();
             ajax.open("POST", "/explain");
             ajax.send(data_form);

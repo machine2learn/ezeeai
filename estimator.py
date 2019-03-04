@@ -50,7 +50,7 @@ class AbstractEstimator(metaclass=ABCMeta):
 
         tf.logging.set_verbosity(tf.logging.DEBUG)
         log = logging.getLogger('tensorflow')
-        log.setLevel(logging.INFO)
+        log.setLevel(logging.ERROR)
 
         # create formatter and add it to the handlers
         formatter = logging.Formatter('%(asctime)s - %(message)s')

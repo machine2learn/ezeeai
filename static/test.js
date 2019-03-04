@@ -30,16 +30,20 @@ $(document).ready(function () {
 
                 create_checkpoint_table(data.checkpoints, data.metric);
                 $('#features_div').addClass('disabled-custom');
-                create_table_test_files(data.params.test_files);
 
                 if (data.params.hasOwnProperty('image')) {
                     $('#image-upload-div').removeClass('hide-element');
                     $('#tabular-upload-div').addClass('hide-element');
+                    appConfig.has_test = data.has_test;
+
                 } else {
                     $('#tabular-upload-div').removeClass('hide-element');
                     $('#image-upload-div').addClass('hide-element');
+                    appConfig.has_test = false;
 
                 }
+                create_table_test_files(data.params.test_files);
+
             },
             error: function () {
                 $('.loader').addClass('hide-element');
@@ -87,10 +91,16 @@ $(document).ready(function () {
                     alert(data.error);
                 } else {
                     $('.waiting-test-file').removeClass('hide-element');
-                    appConfig.handle_key.metrics = data.metrics;
-                    appConfig.handle_key.targets = data.targets;
-                    create_table_predictions(data.predict_table['data'], data.predict_table['columns'])
-                    create_graphs(data.metrics, data.targets)
+                    create_table_predictions(data.predict_table['data'], data.predict_table['columns']);
+                    if (Object.keys(data['metrics']).length > 0) {
+                        appConfig.handle_key.metrics = data.metrics;
+                        appConfig.handle_key.targets = data.targets;
+                        create_graphs(data.metrics, data.targets)
+                        $('#graph_test_div').removeClass('hide-element');
+                    } else {
+                        $('#graph_test_div').addClass('hide-element');
+
+                    }
                 }
 
             },
@@ -137,6 +147,9 @@ function create_table_test_files(data) {
     let dataArr = data.map(function (d) {
         return [d];
     });
+    if (appConfig.has_test)
+        dataArr.push(['TEST FROM SPLIT']);
+
     remove_table('table_test_files');
     let table_test = $('#table_test_files').DataTable({
         data: dataArr,
