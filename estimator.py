@@ -147,13 +147,16 @@ class AbstractEstimator(metaclass=ABCMeta):
         return dict_results
 
     def run(self):
-        tf.estimator.train_and_evaluate(self.model, self.train_spec, self.eval_spec)
-        self.email = self.params['email']
-        server_info = {"login": "tf3deep",
-                       "password": "tf3Deep123",
-                       "email_address": "tf3deep@gmail.com"}
+        try:
+            tf.estimator.train_and_evaluate(self.model, self.train_spec, self.eval_spec)
+            self.email = self.params['email']
+            server_info = {"login": "tf3deep",
+                           "password": "tf3Deep123",
+                           "email_address": "tf3deep@gmail.com"}
 
-        send_email({"email_address": self.email}, server_info)
+            send_email({"email_address": self.email}, server_info)
+        except ValueError as e:
+            tf.logging.error(e)
 
     def _create_explainer(self):
         return TabularExplainer(self.dataset) if isinstance(self.dataset, Tabular) else ImageExplainer(self.dataset)

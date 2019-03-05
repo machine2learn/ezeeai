@@ -445,8 +445,7 @@ function get_load_rows(parameters) {
     });
     return models;
 }
-
-
+//TODO
 function create_images_targets(data) {
     wizard_next(4, dict_wizard);
     $('#tabular_target').attr('hidden', '');
@@ -454,15 +453,13 @@ function create_images_targets(data) {
     $('.horizontal-slide').empty();
     let cont = 1;
     $.each(data, function (label, value) {
-        let column = $('<li></li>').addClass('col-md-2');
-
-        let text = $('<div></div>').addClass('text-block');
+        let column = $('<li></li>');
+        let text = $('<div></div>'); //.addClass('text-block');
         let my_label = $('<p>' + label + '</p>');
         let i = data[label];
         let im = new Image();
         im.src = 'data:image/' + i['extension'] + ';base64,' + i['img'];
         im.id = cont;
-
         im.classList = "thumbnail";
 
         column.append(im);
@@ -514,6 +511,7 @@ function get_dataset_rows(datasets) {
 }
 
 function reset_wizard() {
+   clear_input_modal(dict_wizard, true);
     $('#wizard2').addClass('disabled');
     $('#wizard3').addClass('disabled');
     $('#wizard4').addClass('disabled');

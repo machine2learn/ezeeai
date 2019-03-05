@@ -640,35 +640,36 @@ img.demo {
 li > img {
     width: 100%;
     vertical-align: unset;
+    width: 14vh;
 }
 
-#image_col {
-    padding: 0;
-}
+/*#image_col {*/
+    /*padding: 0;*/
+/*}*/
 
-ul.horizontal-slide {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    white-space: nowrap;
-    overflow-x: auto;
-    margin-bottom: 50px;
-    margin-top: 50px;
-    flex-wrap: inherit !important;
-}
+/*ul.horizontal-slide {*/
+    /*margin: 0;*/
+    /*padding: 0;*/
+    /*width: 100%;*/
+    /*white-space: nowrap;*/
+    /*overflow-x: auto;*/
+    /*margin-bottom: 50px;*/
+    /*margin-top: 50px;*/
+    /*flex-wrap: inherit !important;*/
+/*}*/
 
-.flex {
-    display: flex;
-}
+/*.flex {*/
+    /*display: flex;*/
+/*}*/
 
-ul.horizontal-slide li[class*="col"] {
-    display: inline-block;
-    float: none;
-}
+/*ul.horizontal-slide li[class*="col"] {*/
+    /*display: inline-block;*/
+    /*float: none;*/
+/*}*/
 
-ul.horizontal-slide li[class*="col"]:first-child {
-    margin-left: 0;
-}
+/*ul.horizontal-slide li[class*="col"]:first-child {*/
+    /*margin-left: 0;*/
+/*}*/
 
 .modal {
     overflow-y: auto;
@@ -719,6 +720,67 @@ ul.horizontal-slide li[class*="col"]:first-child {
     padding: 5px;
 
 }
+
 /*#popper-container{*/
-    /*transform: translate3d(0, 0, 0);*/
+/*transform: translate3d(0, 0, 0);*/
 /*}*/
+
+.max-w-230 {
+    max-width: 300px;
+    padding-right: 1px !important;
+}
+
+/*.horizontal-list {*/
+    /*min-width: 696px;*/
+    /*list-style: none;*/
+    /*padding-top: 20px;*/
+    /*display: flex;*/
+/*}*/
+
+/*#image_col {*/
+    /*float: right;*/
+    /*position: relative;*/
+    /*left: -50%;*/
+    /*text-align: left;*/
+    /*overflow-y: scroll;*/
+
+/*}*/
+
+/*#image_col ul {*/
+    /*list-style: none;*/
+    /*position: relative;*/
+    /*left: 50%;*/
+
+/*}*/
+
+/*#image_col li {*/
+    /*float: left;*/
+    /*position: relative;*/
+    /*text-decoration: none;*/
+    /*margin: 10px;*/
+    /*padding: 2px 5px;*/
+    /*text-align: center;*/
+    /*white-space: nowrap;*/
+/*}*/
+
+/*#content{overflow:hidden}!* hide horizontal scrollbar*!*/
+
+#image_col{
+    margin-top:4vh;
+    text-align: center;
+}
+#image_col  ul {
+    width: 100%;
+    overflow-x: scroll;
+    white-space: nowrap
+}
+
+#image_col li {
+    display: inline-block;
+    *display: inline;
+    text-align:center!important;
+}
+
+#image_col img {
+   margin-left: 2vh;
+}

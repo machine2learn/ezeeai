@@ -279,8 +279,10 @@ def save_model():
 @login_required
 @check_config
 def params_run():
+    model_name = get_model_name(request)
+    log_path = os.path.join('user_data', session['user'], 'models', model_name, 'log', 'tensorflow.log')
+    logfile = open(log_path, 'r').read() if os.path.isfile(log_path) else ''
     try:
-        model_name = get_model_name(request)
         config_file = sys_ops.get_config_path(APP_ROOT, session['user'], model_name)
         parameters = param_utils.get_params(config_file)
         sess.set_config_file(config_file)
@@ -290,13 +292,9 @@ def params_run():
         checkpoints = run_utils.get_eval_results(export_dir, sess.get_writer(), sess.get_config_file())
         metric = sess.get_metric()
         graphs = train_eval_graphs(config_reader.read_config(sess.get_config_file()).checkpoint_dir())
-
-        log_path = os.path.join('user_data', session['user'], 'models', model_name, 'log', 'tensorflow.log')
-        logfile = open(log_path, 'r').read() if os.path.isfile(log_path) else ''
-
         return jsonify(checkpoints=checkpoints, parameters=parameters, metric=metric, graphs=graphs, log=logfile)
     except (KeyError, NoSectionError):
-        return jsonify(checkpoints='', parameters='', metric='', graphs={})
+        return jsonify(checkpoints='', parameters='', metric='', graphs={}, log=logfile)
 
 
 @app.route('/params_predict', methods=['POST'])
@@ -338,6 +336,7 @@ def run():
     graphs = {}
 
     form = GeneralParamForm()
+    log_mess = None
 
     running, config_file = th.check_running(username)
     if not running:
@@ -353,6 +352,8 @@ def run():
         checkpoints = run_utils.get_eval_results(export_dir, sess.get_writer(), sess.get_config_file())
         metric = sess.get_metric()
         graphs = train_eval_graphs(config_reader.read_config(sess.get_config_file()).checkpoint_dir())
+        log_path = os.path.join('user_data', session['user'], 'models', model_name, 'log', 'tensorflow.log')
+        log_mess = open(log_path, 'r').read() if os.path.isfile(log_path) else ''
 
     if request.method == 'POST':
         sess.run_or_pause(is_run(request))
@@ -386,7 +387,7 @@ def run():
 
     return render_template('run.html', title="Run", user=username, token=session['token'], form=form,
                            user_models=model_configs, dataset_params=user_datasets, running=running,
-                           model_name=model_name, checkpoints=checkpoints, metric=metric, graphs=graphs)
+                           model_name=model_name, checkpoints=checkpoints, metric=metric, graphs=graphs, log=log_mess)
 
 
 @app.route('/predict', methods=['POST', 'GET'])
@@ -464,7 +465,11 @@ def explain():
 @login_required
 @check_config
 def upload_test_file():
-    model_name = request.get_json()['model_name']
+    try:
+        model_name = request.get_json()['model_name']
+    except:
+        model_name = request.form['model_name']
+
     local_sess = Session(app)
     local_sess.add_user((session['user'], session['_id']))
 
@@ -613,10 +618,10 @@ def refresh():
         export_dir = all_params_config.export_dir()
         checkpoints = run_utils.get_eval_results(export_dir, sess.get_writer(), sess.get_config_file())
         graphs = train_eval_graphs(all_params_config.checkpoint_dir())
-        return jsonify(checkpoints=checkpoints, data=sess.get('log_fp').read() if sess.check_key('log_fp') else '',
-                       running=running, epochs=epochs, graphs=graphs)
+        l = sess.get('log_fp').read() if sess.check_key('log_fp') else ''
+        return jsonify(checkpoints=checkpoints, log=l, running=running, epochs=epochs, graphs=graphs)
     except (KeyError, NoSectionError):
-        return jsonify(checkpoints='', data='', running=running, epochs=0, graphs={})
+        return jsonify(checkpoints='', log='', running=running, epochs=0, graphs={})
 
 
 @app.route('/running_check', methods=['GET'])

@@ -137,15 +137,16 @@ function line_plot_2_variables(div, x1, y1, x2, y2, name1, name2, xaxis, yaxis) 
         mode: 'lines',
         name: name1
     };
-
-    var trace2 = {
-        x: x2,
-        y: y2,
-        mode: 'lines',
-        name: name2
-    };
-
-    var data = [trace1, trace2];
+    var data = [trace1];
+    if (x2.length > 0) {
+        var trace2 = {
+            x: x2,
+            y: y2,
+            mode: 'lines',
+            name: name2
+        };
+        data = [trace1, trace2];
+    }
 
     var layout = {
         margin: {l: 10, r: 0, t: 25, b: 25},

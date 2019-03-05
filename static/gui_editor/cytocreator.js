@@ -639,7 +639,8 @@ $(document).ready(function () {
                 'dataset': appConfig.dataset,
             }),
             success: function (data) {
-                let input_node = cy.nodes().filter((node) => 'name' in node.data()).roots()[0];
+                // let input_node = cy.nodes().filter((node) => 'name' in node.data()).roots()[0];
+                let input_node = cy.nodes().filter((node) => node.data().class_name === 'InputLayer')[0];
                 inputs_layers[input_node.data('name')] = {'dataset': appConfig.dataset, 'is_saved': false};
                 if (data.data.hasOwnProperty('height')) {
                     create_image_feature(data.data, dict_wizard);

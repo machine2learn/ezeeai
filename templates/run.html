@@ -198,7 +198,7 @@
                             </div>
                         </header>
                         <div class="widget-body log-div">
-                            <div class="log"></div>
+                            <div class="log">{{ log }}</div>
                             <small class="text-muted" id="script_help" style=""> You can expand this text area by dragging the bottom right corner.</small>
                         </div>
                     </section>
@@ -219,6 +219,7 @@
     <script src="{{ url_for('.static', filename='training.js') }}"></script>
     <script src="{{ url_for('.static', filename='checkpoints.js') }}"></script>
     <script src="{{ url_for('.static', filename='data_graphs.js') }}"></script>
+     <script src="{{ url_for('.static', filename='notify.js') }}"></script>
     <script type=text/javascript>
         $(document).ready(function () {
             $('#sb-train').addClass('active');

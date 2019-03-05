@@ -36,8 +36,7 @@ function _(el) {
     return $('#' + el);
 }
 
-function clearFileInput(id)
-{
+function clearFileInput(id) {
     var oldInput = document.getElementById(id);
 
     var newInput = document.createElement("input");
@@ -59,12 +58,18 @@ $(document).ready(function () {
     id_file_uploading = $('#selector-selector').val();
 
     $('#selector-selector').on('change', function () {
+        //Clear last input
+        _(id_file_uploading + '-file').val('');
+        _(id_file_uploading + '-file').prev('.custom-file-label').addClass('selected').html('Choose file');
+        $('#upload_form_button').prop('disabled', true);
+
+
         clear_upload_status();
         $('#format-content').html(formats[$(this).val()]);
         $('.img-select').addClass('hide-element');
         $('#' + $(this).val()).removeClass('hide-element');
         id_file_uploading = $(this).val();
-        // $('.custom-file-input').val('');
+
         $('.custom-file-input').val('');
 
     });
@@ -123,7 +128,6 @@ function uploadFile() {
     ajax.addEventListener("abort", abortHandler, false);
 
     ajax.open("POST", "/upload_image");
-
     ajax.send(new FormData(_("upload_form")[0]));
     _("progressBar_" + id_file_uploading).removeClass('invisible');
     $('.progress').removeClass('invisible');

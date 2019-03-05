@@ -76,6 +76,13 @@ $(document).ready(function () {
     });
 
     $('#explain').on('click', function () {
+        let tp = $('#top_labels').val();
+        let nf = $('#num_feat').val();
+        if (tp.indexOf('e') > -1 || tp === '' || nf.indexOf('e') > -1 || nf === '') {
+            $.notify('Explain params not valid', "error");
+            return;
+        }
+
         $('#explain_div_out').removeClass('hide-element');
         $('#explain_div_expl').removeClass('hide-element');
         $('.loader-pred').removeClass('hide-element');
@@ -83,7 +90,9 @@ $(document).ready(function () {
         clear_graphs();
 
         if ($("#image_upload").hasClass("hide-element")) {
+
             let data_form = $("#explain_form").serializeArray();
+
             data_form.push({
                 name: 'radiob',
                 value: $('#table_checkpoints').DataTable().rows({selected: true}).data()[0][0]
@@ -114,6 +123,12 @@ $(document).ready(function () {
                     }
 
 
+                },
+                error: function (e) {
+                    $.notify('Server error', "error");
+                    $('#explain_div_out').addClass('hide-element');
+                    $('#explain_div_expl').addClass('hide-element');
+                    $('.loader-pred').addClass('hide-element');
                 }
             });
 

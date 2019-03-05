@@ -95,8 +95,8 @@ function create_bar(predict) {
 function get_donut_colors(new_Data) {
     var new_colors = [];
     var colors_palette = ['#0190af',
-        '#2fc6a2',
         '#ffbc0a',
+        '#2fc6a2',
         '#0c6cc8',
         '#f58231',
         '#c47ade',
@@ -161,6 +161,7 @@ function get_prob_layout(appConfig, cluster) {
     };
 
 }
+
 //
 // function generate_plots(regression) {
 //     var feature_selected = $("#features option:selected").text();

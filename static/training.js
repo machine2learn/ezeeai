@@ -26,6 +26,7 @@ $(document).ready(function () {
 
 
     $('#model_name').on('change', function () {
+        $('.visualization').removeClass('js-plotly-plot');
         enable_run();
         $('.waiting-selection').addClass('hide-element');
         $('.loader').removeClass('hide-element');
@@ -41,12 +42,15 @@ $(document).ready(function () {
                 update_parameters_form(data.parameters);
                 update_checkpoint_table(data.checkpoints, data.metric);
                 update_graphs(data.graphs, true);
-                $('.log').text(data.log);
+
+                let $log = $('.log');
+                $log.text(data.log);
+                // $log.animate({scrollTop: $log[0].scrollHeight});
                  $('.log').animate({scrollTop: $('.log')[0].scrollHeight});
+
             }
         })
     });
-
     setInterval(function () {
         if (playing) {
             $.ajax({
@@ -62,15 +66,25 @@ $(document).ready(function () {
                     }
                     update_checkpoint_table(data.checkpoints, '');
                     update_graphs(data.graphs, false);
-                    $('.log').append(data.data);
-                    $('.log').animate({scrollTop: $('.log')[0].scrollHeight});
+                    if (data.log !== '' && $('.log').text() !== data.log) {
+                        update_log(data.log);
+                        $.notify('Error (more info in Log)', "error");
+                    }
                 }
             })
         }
     }, 1000);
 
-
 });
+
+function update_log(data) {
+    let $log = $('.log');
+    let t = $log.text();
+    if (data)
+        $log.text(t + data);
+    // $log.animate({scrollTop: $log[0].scrollHeight});
+    $('.log').animate({scrollTop: $('.log')[0].scrollHeight});
+}
 
 function draw_models_select(models, datasets) {
     let label = $('<label></label>');
@@ -176,7 +190,6 @@ function update_parameters_form(params) {
 
 
 function update_graphs(data, from_scratch) {
-
     if (from_scratch) {
         $('#loss_graph').children().remove();
         $('#metric_graph').children().remove();
@@ -198,7 +211,6 @@ function update_graphs(data, from_scratch) {
         if (keys[i] !== 'loss') {
             div = 'metric_graph';
             $('#metric_span').text(keys[i].charAt(0).toUpperCase() + keys[i].slice(1));
-
         }
         line_plot_2_variables(div, data.train.steps, data.train[keys[i]], data.eval.steps, data.eval[keys[i]], 'train', 'val', 'Steps', '');
         remove_preplot_loader()

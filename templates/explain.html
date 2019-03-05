@@ -201,6 +201,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.js"></script>
+    <script src="{{ url_for('.static', filename='notify.js') }}"></script>
     <script type=text/javascript>
         var handle_key = {};
         handle_key.models = {{  parameters | tojson | safe }};

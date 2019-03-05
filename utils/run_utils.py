@@ -142,7 +142,7 @@ def get_step(train_size, batch_size, path, file_pattern='*.ckpt-*.index'):
         event_file = files[-1]
         steps = int(event_file.split('.ckpt-')[-1].split('.')[0])
         epochs = int(np.floor((steps * batch_size) / train_size))
-
+        print(steps, epochs)
         return epochs
     except (FileNotFoundError, NotFoundError):
         return None

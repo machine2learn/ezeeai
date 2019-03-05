@@ -178,7 +178,9 @@ function create_table_test_files(data) {
 function uploadZipFile($input) {
     let filename = document.getElementById('image-upload').files[0].name.split('.')[0];
     let f = new FormData();
-    f.append('input_file', $input.files[0], $input[0].files[0].name);
+    f.append('input_file', $input.files[0], $input.files[0].name);
+    f.append('model_name', $('#model_name').val());
+
     ajax = new XMLHttpRequest();
     ajax.onreadystatechange = function () {
         if (this.readyState === 4 && JSON.parse(this.response).result !== 'ok')
@@ -217,6 +219,9 @@ function uploadCSVFile($input) {
                     $.notify("File saved", "success");
                 }
 
+            },
+            error: function (e) {
+                $.notify("File error", "error");
             }
         })
     }

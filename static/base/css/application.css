@@ -26468,3 +26468,6 @@ input.text-error {
 .help-block {
     color: #ee3002;
 }
+.text-align-center{
+    text-align:center;
+}
