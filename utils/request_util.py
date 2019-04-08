@@ -61,7 +61,10 @@ def get_loss(request):
 
 
 def get_model(request):
-    return get_json_attr(request, 'model')
+    try:
+        return get_json_attr(request, 'model')
+    except:
+        return request.form['model']
 
 
 def get_mode(request):

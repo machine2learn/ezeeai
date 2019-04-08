@@ -21,8 +21,8 @@
         <div class="col-lg-12">
             <section class="widget">
                 <div class="row">
-                     <div class="col-2 max-w-230">
-                        </div>
+                    <div class="col-2 max-w-230">
+                    </div>
 
                     <div class="col-1 no-horizontal-padding">
                         <div id="cy_buttons0" class="cy-buttons">
@@ -48,7 +48,7 @@
                     </div>
 
                 </div>
-                <div class="gui_container" >
+                <div class="gui_container">
                     <div class="row">
                         <div class="col-2 max-w-230">
                             <div id="accordion" class="buttonbar"></div>
@@ -57,7 +57,7 @@
                             <div class="editor">
 
 
-                                <div id="cy" ></div>
+                                <div id="cy"></div>
                             </div>
                         </div>
                         <div class="col-2 padding-right-20">
@@ -582,6 +582,7 @@
         var num_outputs = {{ num_outputs | tojson | safe  }};
         var dataset_params = {{ dataset_params | tojson | safe  }};
         var data_df = {{ data | tojson | safe  }};
+        var error = {{ error | tojson | safe  }};
         window.appConfig = {
             user_dataset: user_dataset,
             parameters: parameters,
@@ -589,12 +590,14 @@
             m_name: m_name,
             num_outputs: num_outputs,
             dataset_params: dataset_params,
-            data_df: data_df
+            data_df: data_df,
+            error: error
         };
-    </script>
-    <script type=text/javascript>
         $(document).ready(function () {
             $('#sb-gui_editor').addClass('active');
+            if (error) {
+                $.notify('Error loading the model', "error");
+            }
         });
     </script>
 {% endblock %}

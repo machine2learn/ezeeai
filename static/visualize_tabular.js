@@ -69,6 +69,8 @@ $(document).ready(function () {
                     'datasetname': table_datasets.row(this).data()[0]
                 }),
                 success: function (data) {
+
+
                     var collapsed = $("a[data-widgster='expand'][style='display: inline;']");
                     collapsed.click();
                     appConfig['vis_data'] = data.data;
@@ -104,6 +106,11 @@ $(document).ready(function () {
                     collapsed.next().click();
 
                     $('.loader').addClass('hide-element');
+                    if (data.num_rows > 1000) {
+                        $('#overflow_dataset').text('* Only shown 1000 rows of ' + data.num_rows)
+                    } else {
+                        $('#overflow_dataset').text('')
+                    }
 
                 },
                 error: function (xmlhttprequest, textstatus, message) {
@@ -118,11 +125,6 @@ $(document).ready(function () {
                         $.notify("Error loading dataset", "error");
                     }
                 }
-
-                // error: function () {
-                //     $('.loader').addClass('hide-element');
-                //     $.notify("Error loading dataset", "error");
-                // },
 
             });
 

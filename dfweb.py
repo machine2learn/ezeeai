@@ -1,30 +1,35 @@
 import json
 import os
 import pandas as pd
-from configparser import NoSectionError
-from forms.parameters_form import GeneralParamForm
-from forms.upload_user import UploadUserForm
-from utils import run_utils, upload_util, db_ops, param_utils, config_ops, sys_ops
+
 from config import config_reader
+from configparser import NoSectionError
 from database.db import db
+
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session, send_file
 from flask_bootstrap import Bootstrap
 from flask_login import LoginManager, login_user, login_required, logout_user
+
 from forms.login_form import LoginForm
+from forms.parameters_form import GeneralParamForm
 from forms.register import RegisterForm
+from forms.upload_user import UploadUserForm
 from forms.upload_form import NewTabularFileForm, GenerateDataSet, UploadImageForm
 
-from user import User
-from thread_handler import ThreadHandler
+from functools import wraps
+
+from generator.simulator import parse
 from session import Session
-from utils.request_util import *
-from utils.visualize_util import get_norm_corr
+from thread_handler import ThreadHandler
+
+from utils import custom, upload_util, db_ops, param_utils, config_ops, sys_ops
 from utils.feature_util import prediction_from_df
 from utils.local_utils import *
-from functools import wraps
-from generator.simulator import parse
 from utils.metrics import *
-from utils import custom
+from utils.request_util import *
+from utils.visualize_util import get_norm_corr
+
+from user import User
 
 SAMPLE_DATA_SIZE = 5
 WTF_CSRF_SECRET_KEY = os.urandom(42)
@@ -175,9 +180,9 @@ def gui():
     username = session['user']
     _, param_configs = config_ops.get_configs_files(APP_ROOT, username)
     user_dataset = config_ops.get_datasets_and_types(APP_ROOT, username)
-    return render_template('gui.html', user=username, token=session['token'], page=1, user_dataset=user_dataset,
+    return render_template('gui.html', user=username, token=session['token'], user_dataset=user_dataset,
                            dataset_params={}, data=None, parameters=param_configs, cy_model=[],
-                           model_name='new_model', num_outputs=None)
+                           model_name='new_model', num_outputs=None, error=False)
 
 
 @app.route('/gui_load', methods=['POST'])
@@ -187,23 +192,19 @@ def gui_load():
     local_sess = Session(app)
     username = session['user']
     local_sess.add_user((username, session['_id']))
-
     _, param_configs = config_ops.get_configs_files(APP_ROOT, username)
     user_dataset = config_ops.get_datasets_and_types(APP_ROOT, username)
-
-    model_name = request.form['model']
+    model_name = get_model(request)
     local_sess.set_config_file(sys_ops.get_config_path(APP_ROOT, username, model_name))
-
     if local_sess.load_config():
         hlp = local_sess.get_helper()
-        return render_template('gui.html', token=session['token'], page=1, user=username, user_dataset=user_dataset,
+        return render_template('gui.html', token=session['token'], user=username, user_dataset=user_dataset,
                                parameters=param_configs, dataset_params=hlp.get_dataset_params(), data=hlp.get_data(),
-                               cy_model=sys_ops.load_cy_model(model_name, username),
-                               model_name=model_name, num_outputs=hlp.get_num_outputs())
-    #  TODO send error config not loaded
-    return render_template('gui.html', token=session['token'], page=1, user=username, user_dataset=user_dataset,
+                               cy_model=sys_ops.load_cy_model(model_name, username), model_name=model_name,
+                               num_outputs=hlp.get_num_outputs(), error=False)
+    return render_template('gui.html', token=session['token'], user=username, user_dataset=user_dataset,
                            dataset_params={}, data=None, parameters=param_configs, cy_model=[], model_name='new_model',
-                           num_outputs=None)
+                           num_outputs=None, error=True)
 
 
 @app.route('/gui_input', methods=['POST'])
@@ -490,8 +491,8 @@ def data_graphs():
     dataset_name = get_datasetname(request)
     main_path = sys_ops.get_dataset_path(APP_ROOT, session['user'], dataset_name)
     df = pd.read_csv(os.path.join(main_path, dataset_name + '.csv'))
-    df_as_json, norm, corr = get_norm_corr(df)
-    return jsonify(data=json.loads(df_as_json), norm=norm, corr=corr)
+    num_rows, df_as_json, norm, corr = get_norm_corr(df)
+    return jsonify(data=json.loads(df_as_json), num_rows=num_rows, norm=norm, corr=corr)
 
 
 @app.route('/image_graphs', methods=['POST', 'GET'])
@@ -661,27 +662,6 @@ def deploy():
                            parameters=param_configs)
 
 
-# @app.route('/explain_feature', methods=['POST'])
-# @login_required
-# @check_config
-# def explain_feature():
-#     hlp = sess.get_helper()
-#     all_params_config = config_reader.read_config(sess.get_config_file())
-#     all_params_config.set('PATHS', 'checkpoint_dir', os.path.join(all_params_config.export_dir(), get_model(request)))
-#     file_path, unique_val_column = hlp.create_ice_data(request)
-#
-#     if sess.mode_is_canned():
-#         all_params_config.set_canned_data(sess.get_canned_data())
-#     try:
-#         final_pred, success = th.predict_test_estimator(all_params_config, file_path)
-#         if not success:
-#             return jsonify(error=final_pred)
-#     except:
-#         return jsonify(error=final_pred)
-#     data = hlp.process_ice_request(request, unique_val_column, final_pred)
-#     return jsonify(data=data)
-
-
 @app.errorhandler(401)
 def unauthorized(e):
     error, number = 'Unauthorized', '401'
@@ -693,6 +673,13 @@ def unauthorized(e):
 def notfound(e):
     error, number = 'Not found', '404'
     mess = 'The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.'
+    return render_template('error.html', error=error, number=number, message=mess)
+
+
+@app.errorhandler(405)
+def notfound(e):
+    error, number = 'Method Not Allowed', '405'
+    mess = 'The method is not allowed for the requested URL.'
     return render_template('error.html', error=error, number=number, message=mess)
 
 

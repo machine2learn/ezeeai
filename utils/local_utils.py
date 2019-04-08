@@ -25,8 +25,7 @@ def precess_test_request(request, hlp):
 
 
 def set_checkpoint_dir(all_params_config, model_name):
-    all_params_config.set('PATHS', 'checkpoint_dir',
-                          os.path.join(all_params_config.export_dir(), model_name))
+    all_params_config.set('PATHS', 'checkpoint_dir', os.path.join(all_params_config.export_dir(), model_name))
 
 
 def get_file_path(hlp, df_test, final_pred, test_filename):

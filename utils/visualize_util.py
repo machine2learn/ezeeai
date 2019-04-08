@@ -34,5 +34,8 @@ def get_norm_corr(df):
         norm['counts'].append(counts.tolist())
 
     corr = df.drop(columns=cols_to_drop).corr().values.tolist()
-
-    return df_as_json, norm, corr
+    num_rows =  df.shape[0]
+    if num_rows > 1000:
+        split = df.head(1000)
+        df_as_json = split.to_json(orient='split')
+    return num_rows, df_as_json, norm, corr
