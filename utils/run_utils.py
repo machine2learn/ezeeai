@@ -1,14 +1,38 @@
 import os
 import math
 import json
+
 import numpy as np
+import pandas as pd
+
 from tensorflow.python.framework.errors_impl import DataLossError, NotFoundError
 from tensorflow.python.platform import gfile
-from tensorflow.python.summary import summary_iterator
 
 from config import config_reader
-from utils import feature_util, request_util
-import pandas as pd
+from utils.metrics import train_eval_graphs
+from utils import request_util
+from utils.sys_ops import get_log_mess
+from utils.local_utils import set_checkpoint_dir
+
+def define_empty_run_params():
+    model_name = ''
+    checkpoints = ''
+    metric = ''
+    graphs = {}
+    log_mess = None
+    return model_name, checkpoints, metric, graphs, log_mess
+
+
+def get_run_results(config_file, sess, username):
+    model_name = config_file.split('/')[-2]
+    sess.set_model_name(model_name)
+    export_dir = config_reader.read_config(sess.get_config_file()).export_dir()
+    checkpoints = get_eval_results(export_dir, sess.get_writer(), sess.get_config_file())
+    metric = sess.get_metric()
+    graphs = train_eval_graphs(config_reader.read_config(sess.get_config_file()).checkpoint_dir())
+    log_mess = get_log_mess(username, model_name)
+    return checkpoints, metric, graphs, log_mess
+
 
 
 def get_html_types(dict_types):
@@ -102,20 +126,8 @@ def get_predictions(targets, final_pred):
 def create_result_parameters(request, sess, checkpoint=None):
     all_params_config = config_reader.read_config(sess.get_config_file())
     rb = request_util.get_radiob(request) if checkpoint is None else checkpoint
-    all_params_config.set('PATHS', 'checkpoint_dir', os.path.join(all_params_config.export_dir(), rb))
+    set_checkpoint_dir(all_params_config, rb)
     return all_params_config
-
-
-# def create_result_parameters(request, sess, dataset, default_features=False, checkpoint=None):
-#     if 'radiob' in request.form:
-#         sess.set('model', request_util.get_radiob(request))
-#         sess.set('exp_target', request.form['exp_target'])
-#     new_features = dataset.get_new_features(request.form) if not default_features else dataset.get_defaults()
-#     all_params_config = config_reader.read_config(sess.get_config_file())
-#     all_params_config.set('PATHS', 'checkpoint_dir', os.path.join(all_params_config.export_dir(),
-#                                                                   request_util.get_radiob(
-#                                                                       request) if checkpoint is None else checkpoint))
-#     return new_features, all_params_config
 
 
 def get_explain_disabled(cat_list):

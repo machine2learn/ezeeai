@@ -144,6 +144,15 @@ def sigmoid(x, derivative=False):
     return x * (1 - x) if derivative else 1 / (1 + np.exp(-x))
 
 
+def get_mode_metrics(has_targets, mode, labels, local_sess, targets):
+    if not has_targets:
+        return {}
+    return get_metrics('classification', local_sess.get_y_true(), local_sess.get_y_pred(), labels,
+                       logits=local_sess.get_logits()) if mode == 'classification' \
+        else get_metrics('regression', local_sess.get_y_true(), local_sess.get_y_pred(), labels,
+                         target_len=len(targets))
+
+
 def get_metrics(mode, y_true, y_pred, labels, target_len=1, logits=None):
     metrics = {}
     if mode == 'classification':
@@ -234,7 +243,6 @@ def train_eval_graphs(path):
 
     if len(tags) == 0:
         return {'train': train}
-
 
     eval['steps'] = [e.step for e in summary_iterator.Scalars(tags[0])]
 

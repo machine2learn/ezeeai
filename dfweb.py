@@ -2,7 +2,6 @@ import json
 import os
 import pandas as pd
 from configparser import NoSectionError
-from forms.deploy_form import DeploymentForm
 from forms.parameters_form import GeneralParamForm
 from forms.upload_user import UploadUserForm
 from utils import run_utils, upload_util, db_ops, param_utils, config_ops, sys_ops
@@ -20,6 +19,8 @@ from thread_handler import ThreadHandler
 from session import Session
 from utils.request_util import *
 from utils.visualize_util import get_norm_corr
+from utils.feature_util import prediction_from_df
+from utils.local_utils import *
 from functools import wraps
 from generator.simulator import parse
 from utils.metrics import *
@@ -72,15 +73,16 @@ def login():
 @login_required
 def signup():
     form = RegisterForm()
+    username = session['user']
     if form.validate_on_submit():
         if form.password.data != form.password2.data:
-            return render_template('signup.html', form=form, error="Passwords are not equals", user=session['user'],
+            return render_template('signup.html', form=form, error="Passwords are not equals", user=username,
                                    token=session['token'])
         if not db_ops.sign_up(form):
-            return render_template('signup.html', form=form, error="Username already exists", user=session['user'],
+            return render_template('signup.html', form=form, error="Username already exists", user=username,
                                    token=session['token'])
         return render_template('login.html', form=LoginForm(), token=session['token'])
-    return render_template('signup.html', form=form, user=session['user'], token=session['token'])
+    return render_template('signup.html', form=form, user=username, token=session['token'])
 
 
 @app.route('/user_data', methods=['GET', 'POST'])
@@ -94,7 +96,7 @@ def user_data():
     db_ops.get_user_data(username, form)
     _, param_configs = config_ops.get_configs_files(APP_ROOT, username)
     user_dataset = config_ops.get_datasets_type(APP_ROOT, username)
-    return render_template('upload_user.html', form=form, user=session['user'], token=session['token'],
+    return render_template('upload_user.html', form=form, user=username, token=session['token'],
                            datasets=user_dataset, parameters=param_configs)
 
 
@@ -183,8 +185,9 @@ def gui():
 @check_config
 def gui_load():
     local_sess = Session(app)
-    local_sess.add_user((session['user'], session['_id']))
     username = session['user']
+    local_sess.add_user((username, session['_id']))
+
     _, param_configs = config_ops.get_configs_files(APP_ROOT, username)
     user_dataset = config_ops.get_datasets_and_types(APP_ROOT, username)
 
@@ -208,8 +211,9 @@ def gui_load():
 @check_config
 def gui_input():
     local_sess = Session(app)
-    local_sess.add_user((session['user'], session['_id']))
-    dataset_name, user = get_dataset(request), session['user']
+    username = session['user']
+    local_sess.add_user((username, session['_id']))
+    dataset_name, user = get_dataset(request), username
     upload_util.new_config(dataset_name, user, local_sess, APP_ROOT)
     hlp = local_sess.get_helper()
     hlp.set_split(get_split(request))
@@ -223,8 +227,9 @@ def gui_input():
 @check_config
 def gui_select_data():
     local_sess = Session(app)
-    local_sess.add_user((session['user'], session['_id']))
-    dataset_name, user = get_dataset(request), session['user']
+    username = session['user']
+    local_sess.add_user((username, session['_id']))
+    dataset_name, user = get_dataset(request), username
     upload_util.new_config(dataset_name, user, local_sess, APP_ROOT)
     data = local_sess.get_helper().get_data()
     return jsonify(data=data)
@@ -235,41 +240,13 @@ def gui_select_data():
 @check_config
 def save_model():
     local_sess = Session(app)
-    local_sess.add_user((session['user'], session['_id']))
-    dataset_name, user = get_dataset(request), session['user']
+    username = session['user']
+    local_sess.add_user((username, session['_id']))
+    dataset_name, user = get_dataset(request), username
     upload_util.new_config(dataset_name, user, local_sess, APP_ROOT)
     hlp = local_sess.get_helper()
     hlp.set_split(get_split(request))
-    local_sess.get_helper().process_features_request(request)
-    local_sess.get_helper().process_targets_request(request)
-
-    model_name = get_model_name(request)
-    local_sess.set_model_name(model_name)
-    local_sess.set_mode(get_mode(request))
-    if get_mode(request) == 'custom':
-        local_sess.set_custom(request.get_json())
-        path = sys_ops.get_models_pat(APP_ROOT, session['user'])
-        os.makedirs(path, exist_ok=True)
-        c_path, t_path = custom.save_model_config(local_sess.get_model(), path, local_sess.get_cy_model(), model_name)
-        local_sess.set_custom_path(c_path)  #
-        local_sess.set_transform_path(t_path)
-    else:
-        custom_path = sys_ops.create_custom_path(APP_ROOT, session['user'], model_name)
-        cy_model = get_cy_model(request)
-        custom.save_cy_model(custom_path, cy_model)
-
-        data = get_data(request)
-        data['loss_function'] = get_loss(request)
-        custom.save_canned_data(data, custom_path)
-
-        local_sess.set_canned_data(data)
-        local_sess.set_cy_model(cy_model)
-
-    username = session['user']
-    config_path = sys_ops.get_config_path(APP_ROOT, username, local_sess.get_model_name())
-    local_sess.set_config_file(config_path)
-    local_sess.write_config()
-
+    local_sess = custom.save_local_model(local_sess, request, APP_ROOT, username)
     config_ops.define_new_model(APP_ROOT, username, local_sess.get_writer(), local_sess.get_model_name())
     local_sess.write_params()
     return jsonify(explanation='ok')
@@ -280,10 +257,10 @@ def save_model():
 @check_config
 def params_run():
     model_name = get_model_name(request)
-    log_path = os.path.join('user_data', session['user'], 'models', model_name, 'log', 'tensorflow.log')
-    logfile = open(log_path, 'r').read() if os.path.isfile(log_path) else ''
+    username = session['user']
+    log_mess = sys_ops.get_log_mess(username, model_name)
     try:
-        config_file = sys_ops.get_config_path(APP_ROOT, session['user'], model_name)
+        config_file = sys_ops.get_config_path(APP_ROOT, username, model_name)
         parameters = param_utils.get_params(config_file)
         sess.set_config_file(config_file)
         sess.load_config()
@@ -292,15 +269,17 @@ def params_run():
         checkpoints = run_utils.get_eval_results(export_dir, sess.get_writer(), sess.get_config_file())
         metric = sess.get_metric()
         graphs = train_eval_graphs(config_reader.read_config(sess.get_config_file()).checkpoint_dir())
-        return jsonify(checkpoints=checkpoints, parameters=parameters, metric=metric, graphs=graphs, log=logfile)
+        return jsonify(checkpoints=checkpoints, parameters=parameters, metric=metric, graphs=graphs, log=log_mess)
     except (KeyError, NoSectionError):
-        return jsonify(checkpoints='', parameters='', metric='', graphs={}, log=logfile)
+        model_name, checkpoints, metric, graphs, log_mess = run_utils.define_empty_run_params()
+        return jsonify(checkpoints=checkpoints, parameters=parameters, metric=metric, graphs=graphs, log=log_mess)
 
 
 @app.route('/params_predict', methods=['POST'])
 @login_required
 @check_config
 def params_predict():
+    username = session['user']
     try:
         local_sess = Session(app)
         local_sess.add_user((session['user'], session['_id']))
@@ -330,13 +309,8 @@ def run():
     username = session['user']
     _, model_configs = config_ops.get_configs_files(APP_ROOT, username)
     user_datasets = config_ops.get_datasets_and_types(APP_ROOT, username)
-    model_name = ''
-    checkpoints = ''
-    metric = ''
-    graphs = {}
-
+    model_name, checkpoints, metric, graphs, log_mess = run_utils.define_empty_run_params()
     form = GeneralParamForm()
-    log_mess = None
 
     running, config_file = th.check_running(username)
     if not running:
@@ -346,20 +320,13 @@ def run():
         sess.set_config_file(config_file)
         sess.load_config()
         param_utils.set_form(form, sess.get_config_file())
-        model_name = config_file.split('/')[-2]
-        sess.set_model_name(model_name)
-        export_dir = config_reader.read_config(sess.get_config_file()).export_dir()
-        checkpoints = run_utils.get_eval_results(export_dir, sess.get_writer(), sess.get_config_file())
-        metric = sess.get_metric()
-        graphs = train_eval_graphs(config_reader.read_config(sess.get_config_file()).checkpoint_dir())
-        log_path = os.path.join('user_data', session['user'], 'models', model_name, 'log', 'tensorflow.log')
-        log_mess = open(log_path, 'r').read() if os.path.isfile(log_path) else ''
+        checkpoints, metric, graphs, log_mess = run_utils.get_run_results(config_file, sess, username)
 
     if request.method == 'POST':
         sess.run_or_pause(is_run(request))
-
-        config_path = sys_ops.get_config_path(APP_ROOT, username, request.form['model_name'])
-        sess.set_model_name(request.form['model_name'])
+        model_name = request.form['model_name']
+        config_path = sys_ops.get_config_path(APP_ROOT, username, model_name)
+        sess.set_model_name(model_name)
 
         sess.set_config_file(config_path)
         sess.load_config()
@@ -370,20 +337,13 @@ def run():
         th.run_tensor_board(username, sess.get_config_file())
 
         all_params_config = config_reader.read_config(sess.get_config_file())
-
-        canned_data = os.path.join(APP_ROOT, 'user_data', username, 'models', request.form['model_name'], 'custom',
-                                   'canned_data.json')
-        if os.path.isfile(canned_data):
-            all_params_config.set_canned_data(json.load(open(canned_data)))
-
+        sys_ops.get_canned_data(APP_ROOT, username, model_name, all_params_config)
         all_params_config.set_email(db_ops.get_email(username))
-
         sess.check_log_fp(all_params_config)
 
         th.handle_request(get_action(request), all_params_config, username, get_resume_from(request),
                           sess.get_config_file())
-        metric = sess.get_metric()
-        return jsonify(status='ok', metric=metric)
+        return jsonify(status='ok', metric=sess.get_metric())
 
     return render_template('run.html', title="Run", user=username, token=session['token'], form=form,
                            user_models=model_configs, dataset_params=user_datasets, running=running,
@@ -426,6 +386,7 @@ def predict():
 @login_required
 @check_config
 def explain():
+    username = session['user']
     if request.method == 'POST':
         local_sess = Session(app)
         local_sess.add_user((session['user'], session['_id']))
@@ -442,7 +403,7 @@ def explain():
         if 'explanation' in ep:
             return jsonify(**ep)
 
-        canned_data = os.path.join(APP_ROOT, 'user_data', session['user'], 'models', request.form['model_name'],
+        canned_data = os.path.join(APP_ROOT, 'user_data', username, 'models', request.form['model_name'],
                                    'custom',
                                    'canned_data.json')
         if os.path.isfile(canned_data):
@@ -455,7 +416,6 @@ def explain():
 
         return jsonify(error=result)
 
-    username = session['user']
     _, param_configs = config_ops.get_configs_files(APP_ROOT, username)
     return render_template('explain.html', user=session['user'], token=session['token'],
                            parameters=param_configs)
@@ -465,20 +425,10 @@ def explain():
 @login_required
 @check_config
 def upload_test_file():
-    try:
-        model_name = request.get_json()['model_name']
-    except:
-        model_name = request.form['model_name']
-
+    username = session['user']
     local_sess = Session(app)
-    local_sess.add_user((session['user'], session['_id']))
-
-    config_path = sys_ops.get_config_path(APP_ROOT, session['user'], model_name)
-    local_sess.set_model_name(model_name)
-
-    local_sess.set_config_file(config_path)
-    local_sess.load_config()
-    result = local_sess.get_helper().test_upload(request)
+    local_sess, hlp, _ = generate_local_sess(local_sess, request, username, session['_id'], APP_ROOT)
+    result = hlp.test_upload(request)
     return jsonify(result=result)
 
 
@@ -486,9 +436,10 @@ def upload_test_file():
 @login_required
 @check_config
 def test():
+    username = session['user']
     if request.method == 'POST':
+        model_name = get_modelname(request)
         try:
-            model_name = request.get_json()['model_name']
             local_sess = Session(app)
             local_sess.add_user((session['user'], session['_id']))
             config_path = sys_ops.get_config_path(APP_ROOT, session['user'], model_name)
@@ -498,10 +449,9 @@ def test():
             local_sess.load_config()
             hlp = local_sess.get_helper()
 
-            try:
-                has_targets, test_filename, df_test, result = hlp.test_request(request)
-            except Exception as e:
-                return jsonify(error='Test\'s file structure is not correct')
+            error, has_targets, test_filename, df_test, result = precess_test_request(request, hlp)
+            if error is not None:
+                return jsonify(error=error)
 
             all_params_config = config_reader.read_config(local_sess.get_config_file())
             all_params_config.set('PATHS', 'checkpoint_dir',
@@ -515,32 +465,22 @@ def test():
             final_pred, success = th.predict_test_estimator(all_params_config, test_filename)
             if not success:
                 return jsonify(error=final_pred)
-            try:
-                file_path = hlp.process_test_predict(df_test, final_pred, test_filename)
-            except Exception as e:
-                return jsonify(error=str(e))
 
-            df = pd.read_csv(file_path)
-            predict_table = {'data': df.as_matrix().tolist(),
-                             'columns': [{'title': v} for v in df.columns.values.tolist()]}
+            file_path, success = get_file_path(hlp, df_test, final_pred, test_filename)
+            if not success:
+                return jsonify(error=file_path)
+
+            predict_table = prediction_from_df(file_path)
             labels = hlp.get_target_labels()
-            metrics = {}
             store_predictions(has_targets, local_sess, final_pred, hlp.get_df_test(df_test, has_targets))
-            if has_targets:
-                metrics = get_metrics('classification', local_sess.get_y_true(), local_sess.get_y_pred(), labels,
-                                      logits=local_sess.get_logits()) if hlp.get_mode() == 'classification' \
-                    else get_metrics('regression', local_sess.get_y_true(), local_sess.get_y_pred(), labels,
-                                     target_len=len(hlp.get_targets()))
+            metrics = get_mode_metrics(has_targets, hlp.get_mode(), labels, local_sess, hlp.get_targets())
 
-            return jsonify(predict_table=predict_table,
-                           metrics=metrics,
-                           targets=hlp.get_targets())
+            return jsonify(predict_table=predict_table, metrics=metrics, targets=hlp.get_targets())
         except Exception as e:
             return jsonify(predict_table='', metrics='', targets='', error=str(e))
 
-    username = session['user']
     _, param_configs = config_ops.get_configs_files(APP_ROOT, username)
-    return render_template('test.html', user=session['user'], token=session['token'], parameters=param_configs)
+    return render_template('test.html', user=username, token=session['token'], parameters=param_configs)
 
 
 @app.route('/data_graphs', methods=['POST', 'GET'])
@@ -559,9 +499,10 @@ def data_graphs():
 @check_config
 def image_graphs():
     local_sess = Session(app)
-    local_sess.add_user((session['user'], session['_id']))
+    username = session['user']
+    local_sess.add_user((username, session['_id']))
     dataset_name = get_datasetname(request)
-    upload_util.new_config(dataset_name, session['user'], local_sess, APP_ROOT)
+    upload_util.new_config(dataset_name, username, local_sess, APP_ROOT)
     data = local_sess.get_helper().get_data()
     return jsonify(data=data)
 
@@ -636,7 +577,6 @@ def running_check():
         if config_file is not None and not sess.check_key('config_file'):
             sess.set_config_file(config_file)
             sess.load_config()
-
             sess.set_model_name(model_name)
         try:
             config_file = sess.get_config_file()
@@ -665,17 +605,11 @@ def generate():
         return jsonify(valid=str(e))
 
 
-@app.route("/download", methods=['GET', 'POST'])
-def download():
-    file_path = sess.get_predict_file()
-    filename = file_path.split('/')[-1]
-    return send_file(file_path, mimetype='text/csv', attachment_filename=filename, as_attachment=True)
-
-
 @app.route("/default_prediction", methods=['GET', 'POST'])
 @login_required
 @check_config
 def default_prediction():
+    username = session['user']
     local_sess = Session(app)
     local_sess.add_user((session['user'], session['_id']))
     model_name = get_model_name(request)
@@ -698,17 +632,12 @@ def default_prediction():
                                                            checkpoint=checkpoints_df['Model'].values[-1])
     new_features = hlp.get_new_features(None, default_features=True)
 
-    canned_data = os.path.join(APP_ROOT, 'user_data', session['user'], 'models', model_name, 'custom',
-                               'canned_data.json')
-    if os.path.isfile(canned_data):
-        all_params_config.set_canned_data(json.load(open(canned_data)))
-
+    sys_ops.get_canned_data(APP_ROOT, username, get_modelname(request), all_params_config)
     pred, success = th.predict_estimator(all_params_config, new_features, all=True)
     if not success:
         return jsonify(error=pred)
 
     example = hlp.generate_rest_call(pred)
-
     return jsonify(example=example, checkpoints=checkpoints, metric=metric)
 
 
@@ -732,40 +661,37 @@ def deploy():
                            parameters=param_configs)
 
 
-@app.route('/explain_feature', methods=['POST'])
-@login_required
-@check_config
-def explain_feature():
-    hlp = sess.get_helper()
-    all_params_config = config_reader.read_config(sess.get_config_file())
-    all_params_config.set('PATHS', 'checkpoint_dir',
-                          os.path.join(all_params_config.export_dir(), get_model(request)))
-    file_path, unique_val_column = hlp.create_ice_data(request)
-
-    if sess.mode_is_canned():
-        all_params_config.set_canned_data(sess.get_canned_data())
-    try:
-        final_pred, success = th.predict_test_estimator(all_params_config, file_path)
-        if not success:
-            return jsonify(error=final_pred)
-    except:
-        return jsonify(error=final_pred)
-    data = hlp.process_ice_request(request, unique_val_column, final_pred)
-    return jsonify(data=data)
+# @app.route('/explain_feature', methods=['POST'])
+# @login_required
+# @check_config
+# def explain_feature():
+#     hlp = sess.get_helper()
+#     all_params_config = config_reader.read_config(sess.get_config_file())
+#     all_params_config.set('PATHS', 'checkpoint_dir', os.path.join(all_params_config.export_dir(), get_model(request)))
+#     file_path, unique_val_column = hlp.create_ice_data(request)
+#
+#     if sess.mode_is_canned():
+#         all_params_config.set_canned_data(sess.get_canned_data())
+#     try:
+#         final_pred, success = th.predict_test_estimator(all_params_config, file_path)
+#         if not success:
+#             return jsonify(error=final_pred)
+#     except:
+#         return jsonify(error=final_pred)
+#     data = hlp.process_ice_request(request, unique_val_column, final_pred)
+#     return jsonify(data=data)
 
 
 @app.errorhandler(401)
 def unauthorized(e):
-    error = 'Unauthorized'
-    number = '401'
+    error, number = 'Unauthorized', '401'
     mess = 'The server could not verify that you are authorized to access the URL requested. You either supplied the wrong credentials (e.g. a bad password), or your browser does not understand how to  supply the credentials required.'
     return render_template('error.html', error=error, number=number, message=mess)
 
 
 @app.errorhandler(404)
 def notfound(e):
-    error = 'Not found'
-    number = '404'
+    error, number = 'Not found', '404'
     mess = 'The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.'
     return render_template('error.html', error=error, number=number, message=mess)
 

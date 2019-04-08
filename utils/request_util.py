@@ -72,6 +72,13 @@ def get_model_name(request):
     return get_json_attr(request, 'model_name')
 
 
+def get_modelname(request):
+    try:
+        return request.form['model_name']
+    except:
+        return request.get_json()['model_name']
+
+
 def get_models(request):
     return get_json_attr(request, 'models')
 

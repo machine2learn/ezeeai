@@ -34,7 +34,6 @@ $(document).ready(function () {
 });
 
 function generateFile() {
-
     $.ajax({
         url: "/generate",
         type: 'POST',
@@ -72,12 +71,12 @@ function toogle_script(show) {
     if (show) {
         document.getElementById('script').style.display = "";
         document.getElementById('script').labels[0].style.display = "";
-         document.getElementById('script_help').style.display = "";
+        document.getElementById('script_help').style.display = "";
 
     } else {
         document.getElementById('script').style.display = "none";
         document.getElementById('script').labels[0].style.display = "none";
-         document.getElementById('script_help').style.display = "none";
+        document.getElementById('script_help').style.display = "none";
     }
 }
 
