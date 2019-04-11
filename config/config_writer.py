@@ -12,7 +12,7 @@ class ConfigWriter:
     def itemize(self, form):
         result = []
         for k, value in form.items():
-            print(k, value)
+            # print(k, value)
             if 'token' not in k:  # csrf_token
                 try:
                     section, key = k.split('-', 1)

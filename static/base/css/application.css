@@ -6280,6 +6280,10 @@ input[type="button"].btn-block {
     opacity: .5;
 }
 
+.close:focus {
+    outline: 0;
+}
+
 .close:not(:disabled):not(.disabled) {
     cursor: pointer;
 }
@@ -6998,12 +7002,15 @@ button.close {
 
 .bg-primary {
     background-color: #019ebd !important;
+    outline: none;
 }
 
 a.bg-primary:hover, a.bg-primary:focus,
 button.bg-primary:hover,
 button.bg-primary:focus {
     background-color: #017790 !important;
+    outline: none;
+
 }
 
 .bg-secondary {
@@ -18857,7 +18864,7 @@ select.selectpicker {
 .abc-checkbox-primary input[type="checkbox"]:checked + label::before,
 .abc-checkbox-primary input[type="radio"]:checked + label::before {
     background-color: #019ebd;
-    border-color: #019ebd;
+    /*border-color: #019ebd;*/
 }
 
 .abc-checkbox-primary input[type="checkbox"]:checked + label::after,
@@ -26447,11 +26454,13 @@ input.text-error {
 .dt-buttons {
     display: flex;
     justify-content: flex-end;
+    cursor: pointer;
 }
 
 .dt-button {
     margin: 3px !important;
     color: dimgrey;
+
 }
 
 .dt-button:hover {
@@ -26480,4 +26489,77 @@ input.text-error {
 
 .font-12 {
     font-size: 12px;
+}
+
+.word-break {
+    word-break: break-word;
+}
+
+.no-clickable {
+    pointer-events: none;
+}
+
+/* ----- upload_tabular.html -------*/
+
+#modal_body {
+    min-height: 85vh;
+    overflow-y: auto;
+}
+
+#modal_body h1 {
+    font-size: 15px;
+    font-weight: bold;
+}
+
+#modal_body .h4 {
+    font-size: 15px;
+    font-weight: bold;
+}
+
+#profile_modal_dialog {
+    min-width: 70% !important;
+    min-height: 80% !important;
+}
+
+#modal_body .text-right > a {
+    font-size: 15px;
+    cursor: pointer;
+    color: #0094b5;
+}
+
+#modal_body table th, #modal_body .table td, #modal_body table tr td {
+    padding: 0.75rem !important;
+    vertical-align: top;
+    border-bottom: 1px solid #d6dee5 !important;
+    margin-right: auto !important;
+    margin-left: auto !important;
+
+}
+
+#modal_body .nav-tabs {
+    position: absolute !important;
+    z-index: 99;
+}
+
+#modal_body .tab-content > .active > .row {
+    display: none;
+
+}
+
+.center-item {
+    margin-right: auto !important;
+    margin-left: auto !important;
+}
+
+#modal_body .tab-content {
+    margin-top: 25px;
+}
+
+/*-----------------------------------------------*/
+.ahover {
+    cursor: pointer
+}
+
+.ahover:hover {
+    color: #0094b5!important;
 }

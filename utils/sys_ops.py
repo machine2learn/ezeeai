@@ -200,8 +200,14 @@ def delete_dataset(all, dataset, models, username):
 def check_df(test_df, df, targets, filename):
     if not np.array_equal(test_df.columns.values, df.columns.values):
         temp_df = df.drop(columns=targets)
-        if not np.array_equal(test_df.columns.values, temp_df.columns.values):
-            raise ValueError("Invalid file content.")
+        try:
+            test_df_tmp = test_df[temp_df.columns.values]
+        except:
+            dif = [c for c in temp_df.columns.values if c not in test_df.columns.values]
+            raise ValueError("Column names invalid. Columns not found: " + str(dif))
+
+        if not np.array_equal(test_df_tmp.columns.values, temp_df.columns.values):
+            raise ValueError("Column names invalid.")
         else:
             test_df = test_df.reindex(columns=df.columns.values)
             test_df.to_csv(filename, index=False)

@@ -98,6 +98,10 @@ def get_radiob(request):
     return request.form['radiob']
 
 
+def get_checkpoint(request):
+    return request.get_json()['checkpoint']
+
+
 def get_resume_from(request):
     return request.form['resume_from']
 

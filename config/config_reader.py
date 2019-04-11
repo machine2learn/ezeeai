@@ -51,7 +51,7 @@ class CustomConfigParser(configparser.ConfigParser):
         return dict(self.items(CUSTOM_MODEL))
 
     def training(self) -> Dict[str, str]:
-        print(self.items(TRAINING))
+        # print(self.items(TRAINING))
         return dict(self.items(TRAINING))
 
     def experiment(self) -> Dict[str, str]:

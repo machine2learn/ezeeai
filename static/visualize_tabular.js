@@ -24,18 +24,25 @@ $(document).ready(function () {
     });
 
     $('#table_datasets tbody').on('click', 'td', function (e) {
+        $('#get_profile').addClass('disabled-custom');
+
         if (table_datasets.row(this, {selected: true}).any()) {
             $('.visualization').addClass('hide-element');
             $('.waiting-selection').removeClass('hide-element');
+            $('#table_datasets').removeClass('no-clickable');
+
         } else if (table_datasets.page.info().recordsDisplay === 0) {
             $('.visualization').addClass('hide-element');
             $('.waiting-selection').removeClass('hide-element');
-        } else {
+            $('#table_datasets').removeClass('no-clickable');
 
+        } else {
             if ($(this).hasClass('trash-icon')) {
                 return;
             }
-
+            if (typeof $.fn.DataTable === 'undefined') {
+                $.noConflict();
+            }
             if ($.fn.DataTable.isDataTable('#table_raw_data')) {
                 $('#table_raw_data').DataTable().destroy();
 
@@ -46,6 +53,7 @@ $(document).ready(function () {
             $('.waiting-selection').addClass('hide-element');
             $('.loader').removeClass('hide-element');
             $('.visualization').addClass('hide-element');
+            $('#table_datasets').addClass('no-clickable');
 
             if ($('#scatter').length > 0) {
                 $('#scatter-select-div1').children().remove();
@@ -54,7 +62,7 @@ $(document).ready(function () {
             if ($('#hist-select').length > 0) {
                 $('#hist-select').children().remove();
             }
-
+            $('#table_datasets').addClass('diabled-custom');
 
             $.ajax({
                 url: "/data_graphs",
@@ -69,8 +77,7 @@ $(document).ready(function () {
                     'datasetname': table_datasets.row(this).data()[0]
                 }),
                 success: function (data) {
-
-
+                    $('#table_datasets').removeClass('no-clickable');
                     var collapsed = $("a[data-widgster='expand'][style='display: inline;']");
                     collapsed.click();
                     appConfig['vis_data'] = data.data;
@@ -111,9 +118,11 @@ $(document).ready(function () {
                     } else {
                         $('#overflow_dataset').text('')
                     }
+                    $('#get_profile').removeClass('disabled-custom')
 
                 },
                 error: function (xmlhttprequest, textstatus, message) {
+                    // $('#table_datasets').removeClass('no-clickable');
                     $('.loader').addClass('hide-element');
                     if (textstatus === "timeout") {
                         $.notify("Time out", "error");
@@ -132,8 +141,49 @@ $(document).ready(function () {
 
 
     });
+    $('#get_profile').on('click', function () {
 
+        $('#get_profile').text('Showing report...')
+            .addClass('disabled-custom');
 
+        $.ajax({
+            url: "/tabular_profile",
+            type: 'POST',
+            dataType: 'json',
+            contentType: 'application/json;charset=UTF-8',
+            accepts: {
+                json: 'application/json',
+            },
+            timeout: 120000,
+            data: JSON.stringify({
+                'datasetname': $('#table_datasets').DataTable().rows({selected: true}).data()[0][0]
+            }),
+            success: function (data) {
+                $("#profile_modal").show();
+                $('#modal_body').html(data.data);
+                $('#get_profile').text('Show report')
+                    .removeClass('disabled-custom');
+            },
+            error: function (xmlhttprequest, textstatus, message) {
+                $('#get_profile').text('Show report')
+                    .removeClass('disabled-custom');
+                if (textstatus === "timeout") {
+                    $.notify("Time out", "error");
+                }
+                else if (textstatus === "error") {
+                    $.notify("Server error", "error");
+                }
+                else {
+                    $.notify("Error loading dataset", "error");
+                }
+            }
+        })
+    });
+    $('#close').on('click', function () {
+        $("#profile_modal").hide();
+        $('#modal_body').html('');
+        $.noConflict();
+    })
 });
 
 function get_rows(datasets) {
@@ -157,9 +207,7 @@ function upload_table(data) {
 
 function ConfirmDelete(elem, all) {
     let dataset = $(elem).attr('data-id');
-
     let message = "Are you sure you want to delete the selected dataset? (All models related will be delete)";
-
     if (confirm(message)) {
         $.ajax({
             url: "/delete_dataset",

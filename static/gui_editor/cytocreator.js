@@ -624,9 +624,8 @@ $(document).ready(function () {
         $('#table_datasets').DataTable().rows({selected: true}).every(function () {
             appConfig.dataset = this.data()[0];
         });
+        $(this).text('Loading data...');
 
-
-        wizard_next(2, dict_wizard);
         $.ajax({
             url: "/gui_select_data",
             type: 'POST',
@@ -639,6 +638,8 @@ $(document).ready(function () {
                 'dataset': appConfig.dataset,
             }),
             success: function (data) {
+                $('#select_continue').text('Continue');
+
                 // let input_node = cy.nodes().filter((node) => 'name' in node.data()).roots()[0];
                 let input_node = cy.nodes().filter((node) => node.data().class_name === 'InputLayer')[0];
                 inputs_layers[input_node.data('name')] = {'dataset': appConfig.dataset, 'is_saved': false};
@@ -652,6 +653,8 @@ $(document).ready(function () {
                 }
 
                 appConfig['data_df'] = data.data;
+                wizard_next(2, dict_wizard);
+
             }
         });
     });
@@ -663,6 +666,9 @@ $(document).ready(function () {
         let test = $('#range3').val();
         appConfig.dataset_params.split = train + ',' + val + ',' + test;
         let input_node = cy.nodes().filter((node) => node.data().class_name === 'InputLayer')[0];
+        // if (Object.keys(inputs_layers).length === 0) {
+        //     inputs_layers[input_node.data('name')] = {}
+        // }
 
         inputs_layers[input_node.data('name')]['split'] = appConfig.dataset_params.split;
         inputs_layers[input_node.data('name')]['train'] = train;
@@ -711,6 +717,8 @@ $(document).ready(function () {
                 if (['default_featu', 'cat_column', 'default_column'].contains(k))
                     args[k] = args[k].toArray();
             });
+            $('#targetContinue').text('Saving changes...');
+
             $.ajax({
                 url: "/gui_input",
                 type: 'POST',
@@ -721,6 +729,7 @@ $(document).ready(function () {
                 },
                 data: JSON.stringify(args),
                 success: function (data) {
+                    $('#targetContinue').text('Save');
                     if (data.error === false) {
                         appConfig.num_outputs = data.num_outputs;
                         appConfig.hidden_layers = data.hidden_layers;
@@ -904,7 +913,8 @@ function send_canned(cy, dnn_nodes, cy_json, loss) {
     args['mode'] = 'canned';
     args['model_name'] = $('#inp').val();
     args['data'] = dnn_nodes.data().content;
-
+    $('#save_model').text('Saving...')
+        .addClass('disabled')
     $.ajax({
         url: "/save_model",
         type: 'POST',
@@ -916,6 +926,8 @@ function send_canned(cy, dnn_nodes, cy_json, loss) {
         data: JSON.stringify(args),
         success: function (result) {
             $.notify("New model saved", "success");
+            $('#save_model').text('Save')
+                .removeClass('disabled')
 
         }
     });
@@ -1030,7 +1042,8 @@ async function tf_load_model(nodes, models, loss_function, cy_json, cy, loss_nod
             args['mode'] = 'custom';
             args['model_name'] = $('#inp').val();
 
-
+            $('#save_model').text('Saving model...')
+                .addClass('disabled')
             $.ajax({
                 url: "/save_model",
                 type: 'POST',
@@ -1041,12 +1054,15 @@ async function tf_load_model(nodes, models, loss_function, cy_json, cy, loss_nod
                 },
                 data: JSON.stringify(args),
                 success: function (result) {
+                    $('#save_model').text('Save')
+                        .removeClass('disabled')
                     if (result.explanation !== 'ok') {
                         alert(result.explanation);
                         disable_submit_button();
                         return false;
                     }
                     $.notify("New model saved", "success");
+
 
                 }
 

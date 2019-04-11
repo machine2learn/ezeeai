@@ -28,7 +28,12 @@ def get_datasets_type(app_root, username):
                    x[0] == '.']
         if len(dt_type) == 0:
             continue
-        dt_type = 'Tabular' if 'tabular' in dt_type[0] else 'Image'
+        for t in dt_type:
+            if 'tabular' in t:
+                dt_type = 'Tabular'
+            if 'image' in t:
+                dt_type = 'Image'
+            # dt_type = 'Tabular' if 'tabular' in dt_type[0] else 'Image'
         datasets.append([dataset, dt_type])
     return datasets
 

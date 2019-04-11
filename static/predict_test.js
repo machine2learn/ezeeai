@@ -88,7 +88,7 @@ function regression_plots(y_true, y_pred) {
     };
     var data = [trace1, trace2];
     var layout = {
-        title: 'Predicted vs. Actual Response',
+        // title: 'Predicted vs. Actual Response',
         font: {
             family: '"Montserrat", sans-serif',
             size: 11
@@ -113,7 +113,7 @@ function regression_plots(y_true, y_pred) {
     var abs = Math.max.apply(null, dif.map(Math.abs)) + 1;
 
     var layout2 = {
-        title: 'Difference',
+        // title: 'Difference',
         font: {
             family: '"Montserrat", sans-serif',
             size: 11

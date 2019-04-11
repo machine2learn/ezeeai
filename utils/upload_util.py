@@ -39,7 +39,6 @@ def new_config(dataset_name, username, sess, app_root):
             os.listdir(os.path.join(dataset_path, 'test'))) > 0 else None
 
         dataset = Image(train_path, test_path, mode, dataset_name)
-
     sess.create_helper(dataset)  # TODO mode
     return True
 

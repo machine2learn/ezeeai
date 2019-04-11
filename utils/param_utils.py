@@ -49,3 +49,7 @@ def get_params(config_file):
             dict['optimizer'] = 'Adam'
             dict['learning_rate'] = 0.01
     return dict
+
+def set_checkpoint_dir(all_params_config, checkpoint):
+    all_params_config.set('PATHS', 'checkpoint_dir', os.path.join(all_params_config.export_dir(), checkpoint))
+

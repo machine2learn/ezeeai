@@ -136,6 +136,11 @@
                                        style="width:100%">
                                 </table>
                             </div>
+                            <div class="clear-both-left font-12 hide-element" id="large_test">
+                                <div id="large_test_message"> </div>
+                                <a id="large_test_download" class="dt-button buttons-html5 ahover"
+                                   onclick='download_large_dataset()'>  <span class="fi flaticon-download" data-toggle="tooltip" title="Export To CSV"/></span>Download complete CSV  </a>
+                            </div>
                         </div>
                     </section>
                 </div>
@@ -145,11 +150,11 @@
     <div class="row waiting-test-file hide-element">
         <div class="col-lg-12 disabled-custom" id="graph_test_div">
             <section class="widget widget-overflow" id="">
-{#                <header>#}
-{#                    <h6>#}
-{#                        <span class="fw-semi-bold">Test</span>#}
-{#                    </h6>#}
-{#                </header>#}
+                {#                <header>#}
+                {#                    <h6>#}
+                {#                        <span class="fw-semi-bold">Test</span>#}
+                {#                    </h6>#}
+                {#                </header>#}
 
                 <div id="expdiv" class="container">
                     <div class="panel-body">
@@ -169,8 +174,11 @@
                 <div class="col-6">
                     <section class="widget widget-overflow" id="">
                         <header>
-                            <h6>
+                            <h6 id="class_graph1">
                                 Precision <span class="fw-semi-bold">Recall</span>
+                            </h6>
+                            <h6 id="regr_graph1" class="hide-element">
+                                <span class="fw-semi-bold">Predicted vs. Actual </span>Response
                             </h6>
                         </header>
 
@@ -184,8 +192,11 @@
                 <div class="col-6">
                     <section class="widget widget-overflow" id="">
                         <header>
-                            <h6>
+                            <h6 id="class_graph2">
                                 <b>R</b>eceiver <b>O</b>peration <b>C</b>haracteristic
+                            </h6>
+                            <h6 id="regr_graph2" class="hide-element">
+                                <span class="fw-semi-bold">Difference </span>
                             </h6>
                         </header>
 
@@ -224,6 +235,7 @@
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.1.2/js/dataTables.buttons.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.1.2/js/buttons.html5.min.js"></script>
     <script src="{{ url_for('.static', filename='notify.js') }}"></script>
+    <script src="{{ url_for('.static', filename='json2csv.js') }}"></script>
     <script type=text/javascript>
         var handle_key = {};
         handle_key.models = {{  parameters | tojson | safe }};

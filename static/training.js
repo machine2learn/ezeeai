@@ -39,14 +39,14 @@ $(document).ready(function () {
             success: function (data) {
                 $('.loader').addClass('hide-element');
                 $('.visualization').removeClass('hide-element');
-                update_parameters_form(data.parameters);
+                if (Object.keys(data.parameters).length !== 0)
+                    update_parameters_form(data.parameters);
                 update_checkpoint_table(data.checkpoints, data.metric);
                 update_graphs(data.graphs, true);
 
-                let $log = $('.log');
-                $log.text(data.log);
+                $('.log').text(data.log);
                 // $log.animate({scrollTop: $log[0].scrollHeight});
-                 $('.log').animate({scrollTop: $('.log')[0].scrollHeight});
+                $('.log').animate({scrollTop: $('.log')[0].scrollHeight});
 
             }
         })

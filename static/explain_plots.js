@@ -42,25 +42,42 @@ function get_colors(new_Data) {
 
 function create_bar(predict) {
     var ctx = document.getElementById("probs").getContext('2d');
+
+    if (predict["min_value"] < 0) {
+        var my_datasets = [
+            {
+                backgroundColor: '#019EBE',
+                data: [
+                    predict["min_value"]
+                ]
+            },
+            {
+                backgroundColor: '#019EBE',
+                data: [
+                    predict['predicted_value']
+                ]
+            }]
+    } else {
+        var my_datasets = [
+            {
+                backgroundColor: '#019EBE',
+                data: [
+                    predict['predicted_value']
+                ],
+                fill: false,
+                tension: 0
+            }]
+    }
     var barChartData = {
         labels: ['Prediction = ' + predict['predicted_value']],
-        datasets: [{
-            backgroundColor: '#019EBE',
-            data: [
-                predict["min_value"]
-            ]
-        }, {
-
-            backgroundColor: '#019EBE',
-            data: [
-                predict['predicted_value']
-            ]
-        }]
+        datasets: my_datasets
     };
+
 
     var myBarChart = new Chart(ctx, {
         type: 'bar',
         data: barChartData,
+        responsive: true,
         options: {
             tooltips: {
                 callbacks: {
@@ -76,14 +93,22 @@ function create_bar(predict) {
                     stacked: true,
                 }],
                 yAxes: [{
-                    stacked: true,
-                    display: true,
+                    // stacked: true,
+                    // display: true,
+
                     ticks: {
-                        beginAtZero: false,
                         min: predict['min_value'],
-                        steps: 10,
-                        stepValue: (predict['max_value'] - predict['min_value']) / 10,
                         max: predict['max_value'],
+                        callback: function (value, index, values) {
+                            if (index === values.length - 1) return predict['min_value'];
+                            else if (index === 0) return predict['max_value'];
+                            else return '';
+                        }
+                        // beginAtZero: false,
+                        // min: predict['min_value'],
+                        // // steps: 10,
+                        // // stepValue: (predict['max_value'] - predict['min_value']) / 10,
+                        // max: predict['max_value'],
                     }
                 }]
             }

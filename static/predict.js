@@ -112,12 +112,12 @@ $(document).ready(function () {
     });
 });
 
-
-function serialize_form() {
-    let data_form = $("#predict_form").serializeArray();
-    data_form.push({name: 'radiob', value: get_checkpoint_selected()});
-    return data_form;
-}
+//
+// function serialize_form() {
+//     let data_form = $("#predict_form").serializeArray();
+//     data_form.push({name: 'radiob', value: get_checkpoint_selected()});
+//     return data_form;
+// }
 
 
 function completeHandler(event) {

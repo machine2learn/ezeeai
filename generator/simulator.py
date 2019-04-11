@@ -220,7 +220,7 @@ class DataSetGeneratorTransformer(Transformer):
         columns = {a: self.columns[a] for a in items[0]} if items else self.columns
         flatten = {k: v.squeeze() for k, v in columns.items()}
         self.df = pd.DataFrame.from_dict(flatten)
-        pprint(self.df)
+        # pprint(self.df)
 
     @v_args(inline=True)
     def id(self, s):

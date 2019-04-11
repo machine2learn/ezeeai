@@ -11,7 +11,7 @@ $(document).ready(function () {
         $('#graph_test_div').addClass('disabled-custom');
         $('#table_prediction_div').addClass('disabled-custom');
         $('.waiting-test-file').addClass('hide-element');
-
+        $('#large_test').addClass('hide-element');
 
         $.ajax({
             url: "/params_predict",
@@ -69,6 +69,7 @@ $(document).ready(function () {
 
         $('.waiting-test-file').addClass('hide-element');
         $('.loader-test-file').removeClass('hide-element');
+        $('#large_test').addClass('hide-element');
 
         $.ajax({
             url: "/test",
@@ -85,6 +86,20 @@ $(document).ready(function () {
                 'checkpoint': checkpoint
             }),
             success: function (data) {
+                if (data.predict_table['data'].length > 1000) {
+                    // add message and download complete csv link
+                    $('#large_test_message').text('* Only 1000 of ' + data.predict_table['data'].length + ' are showed.');
+                    $('#large_test').removeClass('hide-element');
+
+                    appConfig.handle_key.long_data = data.predict_table['data'];
+                    data.predict_table['data'] = data.predict_table['data'].slice(0, 1000);
+                    data.metrics.y_pred = data.metrics.y_pred.slice(0, 1000);
+                    data.metrics.y_true = data.metrics.y_true.slice(0, 1000);
+
+
+                } else {
+                    $('#large_test').addClass('hide-element');
+                }
                 $('.loader-test-file').addClass('hide-element');
 
                 if (data.hasOwnProperty('error')) {
@@ -95,7 +110,7 @@ $(document).ready(function () {
                     if (Object.keys(data['metrics']).length > 0) {
                         appConfig.handle_key.metrics = data.metrics;
                         appConfig.handle_key.targets = data.targets;
-                        create_graphs(data.metrics, data.targets)
+                        create_graphs(data.metrics, data.targets);
                         $('#graph_test_div').removeClass('hide-element');
                     } else {
                         $('#graph_test_div').addClass('hide-element');
@@ -265,15 +280,41 @@ function create_graphs(metrics, targets) {
             } else {
                 add_metric('R2 score', metrics.r2_score.toFixed(3))
             }
-
+            show_regression_graphs_titles()
         } else {
             precision_recall_plots();
             roc_plot();
             add_metric('Accuracy', metrics.accuracy.toFixed(3))
+            show_classification_graphs_titles()
         }
     }
 }
 
+function show_regression_graphs_titles() {
+    $('#regr_graph1').removeClass('hide-element');
+    $('#regr_graph2').removeClass('hide-element');
+
+    $('#class_graph1').addClass('hide-element');
+    $('#class_graph2').addClass('hide-element');
+}
+
+function show_classification_graphs_titles() {
+    $('#regr_graph1').addClass('hide-element');
+    $('#regr_graph2').addClass('hide-element');
+
+    $('#class_graph1').removeClass('hide-element');
+    $('#class_graph2').removeClass('hide-element');
+}
+
 function add_metric(label, value) {
     $('#metric_acc').html('<b>' + label + '</b>  : ' + value)
+}
+
+function download_large_dataset() {
+    if (typeof appConfig.handle_key.long_data !== 'undefined') {
+        let test_file = $('#table_test_files').DataTable().rows({selected: true}).data()[0][0].split('.')[0] + '_pred';
+        exportCSVFile(appConfig.handle_key.targets, appConfig.handle_key.long_data, test_file)
+    } else {
+        $('#large_test').addClass('hide-element');
+    }
 }

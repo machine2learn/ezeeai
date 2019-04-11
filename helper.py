@@ -261,10 +261,10 @@ class Tabular(Helper):
             test_filename = os.path.join(self._dataset.get_base_path(), 'test', test_file)
             df_test = sys_ops.bytestr2df(request.get_json()['file'], test_filename)
             sys_ops.check_df(df_test, self._dataset.get_df(), self._dataset.get_targets(), test_filename)
-        except (ValueError, _csv.Error):
+        except (ValueError, _csv.Error) as e:
             if os.path.isfile(test_filename):
                 os.remove(test_filename)
-            return "The file contents are not valid."
+            return str(e)
         return "ok"
 
     def test_request(self, request):
@@ -290,7 +290,6 @@ class Tabular(Helper):
         return self._dataset.get_mode()
 
     def explain_return(self, request, result):
-
         new_features = self.get_new_features(request)
         targets = self.get_targets()
         params = {}

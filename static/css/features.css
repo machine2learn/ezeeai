@@ -30,6 +30,7 @@ img {
     border: 0.15em dashed currentColor;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     overflow: hidden;
+    height: 100%;
 }
 
 .inputDnD .form-control-file:hover:before {
@@ -47,13 +48,13 @@ img {
 #image_upload {
     width: auto;
     padding: 0px;
-    height: 20vh;
+    height: 30vh;
 }
 
 .inputDnD {
     background-repeat: round;
     background-size: 100%;
-    height: 20vh;
+    height: 30vh;
     background-color: hsla(0, 0%, 100%, 0.70);
     background-blend-mode: initial;
 
@@ -83,32 +84,39 @@ img {
 #table_features th {
     border: 0;
 }
-.align-content-right{
+
+.align-content-right {
     text-align: right;
 }
-.align-content-left{
+
+.align-content-left {
     text-align: left;
 }
-.align-content-left input{
+
+.align-content-left input {
     margin-bottom: 10px;
     width: 80px;
 }
-.align-content-left select{
+
+.align-content-left select {
     width: 80px;
     margin-left: 13px;
 }
 
-.explain-graphs{
+.explain-graphs {
     text-align: -webkit-center;
+    overflow: scroll;
 }
 
-.pre-scrollable{
-     max-height: 40vh!important;
+.pre-scrollable {
+    max-height: 60vh !important;
 }
-.upload-file .label-title{
+
+.upload-file .label-title {
     font-weight: 800;
     font-size: 12px;
 }
-#table_test_files{
-    width: 100%!important; ;
+
+#table_test_files {
+    width: 100% !important;;
 }

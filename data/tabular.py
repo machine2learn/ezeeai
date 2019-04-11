@@ -504,6 +504,6 @@ class Tabular:
                                                         features=receiver_tensors)
 
     def get_all_test_files(self):
-        return os.listdir(os.path.join(self.get_base_path(), 'test'))
+        return [f for f in os.listdir(os.path.join(self.get_base_path(), 'test')) if not f.startswith('.')]
 
 
