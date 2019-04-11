@@ -26460,6 +26460,7 @@ input.text-error {
 .dt-button {
     margin: 3px !important;
     color: dimgrey;
+    outline:0;
 
 }
 
