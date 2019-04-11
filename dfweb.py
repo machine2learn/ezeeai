@@ -1,6 +1,9 @@
 import pandas as pd
 import pandas_profiling as pp
 
+import logging.config
+from config.logging_config import logging_config
+
 from config import config_reader
 from configparser import NoSectionError
 from database.db import db
@@ -70,6 +73,7 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         if not db_ops.checklogin(form, login_user, session, sess):
+            # app.logger.warn('Login attempt to %s from IP %s', form.username.data, request.remote_addr)
             return render_template('login.html', form=form, error='Invalid username or password')
         return redirect(url_for('dashboard'))
     return render_template('login.html', form=form)
@@ -595,6 +599,7 @@ def flash_errors(form):
 db.init_app(app)
 
 if __name__ == '__main__':
+    # logging.config.dictConfig(logging_config)
     sess = Session(app)
     app.run(debug=True, threaded=True, host='0.0.0.0')
     # app.run(debug=True, threaded=True)

@@ -86,17 +86,17 @@ $(document).ready(function () {
                 'checkpoint': checkpoint
             }),
             success: function (data) {
-                if (data.predict_table['data'].length > 1000) {
+                if ((data.predict_table['data'].length) > 1000 && (data.metrics.hasOwnProperty('y_pred'))) {
                     // add message and download complete csv link
-                    $('#large_test_message').text('* Only 1000 of ' + data.predict_table['data'].length + ' are showed.');
+                    $('#large_test_message').text('* Only 1000 of ' + data.predict_table['data'].length + ' are shown.');
                     $('#large_test').removeClass('hide-element');
 
                     appConfig.handle_key.long_data = data.predict_table['data'];
+                    appConfig.handle_key.columns = data.predict_table['columns'];
+
                     data.predict_table['data'] = data.predict_table['data'].slice(0, 1000);
                     data.metrics.y_pred = data.metrics.y_pred.slice(0, 1000);
                     data.metrics.y_true = data.metrics.y_true.slice(0, 1000);
-
-
                 } else {
                     $('#large_test').addClass('hide-element');
                 }
@@ -284,7 +284,7 @@ function create_graphs(metrics, targets) {
         } else {
             precision_recall_plots();
             roc_plot();
-            add_metric('Accuracy', metrics.accuracy.toFixed(3))
+            add_metric('Accuracy', metrics.accuracy.toFixed(3));
             show_classification_graphs_titles()
         }
     }
@@ -313,7 +313,8 @@ function add_metric(label, value) {
 function download_large_dataset() {
     if (typeof appConfig.handle_key.long_data !== 'undefined') {
         let test_file = $('#table_test_files').DataTable().rows({selected: true}).data()[0][0].split('.')[0] + '_pred';
-        exportCSVFile(appConfig.handle_key.targets, appConfig.handle_key.long_data, test_file)
+        let columns = appConfig.handle_key.columns.map(function( k ) { return k['title']});
+        exportCSVFile(columns, appConfig.handle_key.long_data, test_file)
     } else {
         $('#large_test').addClass('hide-element');
     }
