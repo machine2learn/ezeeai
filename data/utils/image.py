@@ -175,6 +175,7 @@ def find_image_files_from_file(data_dir, info_file, require_all=True):
 
     info_file = pd.read_csv(info_file, sep=None, engine='python', **args)
 
+
     filenames = info_file[info_file.columns[0]].values
     if not os.path.isfile(filenames[0]):
         filenames = [os.path.join(data_dir, f) for f in filenames]

@@ -226,8 +226,10 @@ def train_eval_graphs(path):
         for e in summary_iterator.Scalars(tag):
             train[tag.split('_1')[0]].append(e.value)
 
-    eval_events = [os.path.join(path, 'eval', f) for f in os.listdir(os.path.join(path, 'eval')) if
-                   f.startswith('events.out.tfevents')]
+    eval_events = []
+    if os.path.isdir(os.path.join(path, 'eval')):
+        eval_events = [os.path.join(path, 'eval', f) for f in os.listdir(os.path.join(path, 'eval')) if
+                       f.startswith('events.out.tfevents')]
 
     if len(eval_events) == 0:
         return {'train': train}

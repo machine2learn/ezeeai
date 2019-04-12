@@ -26460,7 +26460,7 @@ input.text-error {
 .dt-button {
     margin: 3px !important;
     color: dimgrey;
-    outline:0;
+    outline: 0;
 
 }
 
@@ -26562,5 +26562,16 @@ input.text-error {
 }
 
 .ahover:hover {
-    color: #0094b5!important;
+    color: #0094b5 !important;
 }
+
+.margin-top-bottom-10 {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.width0-height5 {
+    width: 0%;
+    height: 5px;
+}
+

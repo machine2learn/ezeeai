@@ -1014,7 +1014,7 @@ a.disabled {
 }
 
 .popper-div {
-    z-index: 9995 !important;
+    /*z-index: 9995 !important;*/
 }
 
 #create_model {

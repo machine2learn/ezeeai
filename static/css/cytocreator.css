@@ -197,7 +197,7 @@ input:invalid + span:after {
     color: red;
 }
 
-.popper-div {
+.dog {
     background: transparent;
     z-index: 999;
     padding: 0.25em;

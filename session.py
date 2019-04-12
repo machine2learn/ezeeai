@@ -1,13 +1,15 @@
 from config.config_writer import ConfigWriter
 from config import config_reader
+
+from data.tabular import Tabular as DataTabular
+from data.image import Image as DataImage
+
 from flask import session, redirect, url_for
 from helper import Tabular, Image
 
 import dill as pickle
 import os
 import pandas as pd
-from data.tabular import Tabular as DataTabular
-from data.image import Image as DataImage
 
 SAMPLE_DATA_SIZE = 5
 

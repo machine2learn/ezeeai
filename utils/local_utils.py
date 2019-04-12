@@ -47,9 +47,11 @@ def process_test_request(local_sess, hlp, all_params_config, username, APP_ROOT,
         file_path, success = get_file_path(hlp, df_test, final_pred, test_filename)
         if not success:
             return {'error': file_path}
+
         predict_table = prediction_from_df(file_path)
         labels = hlp.get_target_labels()
         store_predictions(has_targets, local_sess, final_pred, hlp.get_df_test(df_test, has_targets))
+
         metrics = get_mode_metrics(has_targets, hlp.get_mode(), labels, local_sess, hlp.get_targets())
         return {'predict_table': predict_table, 'metrics': metrics, 'targets': hlp.get_targets()}
     except Exception as e:

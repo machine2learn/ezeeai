@@ -115,6 +115,10 @@ class Helper(metaclass=ABCMeta):
     def write_dataset(self, data_path):
         pass
 
+    @abstractmethod
+    def has_split_test(self):
+        pass
+
 
 class Tabular(Helper):
     def __init__(self, dataset):
@@ -167,7 +171,6 @@ class Tabular(Helper):
         if not self._dataset.update_targets(selected_rows):
             return {'error': 'Only numerical features are supported for multiouput.'}
 
-        self._dataset.split_dataset()
         self._dataset.split_dataset()
         self._dataset.update_feature_columns()  # TODO maybe inside split
 
@@ -254,12 +257,18 @@ class Tabular(Helper):
 
         return data
 
+    def has_split_test(self):
+        if int(self._dataset.get_split().split(',')[2]) > 0:
+            return True
+        return False
+
     def test_upload(self, request):
-        test_file = get_filename(request)
-        test_filename = ''
+        test_file = request.files['input_file']
+        test_filename = os.path.join(self._dataset.get_base_path(), 'test', test_file.filename)
+        # TODO test_filename already exists
+        test_file.save(test_filename)
         try:
-            test_filename = os.path.join(self._dataset.get_base_path(), 'test', test_file)
-            df_test = sys_ops.bytestr2df(request.get_json()['file'], test_filename)
+            df_test = preprocessing.clean_field_names(test_filename)
             sys_ops.check_df(df_test, self._dataset.get_df(), self._dataset.get_targets(), test_filename)
         except (ValueError, _csv.Error) as e:
             if os.path.isfile(test_filename):
@@ -468,6 +477,11 @@ class Image(Helper):
         return sys_ops.save_image_results(df, final_pred['preds'], self._dataset.get_targets(), test_filenames,
                                           self._dataset.get_dataset_path().replace('train', ''))
 
+    def has_split_test(self):
+        if int(self._dataset.get_split().split(',')[2]) > 0:
+            return True
+        return False
+
     def test_request(self, request):
         has_targets = True
         df_test = {}
@@ -506,7 +520,8 @@ class Image(Helper):
 
                 elif option == '.option3':
                     labels_file = [os.path.join(test_path, t) for t in os.listdir(test_path) if t.startswith('labels.')]
-                    test_filename, labels, _ = find_image_files_from_file(test_path, labels_file[0])
+                    print(labels_file)
+                    test_filename, labels, _ = find_image_files_from_file(test_path, labels_file[0], require_all=False)
                 df_test[self._dataset.get_targets()[0]] = labels
             return has_targets, test_filename, df_test, None
         return False
@@ -568,6 +583,7 @@ class Image(Helper):
         return 'ok'
 
     def write_dataset(self, data_path):
+        # self._dataset.head(1000)  # TODO
         pickle.dump(self._dataset, open(data_path, 'wb'))
 
     def explain_return(self, request, results):

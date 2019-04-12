@@ -10,7 +10,11 @@ import shutil
 
 from collections import OrderedDict
 from utils import preprocessing
-from io import StringIO
+
+from utils.request_util import get_filename, get_modelname
+
+
+from io import StringIO, BytesIO
 import numpy as np
 import json
 
@@ -155,10 +159,10 @@ def save_filename(target, dataset_form_field, dataset_name):
     return True
 
 
-def bytestr2df(str_file, filename):
-    data = StringIO(str_file)
-    p = preprocessing.clean_field_names_df(data, filename)
-    return p
+# def bytestr2df(str_file, filename):
+#     data = StringIO(str_file)
+#     p = preprocessing.clean_field_names_df(data, filename)
+#     return p
 
 
 def change_checkpoints(config, resume_from):
@@ -386,3 +390,20 @@ def get_canned_data(APP_ROOT, username, model_name, all_params_config):
     canned_data = get_canned_json(APP_ROOT, username, model_name)
     if os.path.isfile(canned_data):
         all_params_config.set_canned_data(json.load(open(canned_data)))
+
+
+def delete_file_test(request, param_configs,  APP_ROOT, username):
+    filename = get_filename(request)
+    model_name = get_modelname(request)
+    dataset_name = param_configs[model_name]['dataset']
+    path = os.path.join(get_dataset_path(APP_ROOT, username, dataset_name), 'test', filename)
+    try:
+        if os.path.isfile(path):
+            os.remove(path)
+        elif os.path.isdir(path):
+            tree_remove(path)
+        else:
+            return True, 'Test file not found'
+    except:
+        return True, 'Error server'
+    return False, None

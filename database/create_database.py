@@ -26,8 +26,8 @@ def create_new_user(username, password, email):
     return True
 
 
-#
-# username = 'test2'
-# password= 'test12345'
-# email = 'test2@test.com'
-# create_new_user(username, password, email)
+# if __name__ == '__main__':
+    # username = 'test2'
+    # password= 'test12345'
+    # email = 'test2@test.com'
+    # create_new_user(username, password, email)

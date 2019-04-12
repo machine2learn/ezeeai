@@ -56,12 +56,11 @@ def update_config_dir(config_writer, target):
     config_writer.add_item('PATHS', 'tmp_dir', os.path.join(target, 'tmp'))
 
 
-def create_model(username, APP_ROOT, config_name):
-    # TODO default_config not exists, not useful
-    path = APP_ROOT + '/user_data/' + username + '/models/' + config_name
+def create_model(username, APP_ROOT, model_name):
+    path = os.path.join(APP_ROOT, 'user_data', username, 'models', model_name)
     os.makedirs(path, exist_ok=True)
-    sys_ops.copyfile('config/default_config.ini', path + '/config.ini')
-    return path + '/config.ini'
+    # sys_ops.copyfile('config/default_config.ini', path + '/config.ini')
+    # return path + '/config.ini'
 
 
 def define_new_model(APP_ROOT, username, config_writer, model_name):

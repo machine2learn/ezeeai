@@ -54,7 +54,7 @@ function scatter(feat1, feat2, div, data) {
     var y_values = [];
     var x_title = data.columns[index_x];
     var y_title = data.columns[index_y];
-    var plot_title = x_title + '  vs.  ' + y_title;
+    // var plot_title = x_title + '  vs.  ' + y_title;
     for (var i = 0; i < data.data.length; i++) {
         x_values.push(data.data[i][index_x]);
         y_values.push(data.data[i][index_y]);
@@ -85,7 +85,7 @@ function histogram(feat1, div, norm, data) {
     var line = norm.line[index];
     var count = norm.counts[index];
 
-    var title = data.columns[index];
+    // var title = data.columns[index];
 
     var trace_line = {
         x: bins,
@@ -101,7 +101,7 @@ function histogram(feat1, div, norm, data) {
 
     var layout = {
         margin: {l: 0, r: 0, t: 25, b: 0},
-        xaxis: {automargin: false},
+        xaxis: {automargin: true },
         yaxis: {automargin: true},
         showlegend: false,
     };

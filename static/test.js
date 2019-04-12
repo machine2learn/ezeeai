@@ -1,17 +1,9 @@
 $(document).ready(function () {
     draw_models_select(appConfig.handle_key.models);
-
     $('#model_name').on('change', function () {
         enable_checkpoints();
-        $('.waiting-selection-ckpt').removeClass('hide-element');
-        $('.waiting-selection').addClass('hide-element');
-        $('.loader').removeClass('hide-element');
-        $('#feature-div').addClass('hide-element');
-        $('#test_file_disabled').removeClass('hide-element');
-        $('#graph_test_div').addClass('disabled-custom');
-        $('#table_prediction_div').addClass('disabled-custom');
-        $('.waiting-test-file').addClass('hide-element');
-        $('#large_test').addClass('hide-element');
+        hide_waiting();
+        clean_upload_log();
 
         $.ajax({
             url: "/params_predict",
@@ -86,25 +78,26 @@ $(document).ready(function () {
                 'checkpoint': checkpoint
             }),
             success: function (data) {
-                if ((data.predict_table['data'].length) > 1000 && (data.metrics.hasOwnProperty('y_pred'))) {
-                    // add message and download complete csv link
-                    $('#large_test_message').text('* Only 1000 of ' + data.predict_table['data'].length + ' are shown.');
-                    $('#large_test').removeClass('hide-element');
-
-                    appConfig.handle_key.long_data = data.predict_table['data'];
-                    appConfig.handle_key.columns = data.predict_table['columns'];
-
-                    data.predict_table['data'] = data.predict_table['data'].slice(0, 1000);
-                    data.metrics.y_pred = data.metrics.y_pred.slice(0, 1000);
-                    data.metrics.y_true = data.metrics.y_true.slice(0, 1000);
-                } else {
-                    $('#large_test').addClass('hide-element');
-                }
-                $('.loader-test-file').addClass('hide-element');
-
                 if (data.hasOwnProperty('error')) {
                     alert(data.error);
+                    $('.loader-test-file').addClass('hide-element');
                 } else {
+                    if ((data.predict_table['data'].length) > 1000 && (data.metrics.hasOwnProperty('y_pred'))) {
+                        // add message and download complete csv link
+                        $('#large_test_message').text('* Only 1000 of ' + data.predict_table['data'].length + ' are shown.');
+                        $('#large_test').removeClass('hide-element');
+
+                        appConfig.handle_key.long_data = data.predict_table['data'];
+                        appConfig.handle_key.columns = data.predict_table['columns'];
+
+                        data.predict_table['data'] = data.predict_table['data'].slice(0, 1000);
+                        data.metrics.y_pred = data.metrics.y_pred.slice(0, 1000);
+                        data.metrics.y_true = data.metrics.y_true.slice(0, 1000);
+                    } else {
+                        $('#large_test').addClass('hide-element');
+                    }
+                    $('.loader-test-file').addClass('hide-element');
+
                     $('.waiting-test-file').removeClass('hide-element');
                     create_table_predictions(data.predict_table['data'], data.predict_table['columns']);
                     if (Object.keys(data['metrics']).length > 0) {
@@ -114,7 +107,6 @@ $(document).ready(function () {
                         $('#graph_test_div').removeClass('hide-element');
                     } else {
                         $('#graph_test_div').addClass('hide-element');
-
                     }
                 }
 
@@ -160,15 +152,17 @@ function create_table_predictions(data, columns) {
 
 function create_table_test_files(data) {
     let dataArr = data.map(function (d) {
-        return [d];
+        let link = '<a data-id=' + d + ' onclick="deleteTestFile(this)" ><i class="fi flaticon-trash"></i></a>';
+        return [d, link];
     });
     if (appConfig.has_test)
-        dataArr.push(['TEST FROM SPLIT']);
+        dataArr.push(['TEST FROM SPLIT', '']);
+
 
     remove_table('table_test_files');
     let table_test = $('#table_test_files').DataTable({
         data: dataArr,
-        columns: [{title: ''}],
+        columns: [{title: ''}, {title: '', width: "5%", 'sClass': 'trash-icon'}],
         // searching: true,
         'select': 'single',
         "lengthChange": false,
@@ -190,63 +184,9 @@ function create_table_test_files(data) {
 }
 
 
-function uploadZipFile($input) {
-    let filename = document.getElementById('image-upload').files[0].name.split('.')[0];
-    let f = new FormData();
-    f.append('input_file', $input.files[0], $input.files[0].name);
-    f.append('model_name', $('#model_name').val());
-
-    ajax = new XMLHttpRequest();
-    ajax.onreadystatechange = function () {
-        if (this.readyState === 4 && JSON.parse(this.response).result !== 'ok')
-            alert('Upload failed: invalid data format');
-        else if (this.readyState === 4 && JSON.parse(this.response).result === 'ok')
-            upload_test_table(filename)
-    };
-    ajax.open("POST", "/upload_test_file");
-    ajax.send(f);
-}
-
-
-function uploadCSVFile($input) {
-    let filename = document.getElementById('tabular-upload').files[0].name;
-    let fReader = new FileReader();
-    fReader.readAsBinaryString($input.files[0]);
-    fReader.onloadend = function (event) {
-        $.ajax({
-            url: "/upload_test_file",
-            type: 'POST',
-            dataType: 'json',
-            contentType: 'application/json;charset=UTF-8',
-            accepts: {
-                json: 'application/json',
-            },
-            data: JSON.stringify({
-                'file': event.target.result,
-                'model_name': $('#model_name').val(),
-                'filename': filename
-            }),
-            success: function (data) {
-                if (data.result !== 'ok')
-                    alert(data.result);
-                else {
-                    upload_test_table(filename);
-                    $.notify("File saved", "success");
-                }
-
-            },
-            error: function (e) {
-                $.notify("File error", "error");
-            }
-        })
-    }
-}
-
 function upload_test_table(filename) {
-    $('#table_test_files').DataTable().row.add([filename]).draw();
-
+    $('#table_test_files').DataTable().row.add([filename, '<a data-id=' + filename + ' onclick="deleteTestFile(this)" ><i class="fi flaticon-trash"></i></a>']).draw();
 }
-
 
 function create_graphs(metrics, targets) {
     $('#exp_target').remove();
@@ -313,9 +253,24 @@ function add_metric(label, value) {
 function download_large_dataset() {
     if (typeof appConfig.handle_key.long_data !== 'undefined') {
         let test_file = $('#table_test_files').DataTable().rows({selected: true}).data()[0][0].split('.')[0] + '_pred';
-        let columns = appConfig.handle_key.columns.map(function( k ) { return k['title']});
+        let columns = appConfig.handle_key.columns.map(function (k) {
+            return k['title']
+        });
         exportCSVFile(columns, appConfig.handle_key.long_data, test_file)
     } else {
         $('#large_test').addClass('hide-element');
     }
+}
+
+function hide_waiting() {
+    $('.waiting-selection-ckpt').removeClass('hide-element');
+    $('.waiting-selection').addClass('hide-element');
+    $('.loader').removeClass('hide-element');
+    $('#feature-div').addClass('hide-element');
+    $('#test_file_disabled').removeClass('hide-element');
+    $('#graph_test_div').addClass('disabled-custom');
+    $('#table_prediction_div').addClass('disabled-custom');
+    $('.waiting-test-file').addClass('hide-element');
+    $('#large_test').addClass('hide-element');
+
 }

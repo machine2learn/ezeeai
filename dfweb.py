@@ -26,11 +26,11 @@ from thread_handler import ThreadHandler
 
 from utils import db_ops, config_ops
 from utils.custom import save_local_model
+from utils.feature_util import get_tabular_graphs, get_image_graphs, save_image_graphs
 from utils.local_utils import *
 from utils.metrics import *
 from utils.param_utils import get_params
 from utils.request_util import *
-from utils.visualize_util import get_norm_corr
 from utils.upload_util import get_examples, new_config
 
 from user import User
@@ -291,9 +291,7 @@ def params_predict():
         checkpoints = run_utils.get_eval_results(export_dir, local_sess.get_writer(), local_sess.get_config_file())
         metric = local_sess.get_metric()
         params, _ = hlp.get_default_data_example()
-        has_test = False
-        if int(hlp._dataset.get_split().split(',')[2]) > 0:
-            has_test = True
+        has_test = hlp.has_split_test()
         return jsonify(checkpoints=checkpoints, metric=metric, params=params, has_test=has_test)
     except (KeyError, NoSectionError):
         return jsonify(checkpoints='', metric='', params={})
@@ -313,7 +311,7 @@ def run():
         th.handle_request(get_action(request), all_params_config, username, get_resume_from(request),
                           sess.get_config_file())
         return jsonify(status='ok', metric=sess.get_metric())
-    return render_template('run.html', title="Run", user=username, token=session['token'], form=form,
+    return render_template('run.html', user=username, token=session['token'], form=form,
                            user_models=model_configs, dataset_params=user_datasets, running=running,
                            model_name=model_name, checkpoints=checkpoints, metric=metric, graphs=graphs, log=log_mess)
 
@@ -333,8 +331,7 @@ def predict():
         return jsonify(error=final_pred) if not success else jsonify(
             run_utils.get_predictions(hlp.get_targets(), final_pred))
     _, param_configs = config_ops.get_configs_files(APP_ROOT, username)
-    return render_template('predict.html', user=session['user'], token=session['token'],
-                           parameters=param_configs)
+    return render_template('predict.html', user=username, token=session['token'], parameters=param_configs)
 
 
 @app.route('/explain', methods=['POST', 'GET'])
@@ -355,8 +352,7 @@ def explain():
             return jsonify(**result)
         return jsonify(error=result)
     _, param_configs = config_ops.get_configs_files(APP_ROOT, username)
-    return render_template('explain.html', user=session['user'], token=session['token'],
-                           parameters=param_configs)
+    return render_template('explain.html', user=username, token=session['token'], parameters=param_configs)
 
 
 @app.route('/upload_test_file', methods=['POST', 'GET'])
@@ -388,10 +384,8 @@ def test():
 @check_config
 def data_graphs():
     dataset_name = get_datasetname(request)
-    main_path = sys_ops.get_dataset_path(APP_ROOT, session['user'], dataset_name)
-    df = pd.read_csv(os.path.join(main_path, dataset_name + '.csv'))
-    num_rows, df_as_json, norm, corr = get_norm_corr(df)
-    return jsonify(data=json.loads(df_as_json), num_rows=num_rows, norm=norm, corr=corr)
+    data = get_tabular_graphs(APP_ROOT, session['user'], dataset_name)
+    return jsonify(**data)
 
 
 @app.route('/tabular_profile', methods=['POST', 'GET'])
@@ -413,13 +407,16 @@ def tabular_profile():
 @login_required
 @check_config
 def image_graphs():
-    local_sess = Session(app)
     username = session['user']
-    local_sess.add_user((username, session['_id']))
     dataset_name = get_datasetname(request)
-    new_config(dataset_name, username, local_sess, APP_ROOT)
-    data = local_sess.get_helper().get_data()
-    return jsonify(data=data)
+    success, data = get_image_graphs(APP_ROOT, username, dataset_name)
+    if not success:
+        local_sess = Session(app)
+        local_sess.add_user((username, session['_id']))
+        new_config(dataset_name, username, local_sess, APP_ROOT)
+        data = {'data': local_sess.get_helper().get_data()}
+        save_image_graphs(APP_ROOT, username, dataset_name, data)
+    return jsonify(**data)
 
 
 @app.route('/delete', methods=['POST'])
@@ -447,6 +444,16 @@ def delete_model():
     _, models = config_ops.get_configs_files(APP_ROOT, username)
     datasets = config_ops.get_datasets_type(APP_ROOT, username)
     return jsonify(datasets=datasets, models=models, data_types=config_ops.get_datasets_type(APP_ROOT, username))
+
+
+@app.route('/delete_test_file', methods=['POST'])
+@login_required
+@check_config
+def delete_test_file():
+    username = session['user']
+    _, param_configs = config_ops.get_configs_files(APP_ROOT, username)
+    error, mess = sys_ops.delete_file_test(request, param_configs, APP_ROOT, username)
+    return jsonify(error=error, mess=mess)
 
 
 @app.route('/delete_dataset', methods=['POST'])
@@ -560,8 +567,7 @@ def deploy():
         return send_file(file_path, mimetype='application/zip', attachment_filename=file_path.split('/')[-1],
                          as_attachment=True)
     _, param_configs = config_ops.get_configs_files(APP_ROOT, username)
-    return render_template('deploy.html', user=session['user'], token=session['token'],
-                           parameters=param_configs)
+    return render_template('deploy.html', user=username, token=session['token'], parameters=param_configs)
 
 
 @app.errorhandler(401)

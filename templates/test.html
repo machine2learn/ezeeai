@@ -83,19 +83,35 @@
                             <div class="upload-file hide-element" id="tabular-upload-div">
                                 <label class="label-title">Upload a new CSV file</label>
                                 <div class="file-upload-tabular custom-file">
-                                    <label for="tabular-upload" class="custom-file-label"
-                                           title="TEST DATASET">Choose file</label>
+                                    <label for="tabular-upload" class="custom-file-label">Choose file</label>
                                     <input accept="text/csv" class="custom-file-input" id="tabular-upload"
                                            name="tabular-upload" type="file">
+
+                                    <div id="tabular_uploading">
+                                        <div id="progressBar_tabular"
+                                             class="progress-bar invisible width0-height5 margin-top-bottom-10 "></div>
+                                        <h6 id="status_tabular"></h6>
+                                        <h6 class="rem-08" id="loaded_n_total_tabular"></h6>
+                                    </div>
+
                                 </div>
                             </div>
+
                             <div class="upload-file hide-element" id="image-upload-div">
                                 <label class="label-title">Test images file (.zip or .npz)</label>
                                 <div class="file-upload-image custom-file">
-                                    <label for="image-upload" class="custom-file-label" title="">Choose file</label>
+                                    <label for="image-upload" class="custom-file-label">Choose file</label>
                                     <input accept=".zip,.npz" class="custom-file-input" id="image-upload"
                                            name="image-upload" type="file">
                                 </div>
+
+                                <div id="image_uploading">
+                                    <div id="progressBar_image"
+                                         class="progress-bar invisible width0-height5 margin-top-bottom-10"></div>
+                                    <h6 id="status_image"></h6>
+                                    <h6 class="rem-08" id="loaded_n_total_image"></h6>
+                                </div>
+
                             </div>
 
 
@@ -216,6 +232,7 @@
     </script>
 
     <script src="{{ url_for('.static', filename='test.js') }}"></script>
+    <script src="{{ url_for('.static', filename='upload_test.js') }}"></script>
     <script src="{{ url_for('.static', filename='predict_test.js') }}"></script>
     <script src="{{ url_for('.static', filename='notify.js') }}"></script>
     <script src="{{ url_for('.static', filename='checkpoint_features.js') }}"></script>

@@ -6,7 +6,6 @@ function _(el) {
 }
 
 $(document).ready(function () {
-
     $('#sb-datasets').addClass('active');
     $('#upload_tabular').addClass('active');
     $('#sidebar-data').addClass('show');
