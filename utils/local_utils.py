@@ -7,6 +7,7 @@ from utils.metrics import store_predictions, get_mode_metrics
 
 import os
 import json
+import math
 
 
 def load_local_sess(local_sess, request, username, id, APP_ROOT):
@@ -54,6 +55,7 @@ def process_test_request(local_sess, hlp, all_params_config, username, APP_ROOT,
         store_predictions(has_targets, local_sess, final_pred, hlp.get_df_test(df_test, has_targets))
 
         metrics = get_mode_metrics(has_targets, hlp.get_mode(), labels, local_sess, hlp.get_targets())
+        avoidNaNs(metrics)
         return {'predict_table': predict_table, 'metrics': metrics, 'targets': hlp.get_targets()}
     except Exception as e:
         return {'predict_table': '', 'metrics': '', 'targets': '', 'error': str(e)}
@@ -71,3 +73,15 @@ def set_canned_data(username, modelname, APP_ROOT, all_params_config):
     canned_data = os.path.join(APP_ROOT, 'user_data', username, 'models', modelname, 'custom', 'canned_data.json')
     if os.path.isfile(canned_data):
         all_params_config.set_canned_data(json.load(open(canned_data)))
+
+
+def avoidNaNs(d):
+    for k, v in d.items():
+        if isinstance(v, dict):
+            avoidNaNs(v)
+        if isinstance(v, list):
+            for i in range(len(v)):
+                if isinstance(d[k][i], float) and math.isnan(d[k][i]):
+                    d[k][i] = 0.0
+        if isinstance(v, float) and math.isnan(v):
+            d[k] = 0.0
