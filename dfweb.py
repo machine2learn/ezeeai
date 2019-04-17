@@ -26,7 +26,7 @@ from thread_handler import ThreadHandler
 
 from utils import db_ops, config_ops
 from utils.custom import save_local_model
-from utils.feature_util import get_tabular_graphs, get_image_graphs, save_image_graphs
+from utils.feature_util import get_tabular_graphs, get_image_graphs, save_image_graphs, get_summary, save_summary
 from utils.local_utils import *
 from utils.metrics import *
 from utils.param_utils import get_params
@@ -178,6 +178,46 @@ def upload_image():
                            data_types=config_ops.get_datasets_type(APP_ROOT, username), form=form)
 
 
+@app.route('/data_graphs', methods=['POST', 'GET'])
+@login_required
+@check_config
+def data_graphs():
+    dataset_name = get_datasetname(request)
+    data = get_tabular_graphs(APP_ROOT, session['user'], dataset_name)
+    return jsonify(**data)
+
+
+@app.route('/tabular_profile', methods=['POST', 'GET'])
+@login_required
+@check_config
+def tabular_profile():
+    dataset_name = get_datasetname(request)
+    main_path = sys_ops.get_dataset_path(APP_ROOT, session['user'], dataset_name)
+    if not os.path.isfile(os.path.join(main_path, 'profile.html')):
+        df = pd.read_csv(os.path.join(main_path, dataset_name + '.csv'))
+        profile = pp.ProfileReport(df)
+        profile.to_file(outputfile=os.path.join(main_path, 'profile.html'))
+    with open(os.path.join(main_path, 'profile.html'), 'r') as prof:
+        profile = prof.read()
+    return jsonify(data=profile)
+
+
+@app.route('/image_graphs', methods=['POST', 'GET'])
+@login_required
+@check_config
+def image_graphs():
+    username = session['user']
+    dataset_name = get_datasetname(request)
+    data = get_image_graphs(APP_ROOT, username, dataset_name)
+    if data is None:
+        local_sess = Session(app)
+        local_sess.add_user((username, session['_id']))
+        new_config(dataset_name, username, local_sess, APP_ROOT)
+        data = {'data': local_sess.get_helper().get_data()}
+        save_image_graphs(APP_ROOT, username, dataset_name, data)
+    return jsonify(**data)
+
+
 @app.route('/gui', methods=['GET', 'POST'])
 @login_required
 def gui():
@@ -211,6 +251,24 @@ def gui_load():
                            num_outputs=None, error=True)
 
 
+
+@app.route('/gui_select_data', methods=['POST'])
+@login_required
+@check_config
+def gui_select_data():
+    username = session['user']
+    dataset_name = get_dataset(request)
+    local_sess = Session(app)
+    local_sess.add_user((username, session['_id']))
+    data = get_summary(APP_ROOT, username, dataset_name)
+    if data is None:
+        new_config(dataset_name, username, local_sess, APP_ROOT)
+        data = local_sess.get_helper().get_data()
+        save_summary(APP_ROOT, username, dataset_name, data)
+    return jsonify(data=data)
+
+
+
 @app.route('/gui_input', methods=['POST'])
 @login_required
 @check_config
@@ -218,26 +276,12 @@ def gui_input():
     local_sess = Session(app)
     username = session['user']
     local_sess.add_user((username, session['_id']))
-    dataset_name, user = get_dataset(request), username
-    new_config(dataset_name, user, local_sess, APP_ROOT)
+    dataset_name = get_dataset(request)
+    new_config(dataset_name, username, local_sess, APP_ROOT)
     hlp = local_sess.get_helper()
     hlp.set_split(get_split(request))
-    hlp.process_features_request(request)
     result = hlp.process_targets_request(request)
     return jsonify(**result)
-
-
-@app.route('/gui_select_data', methods=['POST'])
-@login_required
-@check_config
-def gui_select_data():
-    local_sess = Session(app)
-    username = session['user']
-    local_sess.add_user((username, session['_id']))
-    dataset_name, user = get_dataset(request), username
-    new_config(dataset_name, user, local_sess, APP_ROOT)
-    data = local_sess.get_helper().get_data()
-    return jsonify(data=data)
 
 
 @app.route('/save_model', methods=['GET', 'POST'])
@@ -377,46 +421,6 @@ def test():
         return jsonify(**test_output)
     _, param_configs = config_ops.get_configs_files(APP_ROOT, username)
     return render_template('test.html', user=username, token=session['token'], parameters=param_configs)
-
-
-@app.route('/data_graphs', methods=['POST', 'GET'])
-@login_required
-@check_config
-def data_graphs():
-    dataset_name = get_datasetname(request)
-    data = get_tabular_graphs(APP_ROOT, session['user'], dataset_name)
-    return jsonify(**data)
-
-
-@app.route('/tabular_profile', methods=['POST', 'GET'])
-@login_required
-@check_config
-def tabular_profile():
-    dataset_name = get_datasetname(request)
-    main_path = sys_ops.get_dataset_path(APP_ROOT, session['user'], dataset_name)
-    if not os.path.isfile(os.path.join(main_path, 'profile.html')):
-        df = pd.read_csv(os.path.join(main_path, dataset_name + '.csv'))
-        profile = pp.ProfileReport(df)
-        profile.to_file(outputfile=os.path.join(main_path, 'profile.html'))
-    with open(os.path.join(main_path, 'profile.html'), 'r') as prof:
-        profile = prof.read()
-    return jsonify(data=profile)
-
-
-@app.route('/image_graphs', methods=['POST', 'GET'])
-@login_required
-@check_config
-def image_graphs():
-    username = session['user']
-    dataset_name = get_datasetname(request)
-    success, data = get_image_graphs(APP_ROOT, username, dataset_name)
-    if not success:
-        local_sess = Session(app)
-        local_sess.add_user((username, session['_id']))
-        new_config(dataset_name, username, local_sess, APP_ROOT)
-        data = {'data': local_sess.get_helper().get_data()}
-        save_image_graphs(APP_ROOT, username, dataset_name, data)
-    return jsonify(**data)
 
 
 @app.route('/delete', methods=['POST'])

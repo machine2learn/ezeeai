@@ -286,7 +286,6 @@ class Tabular:
         for label, old_cat in zip(summary_data.index, old_categories):
             new_cat = summary_data.Category[label]  # if data.Category[label] != 'range' else 'int-range'
             cat = new_cat + '-' + old_cat.replace('none-', '') if 'none' in new_cat else new_cat
-            # writer.add_item('COLUMN_CATEGORIES', label, cat)
             column_categories[label] = cat
         self.set_column_categories(column_categories)
 
@@ -334,8 +333,7 @@ class Tabular:
 
     def get_params(self):
         return {'name': self.get_name(), 'split': self.get_split(), 'targets': self.get_targets(),
-                'category_list': self.get_column_categories(),
-                'normalize': self.get_normalize()}
+                'category_list': self.get_column_categories(), 'normalize': self.get_normalize()}
 
     def get_num_outputs(self):
         targets = self.get_targets()
@@ -505,5 +503,3 @@ class Tabular:
 
     def get_all_test_files(self):
         return [f for f in os.listdir(os.path.join(self.get_base_path(), 'test')) if not f.startswith('.')]
-
-

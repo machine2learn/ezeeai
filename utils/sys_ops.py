@@ -13,7 +13,6 @@ from utils import preprocessing
 
 from utils.request_util import get_filename, get_modelname
 
-
 from io import StringIO, BytesIO
 import numpy as np
 import json
@@ -380,6 +379,10 @@ def get_log_mess(username, model_name):
     return open(log_path, 'r').read() if os.path.isfile(log_path) else ''
 
 
+def get_all_datasets(APP_ROOT, username):
+    return os.listdir(os.path.join(APP_ROOT, 'user_data', username, 'datasets'))
+
+
 def create_split_folders(main_path):
     os.makedirs(os.path.join(main_path, 'train'), exist_ok=True)
     os.makedirs(os.path.join(main_path, 'valid'), exist_ok=True)
@@ -392,7 +395,7 @@ def get_canned_data(APP_ROOT, username, model_name, all_params_config):
         all_params_config.set_canned_data(json.load(open(canned_data)))
 
 
-def delete_file_test(request, param_configs,  APP_ROOT, username):
+def delete_file_test(request, param_configs, APP_ROOT, username):
     filename = get_filename(request)
     model_name = get_modelname(request)
     dataset_name = param_configs[model_name]['dataset']

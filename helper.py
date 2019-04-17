@@ -175,7 +175,7 @@ class Tabular(Helper):
         self._dataset.update_feature_columns()  # TODO maybe inside split
 
         if not preprocessing.check_train(self._dataset.get_train_file(),
-                                         self._dataset.get_targets()):  # TODO move to type-tabular
+                                         self._dataset.get_targets()):
             return {'error': 'Number of classes for the target should be greater than 1.'}
 
         num_outputs = self.get_num_outputs()

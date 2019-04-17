@@ -95,7 +95,7 @@ class Image:
             self._images, self._labels, self._class_names = read_numpy_array(
                 os.path.join(self.get_dataset_path(), npz_file[0]))
 
-    def split_dataset(self, percent=None):
+    def split_dataset(self, percent=None, save=True):
         percent = percent or self.get_split()
         self.set_split(percent)
 

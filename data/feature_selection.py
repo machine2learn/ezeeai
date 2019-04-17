@@ -1,11 +1,8 @@
-import tensorflow as tf
 import itertools
-from collections import defaultdict
-
-from sklearn.preprocessing import StandardScaler
-
-from config import config_reader
+import tensorflow as tf
 import pandas as pd
+
+from collections import defaultdict
 
 
 class FeatureSelection:
@@ -104,8 +101,6 @@ class FeatureSelection:
                 norm_fn = lambda x: (x - mean) / stdv
             numerical_features.append(tf.feature_column.numeric_column(key, normalizer_fn=norm_fn))
 
-        # numerical_features = [tf.feature_column.numeric_column(key, normalizer_fn=norm_fn) for key in feature_types['numerical']]
-
         range_features = [tf.feature_column.indicator_column(
             tf.feature_column.categorical_column_with_identity(key, self.df[key].max() + 1)) for key in
             feature_types['range']]
@@ -131,11 +126,6 @@ class FeatureSelection:
 
     def select_columns_with_type(self, *dftype):
         return self.df.select_dtypes(include=dftype).columns.tolist()
-
-    # def select_target(self, target):
-    #     self.target = next((x for x in self.feature_columns if x.key == target))
-    #     self.feature_columns = [x for x in self.feature_columns if x.key != target]
-    #     return self.target
 
     def stringify(self, list_param):
         return [str(k) for k in list_param]
@@ -167,18 +157,6 @@ class FeatureSelection:
                             'hash': self.hash_columns}
 
         self.defaults = defaults
-
-    # def assign_category(self, config_file, df):
-    #     feature_dict = self.feature_dict()
-    #     unique_values = [self.unique_value_size_dict.get(key, -1) for key in df.columns]
-    #     category_list = [feature_dict[key] for key in df.columns]
-    #     if 'COLUMN_CATEGORIES' in config_reader.read_config(config_file).keys():
-    #         category_list = []
-    #         for key in df.columns:
-    #             category_list.append(config_reader.read_config(config_file)['COLUMN_CATEGORIES'][key])
-    #     default_list = self.defaults
-    #     frequent_values2frequency = self.frequent_values2frequency
-    #     return category_list, unique_values, default_list, frequent_values2frequency
 
     def assign_category(self, df):
         feature_dict = self.feature_dict()
