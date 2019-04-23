@@ -20,11 +20,12 @@ def get_examples():
     return examples
 
 
-def new_config(dataset_name, username, sess, app_root):
+def new_config(dataset_name, username, sess, app_root, appConfig):
     dataset_path = get_dataset_path(app_root, username, dataset_name)
     files = [f for f in os.listdir(dataset_path) if f in ['.tabular', '.images1', '.images2', '.images3']]
 
     if files[0].startswith('.tabular'):
+
         # Create Tabular dataset
         dataset = Tabular(dataset_name, os.path.join(dataset_path, dataset_name + '.csv'))
         path_test = os.path.join(app_root, 'user_data', username, 'datasets', dataset_name, 'test')

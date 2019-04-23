@@ -1,6 +1,4 @@
 import os
-import pandas as pd
-
 
 def assert_file(file):
     if not isinstance(file, str):

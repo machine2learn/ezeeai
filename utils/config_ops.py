@@ -1,16 +1,17 @@
 import configparser
-import shutil
-
 import dill as pickle
+import numpy as np
 import os
-from werkzeug.utils import secure_filename
+import pandas as pd
 
-from data.utils.image import find_image_files_folder_per_class, find_image_files_from_file, find_images_test_file
+from data.utils.image import find_image_files_folder_per_class, find_image_files_from_file
+
 from utils import upload_util, sys_ops
 from utils.preprocessing import has_header
-from utils.sys_ops import create_split_folders, check_zip_file, unzip, tree_remove, find_dataset_from_numpy, rename
-import pandas as pd
-import numpy as np
+from utils.sys_ops import  check_zip_file, unzip, tree_remove, find_dataset_from_numpy, rename
+
+from werkzeug.utils import secure_filename
+
 
 option_map = {'option1': '.images1', 'option2': '.images2', 'option3': '.images3'}
 

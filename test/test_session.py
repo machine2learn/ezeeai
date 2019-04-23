@@ -32,7 +32,7 @@ def test_add_user(user):
 # def test_get_session(app : create_app()):
 #     with app.app_context():
 #         user_id = user().id
-#         session(app).get_session(user_id)
+#         Session(app, appConfig).get_session(user_id)
 
 # def test_set():
 #     key = 'key'

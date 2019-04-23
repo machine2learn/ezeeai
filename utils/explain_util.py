@@ -2,9 +2,6 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-MAX_FEATURES = 10
-
-
 def create_graphs(k, dict_list):
     graphs = {}
     graphs[k] = {}
@@ -16,7 +13,7 @@ def create_graphs(k, dict_list):
     return graphs
 
 
-def get_class_explain(result):
+def get_class_explain(result, MAX_FEATURES=10):
     predict_table = {}
     graphs = {}
     for i in range(0, len(result.top_labels)):
@@ -32,7 +29,7 @@ def get_class_explain(result):
     for c, d in zip(result.class_names, result.predict_proba):
         predict_table['columns'].append(c)
         predict_table['data'].append(float("{0:.3f}".format(d)))
-    predict_table = clean_predict_table(predict_table)
+    predict_table = clean_predict_table(predict_table, MAX_FEATURES)
     return graphs, predict_table
 
 
@@ -45,7 +42,7 @@ def get_reg_explain(result):
     return graphs, predict_table
 
 
-def clean_predict_table(predict_table):
+def clean_predict_table(predict_table, MAX_FEATURES=10):
     new_predict_table = predict_table
     array_data = np.array(predict_table['data'])
     if len(predict_table['columns']) > MAX_FEATURES:

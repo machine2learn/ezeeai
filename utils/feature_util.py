@@ -5,10 +5,6 @@ from utils.sys_ops import get_dataset_path
 from utils.visualize_util import get_norm_corr
 from tensorflow.python.feature_column.feature_column import _IndicatorColumn
 
-MAX_CATEGORICAL_SIZE = 2000
-MAX_RANGE_SIZE = 100
-MIN_RANGE_SIZE = 10
-
 SUMMARY = 'summary.json'
 DATA_GRAPH = 'data_graphs.json'
 

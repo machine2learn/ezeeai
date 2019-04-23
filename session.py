@@ -11,14 +11,13 @@ import dill as pickle
 import os
 import pandas as pd
 
-SAMPLE_DATA_SIZE = 5
-
 
 class Session:
-    def __init__(self, app):
+    def __init__(self, app, appConfig):
         self._config_writer = {}
         self._config = {}
         self._app = app
+        self._appConfig = appConfig
         self._helper = None
 
     def get_helper(self):
@@ -29,9 +28,9 @@ class Session:
 
     def create_helper(self, dataset):
         if isinstance(dataset, DataTabular):
-            helper = Tabular(dataset)
+            helper = Tabular(dataset, self._appConfig)
         if isinstance(dataset, DataImage):
-            helper = Image(dataset)
+            helper = Image(dataset, self._appConfig)
         self.set_helper(helper)
 
     def add_user(self, user):
@@ -237,7 +236,7 @@ class Session:
         self.set('cy_model', request['cy_model'])
 
     def write_params(self):
-        hlp = self.get_helper()  # TODO revisar
+        hlp = self.get_helper()  # TODO
         data_path = os.path.join(os.path.dirname(self.get_config_file()), hlp.get_dataset_name() + '.pkl')
         self.set_data_path(data_path)
         self.get_writer().add_item('PATHS', 'data_path', data_path)

@@ -38,6 +38,7 @@ def get_params(config_file):
             dict['save_checkpoints_steps'] = 50
             dict['save_summary_steps'] = 5
             dict['throttle'] = 1
+
         if 'TRAINING' in reader.keys():
             dict['num_epochs'] = reader['TRAINING']['num_epochs']
             dict['batch_size'] = reader['TRAINING']['batch_size']
@@ -50,6 +51,6 @@ def get_params(config_file):
             dict['learning_rate'] = 0.01
     return dict
 
+
 def set_checkpoint_dir(all_params_config, checkpoint):
     all_params_config.set('PATHS', 'checkpoint_dir', os.path.join(all_params_config.export_dir(), checkpoint))
-

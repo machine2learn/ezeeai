@@ -121,10 +121,16 @@ class Helper(metaclass=ABCMeta):
 
 
 class Tabular(Helper):
-    def __init__(self, dataset):
+    def __init__(self, dataset, appConfig):
         if not isinstance(dataset, tabular.Tabular):
             raise TypeError(f'dataset must be Tabular, not {dataset.__class__}')
         super().__init__(dataset)
+
+        self._dataset.set_max_categorical_size(appConfig.max_categorical_size())
+        self._dataset.set_max_range_size(appConfig.max_range_size())
+        self._dataset.set_min_range_size(appConfig.min_range_size())
+        self._dataset.set_sample_data_size(appConfig.sample_data_size())
+        self._max_features = appConfig.max_features()
 
     def get_num_outputs(self):
         return self._dataset.get_num_outputs()
@@ -308,7 +314,7 @@ class Tabular(Helper):
             graphs, predict_table = get_reg_explain(result)
             params['type'] = 'regression'
         else:
-            graphs, predict_table = get_class_explain(result)
+            graphs, predict_table = get_class_explain(result,self._max_features )
             params['type'] = 'class'
         params['graphs'] = graphs
         params['predict_table'] = predict_table
@@ -320,11 +326,11 @@ class Tabular(Helper):
 
 
 class Image(Helper):
-    def __init__(self, dataset):
+    def __init__(self, dataset, appConfig):
         if not isinstance(dataset, image.Image):
             raise TypeError(f'dataset must be Image, not {dataset.__class__}')
         super().__init__(dataset)
-
+        self._max_features = appConfig.max_features()
         self._example_image = None
 
     @staticmethod
@@ -520,7 +526,7 @@ class Image(Helper):
 
                 elif option == '.option3':
                     labels_file = [os.path.join(test_path, t) for t in os.listdir(test_path) if t.startswith('labels.')]
-                    print(labels_file)
+                    # print(labels_file)
                     test_filename, labels, _ = find_image_files_from_file(test_path, labels_file[0], require_all=False)
                 df_test[self._dataset.get_targets()[0]] = labels
             return has_targets, test_filename, df_test, None
@@ -612,7 +618,7 @@ class Image(Helper):
             predict_table['columns'] = self._dataset.get_class_names()
             predict_table['data'] = probs.tolist()
 
-        params['predict_table'] = clean_predict_table(predict_table)
+        params['predict_table'] = clean_predict_table(predict_table, self._max_features)
         params['graphs'] = None
         return params
 
