@@ -309,7 +309,7 @@ def params_run():
     log_mess = sys_ops.get_log_mess(username, model_name)
     try:
         config_file = sys_ops.get_config_path(APP_ROOT, username, model_name)
-        parameters = get_params(config_file)
+        parameters = get_params(config_file, appConfig)
         sess.set_config_file(config_file)
         sess.load_config()
         sess.set_model_name(model_name)
@@ -354,6 +354,7 @@ def run():
         th.handle_request(get_action(request), all_params_config, username, get_resume_from(request),
                           sess.get_config_file())
         return jsonify(status='ok', metric=sess.get_metric())
+    form.update(appConfig)
     return render_template('run.html', user=username, token=session['token'], form=form,
                            user_models=model_configs, dataset_params=user_datasets, running=running,
                            model_name=model_name, checkpoints=checkpoints, metric=metric, graphs=graphs, log=log_mess)
@@ -575,23 +576,17 @@ def deploy():
 
 @app.errorhandler(401)
 def unauthorized(e):
-    error, number = 'Unauthorized', '401'
-    mess = 'The server could not verify that you are authorized to access the URL requested. You either supplied the wrong credentials (e.g. a bad password), or your browser does not understand how to  supply the credentials required.'
-    return render_template('error.html', error=error, number=number, message=mess)
+    return render_template('error.html', error=e.name, number=e.code, message=e.description)
 
 
 @app.errorhandler(404)
 def notfound(e):
-    error, number = 'Not found', '404'
-    mess = 'The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.'
-    return render_template('error.html', error=error, number=number, message=mess)
+    return render_template('error.html', error=e.name, number=e.code, message=e.description)
 
 
 @app.errorhandler(405)
-def notfound(e):
-    error, number = 'Method Not Allowed', '405'
-    mess = 'The method is not allowed for the requested URL.'
-    return render_template('error.html', error=error, number=number, message=mess)
+def notallowed(e):
+    return render_template('error.html', error=e.name, number=e.code, message=e.description)
 
 
 @app.route('/')
@@ -599,10 +594,10 @@ def main():
     return redirect(url_for('login'))
 
 
-def flash_errors(form):
-    for field, errors in form.errors.items():
-        for error in errors:
-            flash(u"%s" % error)
+# def flash_errors(form):
+#     for field, errors in form.errors.items():
+#         for error in errors:
+#             flash(u"%s" % error)
 
 
 db.init_app(app)
@@ -615,4 +610,4 @@ if __name__ == '__main__':
             threaded=appConfig.threaded(),
             host=appConfig.host(),
             port=appConfig.port())
-    # app.run(debug=True, threaded=True)
+

@@ -7,6 +7,7 @@ CONFIG_PATH = os.path.join(ROOT, 'app_config.ini')
 SQLALCHEMY = 'SQLALCHEMY'
 FLASK = 'FLASK'
 APP = 'APP'
+PARAMS = 'DEFAULT_PARAMS'
 
 
 def str2bool(v):
@@ -63,12 +64,31 @@ class ConfigApp(object):
     def min_range_size(self):
         return int(self.get(APP, 'MIN_RANGE_SIZE'))
 
-    # def get_tabular_args(self):
-    #     return {
-    #         'max_categorigal_size': self.get(APP, 'MAX_CATEGORICAL_SIZE'),
-    #         'max_range_size': self.get(APP, 'MAX_RANGE_SIZE'),
-    #         'min_range_size': self.get(APP, 'MIN_RANGE_SIZE')
-    #     }
+    def num_epochs(self):
+        return int(self.get(PARAMS, 'num_epochs'))
+
+    def batch_size(self):
+        return int(self.get(PARAMS, 'batch_size'))
+
+    def optimizer(self):
+        return self.get(PARAMS, 'optimizer')
+
+    def learning_rate(self):
+        return float(self.get(PARAMS, 'learning_rate'))
+
+    def throttle(self):
+        return int(self.get(PARAMS, 'throttle'))
+
+    def save_summary_steps(self):
+        return int(self.get(PARAMS, 'save_summary_steps'))
+
+    def save_checkpoints_steps(self):
+        return int(self.get(PARAMS, 'save_checkpoints_steps'))
+
+    def keep_checkpoint_max(self):
+        return int(self.get(PARAMS, 'keep_checkpoint_max'))
+
+
 
 # if __name__ == '__main__':
 #     c = ConfigApp()

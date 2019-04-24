@@ -94,3 +94,14 @@ class GeneralParamForm(FlaskForm):
     experiment = FormField(ExperimentForm)
     training = FormField(TrainForm)
     submit = SubmitField("Submit")
+
+    def update(self, config):
+        self.training.form.num_epochs.data = config.num_epochs()
+        self.training.form.batch_size.data = config.batch_size()
+        self.training.form.optimizer.data = config.optimizer()
+        self.training.form.learning_rate.data = config.learning_rate()
+
+        self.experiment.form.throttle.data = config.throttle()
+        self.experiment.form.save_summary_steps.data = config.save_summary_steps()
+        self.experiment.form.save_checkpoints_steps.data = config.save_checkpoints_steps()
+        self.experiment.form.keep_checkpoint_max.data = config.keep_checkpoint_max()
