@@ -75,7 +75,7 @@ def load_user(user_id):
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        if not db_ops.checklogin(form, login_user, session, sess):
+        if not db_ops.checklogin(form, login_user, session, sess,USER_ROOT):
             # app.logger.warn('Login attempt to %s from IP %s', form.username.data, request.remote_addr)
             return render_template('login.html', form=form, error='Invalid username or password')
         return redirect(url_for('dashboard'))
