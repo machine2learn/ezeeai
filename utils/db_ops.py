@@ -18,7 +18,7 @@ def get_email_by_username(username):
     user = get_user_by_username(username)
     return user.email
 
-def checklogin(form, login_user, session, sess):
+def checklogin(form, login_user, session, sess, user_root):
     username = form.username.data
     password = form.password.data
     remember = form.remember.data
@@ -31,7 +31,7 @@ def checklogin(form, login_user, session, sess):
         session['user'] = user.username
         session['token'] = token_hex(16)
         sess.add_user((session['user'], session['_id']))
-        create_user_path(user.username)
+        create_user_path(user_root, user.username)
         return True
     return False
 
