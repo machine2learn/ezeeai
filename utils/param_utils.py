@@ -24,7 +24,7 @@ def set_form(form, CONFIG_FILE):
     form.training.form.process()
 
 
-def get_params(config_file):
+def get_params(config_file, appConfig):
     dict = {}
     if os.path.isfile(config_file):
         reader = config_reader.read_config(config_file)
@@ -34,22 +34,23 @@ def get_params(config_file):
             dict['save_summary_steps'] = reader['EXPERIMENT']['save_summary_steps']
             dict['throttle'] = reader['EXPERIMENT']['throttle']
         else:
-            dict['keep_checkpoint_max'] = 5
-            dict['save_checkpoints_steps'] = 50
-            dict['save_summary_steps'] = 5
-            dict['throttle'] = 1
+            dict['keep_checkpoint_max'] = appConfig.keep_checkpoint_max()
+            dict['save_checkpoints_steps'] = appConfig.save_checkpoints_steps()
+            dict['save_summary_steps'] = appConfig.save_summary_steps()
+            dict['throttle'] = appConfig.throttle()
+
         if 'TRAINING' in reader.keys():
             dict['num_epochs'] = reader['TRAINING']['num_epochs']
             dict['batch_size'] = reader['TRAINING']['batch_size']
             dict['optimizer'] = reader['TRAINING']['optimizer']
             dict['learning_rate'] = reader['TRAINING']['learning_rate']
         else:
-            dict['num_epochs'] = 100
-            dict['batch_size'] = 32
-            dict['optimizer'] = 'Adam'
-            dict['learning_rate'] = 0.01
+            dict['num_epochs'] = appConfig.num_epochs()
+            dict['batch_size'] = appConfig.batch_size()
+            dict['optimizer'] = appConfig.optimizer()
+            dict['learning_rate'] = appConfig.learning_rate()
     return dict
+
 
 def set_checkpoint_dir(all_params_config, checkpoint):
     all_params_config.set('PATHS', 'checkpoint_dir', os.path.join(all_params_config.export_dir(), checkpoint))
-

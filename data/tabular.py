@@ -14,10 +14,13 @@ import tensorflow as tf
 import numpy as np
 from utils.feature_util import get_feature_key, get_feature_names
 
-SAMPLE_DATA_SIZE = 5
-
 
 class Tabular:
+    SAMPLE_DATA_SIZE = 5
+    MAX_CATEGORICAL_SIZE = 2000
+    MAX_RANGE_SIZE = 100
+    MIN_RANGE_SIZE = 10
+
     def __init__(self, name, file):
         self._name = None
         self._file = None
@@ -50,6 +53,18 @@ class Tabular:
         self.set_name(name)
         self.load_features()
         self._base_path = self._file.replace(self._name + '.csv', '')
+
+    def set_max_categorical_size(self, value):
+        self.MAX_CATEGORICAL_SIZE = value
+
+    def set_max_range_size(self, value):
+        self.MAX_RANGE_SIZE = value
+
+    def set_min_range_size(self, value):
+        self.MIN_RANGE_SIZE = value
+
+    def set_sample_data_size(self, value):
+        self.SAMPLE_DATA_SIZE = value
 
     def set_name(self, name):
         args.assert_type(str, name)
@@ -195,22 +210,21 @@ class Tabular:
         self._split = split
 
     def _assign_category(self):
-        fs = FeatureSelection(self.get_df())
+        fs = FeatureSelection(self.get_df(), self.MAX_CATEGORICAL_SIZE, self.MAX_RANGE_SIZE, self.MIN_RANGE_SIZE)
         self.set_feature_selection(fs)
         category_list, unique_values, default_list, frequent_values2frequency = fs.assign_category(self.get_df())
         return category_list, unique_values, default_list, frequent_values2frequency
 
-    def _insert_data_summary(self, unique_values, default_list, frequent_values2frequency,
-                             SAMPLE_DATA_SIZE):
+    def _insert_data_summary(self, unique_values, default_list, frequent_values2frequency, sample_data_size):
         df = self.get_df()
         categories = self.get_categories()
         df = df.dropna(axis=0)
-        data = df.head(SAMPLE_DATA_SIZE).T
+        data = df.head(sample_data_size).T
         data.insert(0, 'Defaults', default_list.values())
         data.insert(0, '(most frequent, frequency)', frequent_values2frequency.values())
         data.insert(0, 'Unique Values', unique_values)
         data.insert(0, 'Category', categories)
-        sample_column_names = ["Sample {}".format(i) for i in range(1, SAMPLE_DATA_SIZE + 1)]
+        sample_column_names = ["Sample {}".format(i) for i in range(1, sample_data_size + 1)]
         data.columns = list(
             itertools.chain(['Category', '#Unique Values', '(Most frequent, Frequency)', 'Defaults'],
                             sample_column_names))
@@ -232,7 +246,7 @@ class Tabular:
         self.set_categories(categories)
 
         self.set_data_sumary(self._insert_data_summary(unique_values, default_list, frequent_values2frequency,
-                                                       SAMPLE_DATA_SIZE))
+                                                       self.SAMPLE_DATA_SIZE))
         default_values = [str(v) for v in default_list.values()]
         self.set_defaults(dict(zip(self.get_data_summary().index.tolist(), default_values)))
 

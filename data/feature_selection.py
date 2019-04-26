@@ -6,11 +6,11 @@ from collections import defaultdict
 
 
 class FeatureSelection:
-    MAX_CATEGORICAL_SIZE = 2000
-    MAX_RANGE_SIZE = 100
-    MIN_RANGE_SIZE = 10
 
-    def __init__(self, df):
+    def __init__(self, df, max_categorical_size, max_range_size, min_range_size):
+        self.MAX_CATEGORICAL_SIZE = max_categorical_size
+        self.MAX_RANGE_SIZE = max_range_size
+        self.MIN_RANGE_SIZE = min_range_size
         self.features = {}
         self.df = df
         self.numerical_columns = self.select_columns_with_type('floating')

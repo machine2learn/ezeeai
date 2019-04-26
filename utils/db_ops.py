@@ -1,9 +1,9 @@
 import os
-from user import User
+
 from database.db import db
-from werkzeug.security import check_password_hash, generate_password_hash
 from secrets import token_hex
-from forms.register import RegisterForm
+from user import User
+from werkzeug.security import check_password_hash, generate_password_hash
 
 
 def get_db_user(username):
@@ -23,9 +23,10 @@ def create_user_path(username):
     if not os.path.exists(os.path.join('user_data/', username)):
         os.mkdir(os.path.join('user_data/', username))
     if not os.path.exists(os.path.join('user_data/', username, 'datasets')):
-        os.mkdir(os.path.join('user_data/', username,'datasets'))
+        os.mkdir(os.path.join('user_data/', username, 'datasets'))
     if not os.path.exists(os.path.join('user_data/', username, 'models')):
-        os.mkdir(os.path.join('user_data/', username,'models'))
+        os.mkdir(os.path.join('user_data/', username, 'models'))
+
 
 def checklogin(form, login_user, session, sess):
     username = form.username.data

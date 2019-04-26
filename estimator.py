@@ -17,8 +17,7 @@ from best_exporter import BestExporter
 from explainer import TabularExplainer, ImageExplainer
 from utils.email_ops import send_email
 from utils.run_utils import check_exports
-from utils import feature_util
-from utils.db_ops import get_email
+
 
 HIDDEN_LAYERS = 'hidden_layers'
 

@@ -4,6 +4,7 @@ import pandas_profiling as pp
 import logging.config
 from config.logging_config import logging_config
 
+from app_config import config_wrapper
 from config import config_reader
 from configparser import NoSectionError
 from database.db import db
@@ -35,17 +36,17 @@ from utils.upload_util import get_examples, new_config
 
 from user import User
 
-SAMPLE_DATA_SIZE = 5
 WTF_CSRF_SECRET_KEY = os.urandom(42)
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__)
+appConfig = config_wrapper.ConfigApp()
 
 Bootstrap(app)
 app.secret_key = WTF_CSRF_SECRET_KEY
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///username.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['JSON_SORT_KEYS'] = False
+app.config['SQLALCHEMY_DATABASE_URI'] = appConfig.database_uri()
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = appConfig.track_modifications()
+app.config['JSON_SORT_KEYS'] = appConfig.json_sort_keys()
 
 th = ThreadHandler()
 login_manager = LoginManager()
@@ -210,9 +211,9 @@ def image_graphs():
     dataset_name = get_datasetname(request)
     data = get_image_graphs(APP_ROOT, username, dataset_name)
     if data is None:
-        local_sess = Session(app)
+        local_sess = Session(app, appConfig)
         local_sess.add_user((username, session['_id']))
-        new_config(dataset_name, username, local_sess, APP_ROOT)
+        new_config(dataset_name, username, local_sess, APP_ROOT, appConfig)
         data = {'data': local_sess.get_helper().get_data()}
         save_image_graphs(APP_ROOT, username, dataset_name, data)
     return jsonify(**data)
@@ -233,7 +234,7 @@ def gui():
 @login_required
 @check_config
 def gui_load():
-    local_sess = Session(app)
+    local_sess = Session(app, appConfig)
     username = session['user']
     local_sess.add_user((username, session['_id']))
     _, param_configs = config_ops.get_configs_files(APP_ROOT, username)
@@ -251,33 +252,31 @@ def gui_load():
                            num_outputs=None, error=True)
 
 
-
 @app.route('/gui_select_data', methods=['POST'])
 @login_required
 @check_config
 def gui_select_data():
     username = session['user']
     dataset_name = get_dataset(request)
-    local_sess = Session(app)
+    local_sess = Session(app, appConfig)
     local_sess.add_user((username, session['_id']))
     data = get_summary(APP_ROOT, username, dataset_name)
     if data is None:
-        new_config(dataset_name, username, local_sess, APP_ROOT)
+        new_config(dataset_name, username, local_sess, APP_ROOT, appConfig)
         data = local_sess.get_helper().get_data()
         save_summary(APP_ROOT, username, dataset_name, data)
     return jsonify(data=data)
-
 
 
 @app.route('/gui_input', methods=['POST'])
 @login_required
 @check_config
 def gui_input():
-    local_sess = Session(app)
+    local_sess = Session(app, appConfig)
     username = session['user']
     local_sess.add_user((username, session['_id']))
     dataset_name = get_dataset(request)
-    new_config(dataset_name, username, local_sess, APP_ROOT)
+    new_config(dataset_name, username, local_sess, APP_ROOT, appConfig)
     hlp = local_sess.get_helper()
     hlp.set_split(get_split(request))
     result = hlp.process_targets_request(request)
@@ -288,11 +287,11 @@ def gui_input():
 @login_required
 @check_config
 def save_model():
-    local_sess = Session(app)
+    local_sess = Session(app, appConfig)
     username = session['user']
     local_sess.add_user((username, session['_id']))
     dataset_name = get_dataset(request)
-    new_config(dataset_name, username, local_sess, APP_ROOT)
+    new_config(dataset_name, username, local_sess, APP_ROOT, appConfig)
     hlp = local_sess.get_helper()
     hlp.set_split(get_split(request))
     local_sess = save_local_model(local_sess, request, APP_ROOT, username)
@@ -310,7 +309,7 @@ def params_run():
     log_mess = sys_ops.get_log_mess(username, model_name)
     try:
         config_file = sys_ops.get_config_path(APP_ROOT, username, model_name)
-        parameters = get_params(config_file)
+        parameters = get_params(config_file, appConfig)
         sess.set_config_file(config_file)
         sess.load_config()
         sess.set_model_name(model_name)
@@ -329,7 +328,7 @@ def params_run():
 @check_config
 def params_predict():
     try:
-        local_sess = Session(app)
+        local_sess = Session(app, appConfig)
         hlp = load_local_sess(local_sess, request, session['user'], session['_id'], APP_ROOT)
         export_dir = config_reader.read_config(local_sess.get_config_file()).export_dir()
         checkpoints = run_utils.get_eval_results(export_dir, local_sess.get_writer(), local_sess.get_config_file())
@@ -355,6 +354,7 @@ def run():
         th.handle_request(get_action(request), all_params_config, username, get_resume_from(request),
                           sess.get_config_file())
         return jsonify(status='ok', metric=sess.get_metric())
+    form.update(appConfig)
     return render_template('run.html', user=username, token=session['token'], form=form,
                            user_models=model_configs, dataset_params=user_datasets, running=running,
                            model_name=model_name, checkpoints=checkpoints, metric=metric, graphs=graphs, log=log_mess)
@@ -367,7 +367,7 @@ def predict():
     username = session['user']
     if request.method == 'POST':
         modelname = get_modelname(request)
-        local_sess = Session(app)
+        local_sess = Session(app, appConfig)
         hlp, all_params_config = generate_local_sess(local_sess, request, username, session['_id'], APP_ROOT)
         new_features = hlp.get_new_features(request, default_features=False)
         set_canned_data(username, modelname, APP_ROOT, all_params_config)
@@ -384,7 +384,7 @@ def predict():
 def explain():
     username = session['user']
     if request.method == 'POST':
-        local_sess = Session(app)
+        local_sess = Session(app, appConfig)
         hlp, all_params_config = generate_local_sess(local_sess, request, username, session['_id'], APP_ROOT)
         ep = hlp.process_explain_request(request)
         if 'explanation' in ep:
@@ -403,7 +403,7 @@ def explain():
 @login_required
 @check_config
 def upload_test_file():
-    local_sess = Session(app)
+    local_sess = Session(app, appConfig)
     hlp = load_local_sess(local_sess, request, session['user'], session['_id'], APP_ROOT)
     result = hlp.test_upload(request)
     return jsonify(result=result)
@@ -415,7 +415,7 @@ def upload_test_file():
 def test():
     username = session['user']
     if request.method == 'POST':
-        local_sess = Session(app)
+        local_sess = Session(app, appConfig)
         hlp, all_params_config = generate_local_sess(local_sess, request, username, session['_id'], APP_ROOT)
         test_output = process_test_request(local_sess, hlp, all_params_config, username, APP_ROOT, request, th)
         return jsonify(**test_output)
@@ -485,8 +485,8 @@ def refresh():
         export_dir = all_params_config.export_dir()
         checkpoints = run_utils.get_eval_results(export_dir, sess.get_writer(), sess.get_config_file())
         graphs = train_eval_graphs(all_params_config.checkpoint_dir())
-        l = sess.get('log_fp').read() if sess.check_key('log_fp') else ''
-        return jsonify(checkpoints=checkpoints, log=l, running=running, epochs=epochs, graphs=graphs)
+        log = sess.get('log_fp').read() if sess.check_key('log_fp') else ''
+        return jsonify(checkpoints=checkpoints, log=log, running=running, epochs=epochs, graphs=graphs)
     except (KeyError, NoSectionError):
         return jsonify(checkpoints='', log='', running=running, epochs=0, graphs={})
 
@@ -536,7 +536,7 @@ def generate():
 @check_config
 def default_prediction():
     username = session['user']
-    local_sess = Session(app)
+    local_sess = Session(app, appConfig)
     hlp = load_local_sess(local_sess, request, username, session['_id'], APP_ROOT)
     all_params_config = config_reader.read_config(local_sess.get_config_file())
     export_dir = all_params_config.export_dir()
@@ -562,7 +562,7 @@ def default_prediction():
 def deploy():
     username = session['user']
     if request.method == 'POST' and 'model_name' in request.form:
-        local_sess = Session(app)
+        local_sess = Session(app, appConfig)
         local_sess.add_user((username, session['_id']))
         model_name = get_modelname(request)  # request.form['model_name']
         config_path = sys_ops.get_config_path(APP_ROOT, username, model_name)
@@ -576,23 +576,17 @@ def deploy():
 
 @app.errorhandler(401)
 def unauthorized(e):
-    error, number = 'Unauthorized', '401'
-    mess = 'The server could not verify that you are authorized to access the URL requested. You either supplied the wrong credentials (e.g. a bad password), or your browser does not understand how to  supply the credentials required.'
-    return render_template('error.html', error=error, number=number, message=mess)
+    return render_template('error.html', error=e.name, number=e.code, message=e.description)
 
 
 @app.errorhandler(404)
 def notfound(e):
-    error, number = 'Not found', '404'
-    mess = 'The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.'
-    return render_template('error.html', error=error, number=number, message=mess)
+    return render_template('error.html', error=e.name, number=e.code, message=e.description)
 
 
 @app.errorhandler(405)
-def notfound(e):
-    error, number = 'Method Not Allowed', '405'
-    mess = 'The method is not allowed for the requested URL.'
-    return render_template('error.html', error=error, number=number, message=mess)
+def notallowed(e):
+    return render_template('error.html', error=e.name, number=e.code, message=e.description)
 
 
 @app.route('/')
@@ -600,16 +594,20 @@ def main():
     return redirect(url_for('login'))
 
 
-def flash_errors(form):
-    for field, errors in form.errors.items():
-        for error in errors:
-            flash(u"%s" % error)
+# def flash_errors(form):
+#     for field, errors in form.errors.items():
+#         for error in errors:
+#             flash(u"%s" % error)
 
 
 db.init_app(app)
 
 if __name__ == '__main__':
     # logging.config.dictConfig(logging_config)
-    sess = Session(app)
-    app.run(debug=True, threaded=True, host='0.0.0.0')
-    # app.run(debug=True, threaded=True)
+    sess = Session(app, appConfig)
+
+    app.run(debug=appConfig.debug(),
+            threaded=appConfig.threaded(),
+            host=appConfig.host(),
+            port=appConfig.port())
+
