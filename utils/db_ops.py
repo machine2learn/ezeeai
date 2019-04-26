@@ -4,7 +4,7 @@ from database.db import db
 from secrets import token_hex
 from user import User
 from werkzeug.security import check_password_hash, generate_password_hash
-
+from utils.sys_ops import create_user_path
 
 def get_db_user(username):
     return db.session.query(User.id).filter_by(username=username).scalar()
@@ -17,16 +17,6 @@ def get_user_by_username(username):
 def get_email_by_username(username):
     user = get_user_by_username(username)
     return user.email
-
-
-def create_user_path(username):
-    if not os.path.exists(os.path.join('user_data/', username)):
-        os.mkdir(os.path.join('user_data/', username))
-    if not os.path.exists(os.path.join('user_data/', username, 'datasets')):
-        os.mkdir(os.path.join('user_data/', username, 'datasets'))
-    if not os.path.exists(os.path.join('user_data/', username, 'models')):
-        os.mkdir(os.path.join('user_data/', username, 'models'))
-
 
 def checklogin(form, login_user, session, sess):
     username = form.username.data

@@ -188,8 +188,8 @@ class Session:
     def set_paused(self):
         self.set('status', 'paused')
 
-    def set_generate_df(self, dataset_name, APP_ROOT):
-        path = os.path.join(APP_ROOT, 'user_data', session['user'], 'datasets', dataset_name, dataset_name + '.csv')
+    def set_generate_df(self, dataset_name, USER_ROOT):
+        path = os.path.join(USER_ROOT, 'user_data', session['user'], 'datasets', dataset_name, dataset_name + '.csv')
         df = pd.read_csv(path)
         self.set('generated_df', df)
 

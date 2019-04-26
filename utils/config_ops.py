@@ -8,24 +8,24 @@ from data.utils.image import find_image_files_folder_per_class, find_image_files
 
 from utils import upload_util, sys_ops
 from utils.preprocessing import has_header
-from utils.sys_ops import  check_zip_file, unzip, tree_remove, find_dataset_from_numpy, rename
+from utils.sys_ops import check_zip_file, unzip, tree_remove, find_dataset_from_numpy, rename, get_all_datasets, \
+    get_dataset_path, get_modelname_path, get_models_path
 
 from werkzeug.utils import secure_filename
-
 
 option_map = {'option1': '.images1', 'option2': '.images2', 'option3': '.images3'}
 
 
-def get_datasets(app_root, username):
-    return [x for x in os.listdir(os.path.join(app_root, 'user_data', username, 'datasets')) if x[0] != '.']
+def get_datasets(USER_ROOT, username):
+    return [x for x in get_all_datasets(USER_ROOT, username) if x[0] != '.']
 
 
-def get_datasets_type(app_root, username):
+def get_datasets_type(USER_ROOT, username):
     datasets = []
-    for dataset in os.listdir(os.path.join(app_root, 'user_data', username, 'datasets')):
+    for dataset in get_all_datasets(USER_ROOT, username):
         if dataset[0] == '.':
             continue
-        dt_type = [x for x in os.listdir(os.path.join(app_root, 'user_data', username, 'datasets', dataset)) if
+        dt_type = [x for x in os.listdir(get_dataset_path(USER_ROOT, username, dataset)) if
                    x[0] == '.']
         if len(dt_type) == 0:
             continue
@@ -39,11 +39,11 @@ def get_datasets_type(app_root, username):
     return datasets
 
 
-def get_datasets_and_types(app_root, username):
+def get_datasets_and_types(USER_ROOT, username):
     data_and_type = {}
-    datasets = get_datasets(app_root, username)
+    datasets = get_datasets(USER_ROOT, username)
     for dataset in datasets:
-        for entry in os.scandir(os.path.join(app_root, 'user_data', username, 'datasets', dataset)):
+        for entry in os.scandir(get_dataset_path(USER_ROOT, username, dataset)):
             if entry.is_file() and entry.name[0] == '.':
                 data_and_type[dataset] = entry.name[1:]
     return data_and_type
@@ -57,26 +57,26 @@ def update_config_dir(config_writer, target):
     config_writer.add_item('PATHS', 'tmp_dir', os.path.join(target, 'tmp'))
 
 
-def create_model(username, APP_ROOT, model_name):
-    path = os.path.join(APP_ROOT, 'user_data', username, 'models', model_name)
+def create_model(username, USER_ROOT, model_name):
+    path = get_modelname_path(USER_ROOT, username, model_name)
     os.makedirs(path, exist_ok=True)
     # sys_ops.copyfile('config/default_config.ini', path + '/config.ini')
     # return path + '/config.ini'
 
 
-def define_new_model(APP_ROOT, username, config_writer, model_name):
-    target = os.path.join(APP_ROOT, 'user_data', username, 'models', model_name)
+def define_new_model(USER_ROOT, username, config_writer, model_name):
+    target = get_modelname_path(USER_ROOT, username, model_name)
     update_config_dir(config_writer, target)
     os.makedirs(target, exist_ok=True)
     os.makedirs(os.path.join(target, 'log/'), exist_ok=True)
     os.makedirs(os.path.join(target, 'tmp'), exist_ok=True)
-    create_model(username, APP_ROOT, model_name)
+    create_model(username, USER_ROOT, model_name)
     return model_name
 
 
-def get_configs_files(app_root, username):
+def get_configs_files(USER_ROOT, username):
     parameters_configs = {}
-    path_models = os.path.join(app_root, 'user_data', username, 'models')
+    path_models = get_models_path(USER_ROOT, username)
     models = [a for a in os.listdir(path_models) if os.path.isdir(os.path.join(path_models, a))]
     for model in models:
         config = configparser.ConfigParser()
@@ -91,10 +91,10 @@ def get_configs_files(app_root, username):
     return models, parameters_configs
 
 
-def new_config(train_form_file, test_form_file, APP_ROOT, username):
+def new_config(train_form_file, test_form_file, USER_ROOT, username):
     ext = train_form_file.filename.split('.')[-1]
     dataset_name = train_form_file.filename.split('.' + ext)[0]
-    dataset_name, path = check_dataset_path(APP_ROOT, username, dataset_name)
+    dataset_name, path = check_dataset_path(USER_ROOT, username, dataset_name)
     sys_ops.save_filename(path, train_form_file, dataset_name)
 
     open(os.path.join(path, '.tabular'), 'w')
@@ -110,20 +110,20 @@ def new_config(train_form_file, test_form_file, APP_ROOT, username):
     return dataset_name
 
 
-def check_dataset_path(app_root, username, dataset_name):
-    path = os.path.join(app_root, 'user_data', username, 'datasets', dataset_name)
+def check_dataset_path(USER_ROOT, username, dataset_name):
+    path = get_dataset_path(USER_ROOT, username, dataset_name)
     if os.path.isdir(path):
-        dataset_name = upload_util.generate_dataset_name(app_root, username, dataset_name)
-        path = os.path.join(app_root, 'user_data', username, 'datasets', dataset_name)
+        dataset_name = upload_util.generate_dataset_name(USER_ROOT, username, dataset_name)
+        path = get_dataset_path(USER_ROOT, username, dataset_name)
     os.makedirs(path, exist_ok=True)
     return dataset_name, path
 
 
-def new_image_dataset(app_root, username, option, file):
+def new_image_dataset(USER_ROOT, username, option, file):
     if isinstance(file, str):
         return False
     dataset_name = file.filename.split('.')[0]
-    dataset_name, dataset_path = check_dataset_path(app_root, username, dataset_name)
+    dataset_name, dataset_path = check_dataset_path(USER_ROOT, username, dataset_name)
 
     open(os.path.join(dataset_path, option_map[option]), 'w')
 

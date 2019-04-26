@@ -2,7 +2,7 @@ import os
 from data.tabular import Tabular
 from data.image import Image
 
-from utils.sys_ops import get_dataset_path, get_all_datasets
+from utils.sys_ops import get_dataset_path, get_all_datasets,get_user_path
 
 
 def get_text(file_name):
@@ -20,15 +20,15 @@ def get_examples():
     return examples
 
 
-def new_config(dataset_name, username, sess, app_root, appConfig):
-    dataset_path = get_dataset_path(app_root, username, dataset_name)
+def new_config(dataset_name, username, sess, USER_ROOT, appConfig):
+    dataset_path = get_dataset_path(USER_ROOT, username, dataset_name)
     files = [f for f in os.listdir(dataset_path) if f in ['.tabular', '.images1', '.images2', '.images3']]
 
     if files[0].startswith('.tabular'):
 
         # Create Tabular dataset
         dataset = Tabular(dataset_name, os.path.join(dataset_path, dataset_name + '.csv'))
-        path_test = os.path.join(app_root, 'user_data', username, 'datasets', dataset_name, 'test')
+        path_test = os.path.join( get_dataset_path(USER_ROOT, username, dataset_name), 'test')
         test_files = [os.path.join(path_test, f) for f in os.listdir(path_test) if
                       os.path.isfile(os.path.join(path_test, f))]
         if len(test_files) == 0:
@@ -45,11 +45,11 @@ def new_config(dataset_name, username, sess, app_root, appConfig):
     return True
 
 
-def generate_dataset_name(app_root, username, dataset_name):
+def generate_dataset_name(USER_ROOT, username, dataset_name):
     user_datasets = []
-    if os.path.isdir(os.path.join(app_root, 'user_data', username)):
-        user_datasets = [dataset for dataset in get_all_datasets(app_root, username)
-                         if os.path.isdir(get_dataset_path(app_root, username, dataset))]
+    if os.path.isdir(get_user_path(USER_ROOT, username)):
+        user_datasets = [dataset for dataset in get_all_datasets(USER_ROOT, username)
+                         if os.path.isdir(get_dataset_path(USER_ROOT, username, dataset))]
     cont = 1
     while dataset_name + '_' + str(cont) in user_datasets:
         cont += 1

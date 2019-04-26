@@ -346,28 +346,43 @@ def load_cy_model(model, user):
     return cy_model
 
 
-def create_custom_path(APP_ROOT, username, model_name):
-    path = os.path.join(APP_ROOT, 'user_data', username, 'models', model_name, 'custom')
+def create_custom_path(USER_ROOT, username, model_name):
+    path = os.path.join(USER_ROOT, 'user_data', username, 'models', model_name, 'custom')
     shutil.rmtree(path, ignore_errors=True)
 
     os.makedirs(path, exist_ok=True)
     return path
 
-
-def get_config_path(APP_ROOT, username, model_name):
-    return os.path.join(APP_ROOT, 'user_data', username, 'models', model_name, 'config.ini')
-
-
-def get_dataset_path(APP_ROOT, username, dataset_name):
-    return os.path.join(APP_ROOT, 'user_data', username, 'datasets', dataset_name)
-
-
-def get_models_path(APP_ROOT, username):
-    return os.path.join(APP_ROOT, 'user_data', username, 'models')
+def create_user_path(username):
+    if not os.path.exists(os.path.join('user_data', username)):
+        os.mkdir(os.path.join('user_data', username))
+    if not os.path.exists(os.path.join('user_data', username, 'datasets')):
+        os.mkdir(os.path.join('user_data', username, 'datasets'))
+    if not os.path.exists(os.path.join('user_data/', username, 'models')):
+        os.mkdir(os.path.join('user_data', username, 'models'))
 
 
-def get_canned_json(APP_ROOT, username, model_name):
-    return os.path.join(APP_ROOT, 'user_data', username, 'models', model_name, 'custom', 'canned_data.json')
+def get_user_path(USER_ROOT, username):
+    return os.path.join(USER_ROOT, 'user_data', username)
+
+
+def get_config_path(USER_ROOT, username, model_name):
+    return os.path.join(USER_ROOT, 'user_data', username, 'models', model_name, 'config.ini')
+
+
+def get_dataset_path(USER_ROOT, username, dataset_name):
+    return os.path.join(USER_ROOT, 'user_data', username, 'datasets', dataset_name)
+
+
+def get_models_path(USER_ROOT, username):
+    return os.path.join(USER_ROOT, 'user_data', username, 'models')
+
+def get_modelname_path(USER_ROOT, username, model_name):
+    return os.path.join(USER_ROOT, 'user_data', username, 'models',model_name)
+
+
+def get_canned_json(USER_ROOT, username, model_name):
+    return os.path.join(USER_ROOT, 'user_data', username, 'models', model_name, 'custom', 'canned_data.json')
 
 
 def get_log_path(username, model_name):
@@ -379,8 +394,8 @@ def get_log_mess(username, model_name):
     return open(log_path, 'r').read() if os.path.isfile(log_path) else ''
 
 
-def get_all_datasets(APP_ROOT, username):
-    return os.listdir(os.path.join(APP_ROOT, 'user_data', username, 'datasets'))
+def get_all_datasets(USER_ROOT, username):
+    return os.listdir(os.path.join(USER_ROOT, 'user_data', username, 'datasets'))
 
 
 def create_split_folders(main_path):
@@ -389,17 +404,17 @@ def create_split_folders(main_path):
     os.makedirs(os.path.join(main_path, 'test'), exist_ok=True)
 
 
-def get_canned_data(APP_ROOT, username, model_name, all_params_config):
-    canned_data = get_canned_json(APP_ROOT, username, model_name)
+def get_canned_data(USER_ROOT, username, model_name, all_params_config):
+    canned_data = get_canned_json(USER_ROOT, username, model_name)
     if os.path.isfile(canned_data):
         all_params_config.set_canned_data(json.load(open(canned_data)))
 
 
-def delete_file_test(request, param_configs, APP_ROOT, username):
+def delete_file_test(request, param_configs, USER_ROOT, username):
     filename = get_filename(request)
     model_name = get_modelname(request)
     dataset_name = param_configs[model_name]['dataset']
-    path = os.path.join(get_dataset_path(APP_ROOT, username, dataset_name), 'test', filename)
+    path = os.path.join(get_dataset_path(USER_ROOT, username, dataset_name), 'test', filename)
     try:
         if os.path.isfile(path):
             os.remove(path)

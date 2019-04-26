@@ -8,6 +8,7 @@ SQLALCHEMY = 'SQLALCHEMY'
 FLASK = 'FLASK'
 APP = 'APP'
 PARAMS = 'DEFAULT_PARAMS'
+PATHS='PATHS'
 
 
 def str2bool(v):
@@ -21,6 +22,16 @@ class ConfigApp(object):
 
     def get(self, section, param):
         return self.config.get(section, param)
+
+    def user_root(self):
+        user_root = self.get(PATHS, 'USER_ROOT')
+
+        if not os.path.isdir(os.path.join(user_root, 'user_data')):
+            os.makedirs(os.path.join(user_root, 'user_data'))
+
+        if user_root != 'None':
+            return user_root
+        return None
 
     def database_uri(self):
         return self.get(SQLALCHEMY, 'DATABASE_URI')
@@ -43,10 +54,11 @@ class ConfigApp(object):
     def port(self):
         return self.get(FLASK, 'PORT')
 
+
     # def server_name(self):
     #     return self.config.get(FLASK, 'SERVER_NAME')
 
-    # def app_root(self):
+    # def USER_ROOT(self):
     #     return self.config.get(FLASK, 'APPLICATION_ROOT')
 
     def sample_data_size(self):
@@ -87,8 +99,6 @@ class ConfigApp(object):
 
     def keep_checkpoint_max(self):
         return int(self.get(PARAMS, 'keep_checkpoint_max'))
-
-
 
 # if __name__ == '__main__':
 #     c = ConfigApp()

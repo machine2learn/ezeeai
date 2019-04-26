@@ -2,7 +2,7 @@
 import os
 import socket
 from utils import sys_ops
-from dfweb import APP_ROOT
+from dfweb import USER_ROOT
 paths = ['a.ini', 'a2.ini']
 export_dir = 'test_recursive/test'
 
@@ -50,4 +50,4 @@ def test_find_free_port():
 
 def test_abs_path_of():
     path = 'data_test'
-    assert sys_ops.abs_path_of(path) == APP_ROOT + '/utils/data_test'
+    assert sys_ops.abs_path_of(path) == USER_ROOT + '/utils/data_test'

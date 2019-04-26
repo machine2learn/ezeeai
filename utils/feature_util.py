@@ -72,8 +72,8 @@ def prediction_from_df(file_path):
     return {'data': data, 'columns': columns}
 
 
-def get_summary(app_root, username, dataset_name):
-    main_path = get_dataset_path(app_root, username, dataset_name)
+def get_summary(USER_ROOT, username, dataset_name):
+    main_path = get_dataset_path(USER_ROOT, username, dataset_name)
     graph_json = os.path.join(main_path, SUMMARY)
     data = None
     if os.path.isfile(graph_json):
@@ -82,15 +82,15 @@ def get_summary(app_root, username, dataset_name):
     return data
 
 
-def save_summary(app_root, username, dataset_name, data):
-    main_path = get_dataset_path(app_root, username, dataset_name)
+def save_summary(USER_ROOT, username, dataset_name, data):
+    main_path = get_dataset_path(USER_ROOT, username, dataset_name)
     graph_json = os.path.join(main_path, SUMMARY)
     with open(graph_json, 'w') as outfile:
         json.dump(data, outfile)
 
 
-def get_tabular_graphs(app_root, username, dataset_name):
-    main_path = get_dataset_path(app_root, username, dataset_name)
+def get_tabular_graphs(USER_ROOT, username, dataset_name):
+    main_path = get_dataset_path(USER_ROOT, username, dataset_name)
     graph_json = os.path.join(main_path, DATA_GRAPH)
     if os.path.isfile(graph_json):
         with open(graph_json) as json_file:
@@ -107,8 +107,8 @@ def save_tabular_graphs(main_path,dataset_name, graph_json):
         json.dump(data, outfile)
         return data
 
-def get_image_graphs(app_root, username, dataset_name):
-    main_path = get_dataset_path(app_root, username, dataset_name)
+def get_image_graphs(USER_ROOT, username, dataset_name):
+    main_path = get_dataset_path(USER_ROOT, username, dataset_name)
     graph_json = os.path.join(main_path, DATA_GRAPH)
     if os.path.isfile(graph_json):
         with open(graph_json) as json_file:
@@ -117,8 +117,8 @@ def get_image_graphs(app_root, username, dataset_name):
     return None
 
 
-def save_image_graphs(app_root, username, dataset_name, data):
-    main_path = get_dataset_path(app_root, username, dataset_name)
+def save_image_graphs(USER_ROOT, username, dataset_name, data):
+    main_path = get_dataset_path(USER_ROOT, username, dataset_name)
     graph_json = os.path.join(main_path, DATA_GRAPH)
     with open(graph_json, 'w') as outfile:
         json.dump(data, outfile)

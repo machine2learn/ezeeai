@@ -10,10 +10,10 @@ import json
 import math
 
 
-def load_local_sess(local_sess, request, username, id, APP_ROOT):
+def load_local_sess(local_sess, request, username, id, USER_ROOT):
     model_name = get_modelname(request)
     local_sess.add_user((username, id))
-    config_path = sys_ops.get_config_path(APP_ROOT, username, model_name)
+    config_path = sys_ops.get_config_path(USER_ROOT, username, model_name)
     local_sess.set_config_file(config_path)
     local_sess.set_model_name(model_name)
     local_sess.load_config()
@@ -21,8 +21,8 @@ def load_local_sess(local_sess, request, username, id, APP_ROOT):
     return hlp
 
 
-def generate_local_sess(local_sess, request, username, id, APP_ROOT):
-    hlp = load_local_sess(local_sess, request, username, id, APP_ROOT)
+def generate_local_sess(local_sess, request, username, id, USER_ROOT):
+    hlp = load_local_sess(local_sess, request, username, id, USER_ROOT)
     all_params_config = run_utils.create_result_parameters(request, local_sess)
     return hlp, all_params_config
 
@@ -35,14 +35,14 @@ def check_structure(request, hlp):
         return 'Test\'s file structure is not correct', None, None, None, None
 
 
-def process_test_request(local_sess, hlp, all_params_config, username, APP_ROOT, request, th):
+def process_test_request(local_sess, hlp, all_params_config, username, USER_ROOT, request, th):
     model_name = get_modelname(request)
     try:
         error, has_targets, test_filename, df_test, result = check_structure(request, hlp)
         if error is not None:
             return {'error': error}
         set_checkpoint_dir(all_params_config, get_checkpoint(request))
-        set_canned_data(username, model_name, APP_ROOT, all_params_config)
+        set_canned_data(username, model_name, USER_ROOT, all_params_config)
         final_pred, success = th.predict_test_estimator(all_params_config, test_filename)
         if not success:
             return {'error': final_pred}
@@ -69,8 +69,8 @@ def get_file_path(hlp, df_test, final_pred, test_filename):
         return str(e), False
 
 
-def set_canned_data(username, modelname, APP_ROOT, all_params_config):
-    canned_data = os.path.join(APP_ROOT, 'user_data', username, 'models', modelname, 'custom', 'canned_data.json')
+def set_canned_data(username, modelname, USER_ROOT, all_params_config):
+    canned_data = os.path.join(USER_ROOT, 'user_data', username, 'models', modelname, 'custom', 'canned_data.json')
     if os.path.isfile(canned_data):
         all_params_config.set_canned_data(json.load(open(canned_data)))
 

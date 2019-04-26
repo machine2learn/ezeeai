@@ -165,10 +165,10 @@ def get_step(train_size, batch_size, path, file_pattern='*.ckpt-*.index'):
         return None
 
 
-def run_post(sess, request, APP_ROOT, username, th):
+def run_post(sess, request, USER_ROOT, username, th):
     sess.run_or_pause(is_run(request))
     model_name = request.form['model_name']
-    config_path = get_config_path(APP_ROOT, username, model_name)
+    config_path = get_config_path(USER_ROOT, username, model_name)
     sess.set_model_name(model_name)
 
     sess.set_config_file(config_path)
@@ -180,7 +180,7 @@ def run_post(sess, request, APP_ROOT, username, th):
     th.run_tensor_board(username, sess.get_config_file())
 
     all_params_config = config_reader.read_config(sess.get_config_file())
-    get_canned_data(APP_ROOT, username, model_name, all_params_config)
+    get_canned_data(USER_ROOT, username, model_name, all_params_config)
     all_params_config.set_email(db_ops.get_email(username))
     sess.check_log_fp(all_params_config)
     return all_params_config
