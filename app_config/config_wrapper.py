@@ -24,6 +24,9 @@ class ConfigApp(object):
         return self.config.get(section, param)
 
     def user_root(self):
+        if 'USER_ROOT' in os.environ:
+            return os.environ['USER_ROOT']
+
         user_root = self.get(PATHS, 'USER_ROOT')
 
         if not os.path.isdir(os.path.join(user_root, 'user_data')):
@@ -31,10 +34,13 @@ class ConfigApp(object):
 
         if user_root != 'None':
             return user_root
+
         return None
 
     def database_uri(self):
-        return self.get(SQLALCHEMY, 'DATABASE_URI')
+        if 'DB_HOST' in os.environ:
+            return os.environ['DB_HOST']
+        return self.get(SQLALCHEMY, 'DB_HOST')
 
     def track_modifications(self):
         return str2bool(self.get(SQLALCHEMY, 'TRACK_MODIFICATIONS'))
