@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from custom_estimators import regressor, classifier, binary_classifier
+from core.model.custom_estimators import regressor, classifier, binary_classifier
 
 
 class ModelBuilder:

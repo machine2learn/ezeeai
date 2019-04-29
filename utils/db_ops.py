@@ -2,7 +2,7 @@ import os
 
 from database.db import db
 from secrets import token_hex
-from user import User
+from database.user import User
 from werkzeug.security import check_password_hash, generate_password_hash
 from utils.sys_ops import create_user_path
 

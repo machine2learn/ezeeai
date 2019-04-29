@@ -1,6 +1,6 @@
 import dill as pickle
 
-from estimator import MultOutEstimator, Estimator
+from core.model.estimator import MultOutEstimator, Estimator
 from tensorflow.python.framework.errors import InvalidArgumentError, NotFoundError
 
 

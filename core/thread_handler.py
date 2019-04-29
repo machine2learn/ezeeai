@@ -1,4 +1,4 @@
-from runner import Runner
+from core.runner import Runner
 
 import time
 import psutil

@@ -22,8 +22,8 @@ from forms.upload_form import NewTabularFileForm, GenerateDataSet, UploadImageFo
 from functools import wraps
 
 from generator.simulator import parse
-from session import Session
-from thread_handler import ThreadHandler
+from core.session import Session
+from core.thread_handler import ThreadHandler
 
 from utils import db_ops, config_ops
 from utils.custom import save_local_model
@@ -34,7 +34,7 @@ from utils.param_utils import get_params
 from utils.request_util import *
 from utils.upload_util import get_examples, new_config
 
-from user import User
+from database.user import User
 
 WTF_CSRF_SECRET_KEY = os.urandom(42)
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))

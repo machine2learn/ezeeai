@@ -12,9 +12,9 @@ import inspect
 from GPUtil import GPUtil
 
 from data.tabular import Tabular
-from model_builder import ModelBuilder
-from best_exporter import BestExporter
-from explainer import TabularExplainer, ImageExplainer
+from core.model.model_builder import ModelBuilder
+from core.extensions.best_exporter import BestExporter
+from core.explainer import TabularExplainer, ImageExplainer
 from utils.email_ops import send_email
 from utils.run_utils import check_exports
 

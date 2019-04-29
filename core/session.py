@@ -5,7 +5,7 @@ from data.tabular import Tabular as DataTabular
 from data.image import Image as DataImage
 
 from flask import session, redirect, url_for
-from helper import Tabular, Image
+from core.helper import Tabular, Image
 
 import dill as pickle
 import os
