@@ -1,0 +1,6 @@
+graft easyai/app_config
+graft easyai/templates
+graft easyai/generator
+recursive-include easyai/static *
+recursive-include easyai/generator *
+global-exclude *.pyc
