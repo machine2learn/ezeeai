@@ -18,7 +18,6 @@ from ..explainer import TabularExplainer, ImageExplainer
 from easyai.utils.email_ops import send_email
 from easyai.utils.run_utils import check_exports
 
-
 HIDDEN_LAYERS = 'hidden_layers'
 
 MAX_STEPS = 'max_steps'
@@ -28,12 +27,6 @@ KEEP_CHECKPOINT_MAX = 'keep_checkpoint_max'
 SAVE_SUMMARY_STEPS = 'save_summary_steps'
 
 SAVE_CHECKPOINTS_STEPS = 'save_checkpoints_steps'
-
-optimizer_map = {'Adagrad': tf.train.AdagradOptimizer,
-                 'Adam': tf.train.AdamOptimizer,
-                 'Ftrl': tf.train.FtrlOptimizer,
-                 'RMSProp': tf.train.RMSPropOptimizer,
-                 'SGD': tf.train.GradientDescentOptimizer}
 
 
 class AbstractEstimator(metaclass=ABCMeta):
