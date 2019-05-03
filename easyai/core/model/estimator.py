@@ -15,7 +15,7 @@ from easyai.data.tabular import Tabular
 from .model_builder import ModelBuilder
 from ..extensions.best_exporter import BestExporter
 from ..explainer import TabularExplainer, ImageExplainer
-from easyai.utils.email_ops import send_email
+# from easyai.utils.email_ops import send_email
 from easyai.utils.run_utils import check_exports
 
 HIDDEN_LAYERS = 'hidden_layers'
@@ -141,12 +141,12 @@ class AbstractEstimator(metaclass=ABCMeta):
     def run(self):
         try:
             tf.estimator.train_and_evaluate(self.model, self.train_spec, self.eval_spec)
-            self.email = self.params['email']
-            server_info = {"login": "tf3deep",
-                           "password": "tf3Deep123",
-                           "email_address": "tf3deep@gmail.com"}
-
-            send_email({"email_address": self.email}, server_info)
+            # self.email = self.params['email']
+            # server_info = {"login": "",
+            #                "password": "",
+            #                "email_address": ""}
+            #
+            # send_email({"email_address": self.email}, server_info)
         except ValueError as e:
             tf.logging.error(e)
 
