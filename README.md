@@ -27,6 +27,6 @@ You can use the application by launching chrome browser and connecting to http:/
 
 To login you can use the following credentials:
 
-| Username | test |
+| Username | Password |
 | -------- | ---- |
-| Password | test_machine2learn |
+| test | test_machine2learn |
