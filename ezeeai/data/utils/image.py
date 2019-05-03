@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from tensorflow.python import ops, array_ops, math_ops
 from tensorflow.python.ops.image_ops_impl import _AssertAtLeast3DImage
-from easyai.utils.preprocessing import has_header
+from ezeeai.utils.preprocessing import has_header
 import tensorflow as tf
 
 

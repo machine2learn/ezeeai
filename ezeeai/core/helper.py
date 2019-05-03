@@ -1,8 +1,8 @@
 import _csv
 from abc import ABCMeta, abstractmethod
 
-from easyai.data import tabular, image
-from easyai.data.utils.image import find_image_files_folder_per_class, find_image_files_from_file, find_images_test_file
+from ezeeai.data import tabular, image
+from ezeeai.data.utils.image import find_image_files_folder_per_class, find_image_files_from_file, find_images_test_file
 from io import BytesIO
 from skimage.segmentation import mark_boundaries
 from ..utils.explain_util import get_reg_explain, get_class_explain, clean_predict_table

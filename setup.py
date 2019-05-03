@@ -3,11 +3,11 @@ from setuptools import setup
 with open('requirements.txt') as f:
     required = f.read().splitlines()
 setup(
-    name='easyai',
+    name='ezeeai',
     version='1.0',
-    packages=['easyai', 'easyai.core', 'easyai.core.model', 'easyai.core.extensions', 'easyai.data',
-              'easyai.data.utils', 'easyai.forms', 'easyai.utils', 'easyai.config', 'easyai.database',
-              'easyai.generator', 'easyai.app_config'],
+    packages=['ezeeai', 'ezeeai.core', 'ezeeai.core.model', 'ezeeai.core.extensions', 'ezeeai.data',
+              'ezeeai.data.utils', 'ezeeai.forms', 'ezeeai.utils', 'ezeeai.config', 'ezeeai.database',
+              'ezeeai.generator', 'ezeeai.app_config'],
     url='',
     license='',
     author='machine2learn',

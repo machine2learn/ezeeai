@@ -1,4 +1,4 @@
-from easyai.core.runner import Runner
+from ezeeai.core.runner import Runner
 
 import time
 import psutil

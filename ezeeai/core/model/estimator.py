@@ -11,12 +11,12 @@ import inspect
 
 from GPUtil import GPUtil
 
-from easyai.data.tabular import Tabular
+from ezeeai.data.tabular import Tabular
 from .model_builder import ModelBuilder
 from ..extensions.best_exporter import BestExporter
 from ..explainer import TabularExplainer, ImageExplainer
-# from easyai.utils.email_ops import send_email
-from easyai.utils.run_utils import check_exports
+#from ezeeai.utils.email_ops import send_email
+from ezeeai.utils.run_utils import check_exports
 
 HIDDEN_LAYERS = 'hidden_layers'
 

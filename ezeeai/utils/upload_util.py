@@ -6,7 +6,7 @@ from .sys_ops import get_dataset_path, get_all_datasets,get_user_path
 
 
 def get_text(file_name):
-    file = open('easyai/generator/' + file_name, 'r')
+    file = open('ezeeai/generator/' + file_name, 'r')
     text = file.read()
     file.close()
     return text
