@@ -20,7 +20,13 @@ python wsgy.py
 
 #### Docker
 ```bash
-docker run -p 5000:5000 -p 55500:55600 machine2learn/ezeea<Paste>
+docker run -p 5000:5000 -p 55500:55600 machine2learn/ezeeai
 ```
 
-You can use the application by launching chrome browser and connecting to "http://localhost:5000"
+You can use the application by launching chrome browser and connecting to http://localhost:5000. 
+
+To login you can use the following credentials:
+
+| Username | test |
+| -------- | ---- |
+| Password | test_machine2learn |
