@@ -1,4 +1,4 @@
-from easyai.dfweb import app, appConfig
+from ezeeai.dfweb import app, appConfig
 
 if __name__ == "__main__":
     app.run(debug=appConfig.debug(),

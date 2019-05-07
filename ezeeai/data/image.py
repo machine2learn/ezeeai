@@ -1,6 +1,6 @@
 import cv2
 
-from easyai.data.utils.image import *
+from ezeeai.data.utils.image import *
 from ..utils import args
 from sklearn.model_selection import train_test_split
 from scipy.misc import imresize

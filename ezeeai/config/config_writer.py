@@ -1,4 +1,4 @@
-from easyai.config.config_reader import CustomConfigParser
+from ezeeai.config.config_reader import CustomConfigParser
 
 
 class ConfigWriter:

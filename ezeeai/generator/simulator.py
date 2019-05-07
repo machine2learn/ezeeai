@@ -7,10 +7,10 @@ import itertools
 import functools
 import os
 
-with open('easyai/generator/cluster', 'r') as f:
+with open('ezeeai/generator/cluster', 'r') as f:
     text = f.read()
 
-with open('easyai/generator/grammar', 'r') as f:
+with open('ezeeai/generator/grammar', 'r') as f:
     grammar = f.read()
 
 random_generator_parser = Lark(grammar, start='definition', ambiguity='explicit')

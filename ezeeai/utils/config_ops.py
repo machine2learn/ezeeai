@@ -4,7 +4,7 @@ import numpy as np
 import os
 import pandas as pd
 
-from easyai.data.utils.image import find_image_files_folder_per_class, find_image_files_from_file
+from ezeeai.data.utils.image import find_image_files_folder_per_class, find_image_files_from_file
 
 from . import upload_util, sys_ops
 from .preprocessing import has_header
