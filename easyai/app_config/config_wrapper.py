@@ -29,8 +29,8 @@ class ConfigApp(object):
 
         user_root = self.get(PATHS, 'USER_ROOT')
 
-        if user_root != 'None' and not os.path.isdir(os.path.join(user_root, 'user_data')):
-            os.makedirs(os.path.join(user_root, 'user_data'))
+        if user_root != 'None' and not os.path.isdir(os.path.join(user_root)):
+            os.makedirs(os.path.join(user_root))
 
         if user_root != 'None':
             return user_root

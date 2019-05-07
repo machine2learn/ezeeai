@@ -70,7 +70,7 @@ def get_file_path(hlp, df_test, final_pred, test_filename):
 
 
 def set_canned_data(username, modelname, USER_ROOT, all_params_config):
-    canned_data = os.path.join(USER_ROOT, 'user_data', username, 'models', modelname, 'custom', 'canned_data.json')
+    canned_data = os.path.join(USER_ROOT, username, 'models', modelname, 'custom', 'canned_data.json')
     if os.path.isfile(canned_data):
         all_params_config.set_canned_data(json.load(open(canned_data)))
 

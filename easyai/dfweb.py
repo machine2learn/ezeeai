@@ -47,7 +47,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = appConfig.database_uri()
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = appConfig.track_modifications()
 app.config['JSON_SORT_KEYS'] = appConfig.json_sort_keys()
 
-USER_ROOT = appConfig.user_root() if appConfig.user_root() is not None else APP_ROOT
+USER_ROOT = appConfig.user_root() if appConfig.user_root() is not None else os.path.join(APP_ROOT, 'user_data')
+print(USER_ROOT)
 
 th = ThreadHandler()
 login_manager = LoginManager()
@@ -246,7 +247,7 @@ def gui_load():
         hlp = local_sess.get_helper()
         return render_template('gui.html', token=session['token'], user=username, user_dataset=user_dataset,
                                parameters=param_configs, dataset_params=hlp.get_dataset_params(), data=hlp.get_data(),
-                               cy_model=sys_ops.load_cy_model(model_name, username), model_name=model_name,
+                               cy_model=sys_ops.load_cy_model(model_name, username, USER_ROOT), model_name=model_name,
                                num_outputs=hlp.get_num_outputs(), error=False)
     return render_template('gui.html', token=session['token'], user=username, user_dataset=user_dataset,
                            dataset_params={}, data=None, parameters=param_configs, cy_model=[], model_name='new_model',
@@ -445,7 +446,7 @@ def delete():
 @check_config
 def delete_model():
     username = session['user']
-    sys_ops.delete_models(get_all(request), [get_model(request)], username)
+    sys_ops.delete_models(get_all(request), [get_model(request)], username, USER_ROOT)
     _, models = config_ops.get_configs_files(USER_ROOT, username)
     datasets = config_ops.get_datasets_type(USER_ROOT, username)
     return jsonify(datasets=datasets, models=models, data_types=config_ops.get_datasets_type(USER_ROOT, username))
@@ -466,7 +467,7 @@ def delete_test_file():
 @check_config
 def delete_dataset():
     username = session['user']
-    sys_ops.delete_dataset(get_all(request), get_dataset(request), get_models(request), username)
+    sys_ops.delete_dataset(get_all(request), get_dataset(request), get_models(request), username, USER_ROOT)
     _, models = config_ops.get_configs_files(USER_ROOT, username)
     datasets = config_ops.get_datasets(USER_ROOT, username)
     return jsonify(datasets=datasets, models=models, data_types=config_ops.get_datasets_type(USER_ROOT, username))
