@@ -8,7 +8,7 @@ SQLALCHEMY = 'SQLALCHEMY'
 FLASK = 'FLASK'
 APP = 'APP'
 PARAMS = 'DEFAULT_PARAMS'
-PATHS='PATHS'
+PATHS = 'PATHS'
 
 
 def str2bool(v):
@@ -38,8 +38,25 @@ class ConfigApp(object):
         return None
 
     def database_uri(self):
-        if 'DB_HOST' in os.environ:
+        # CHECK ENVIROMENT VARIABLES
+        if 'DB_HOST' in os.environ and 'DB_NAME' in os.environ and 'DB_USER' in os.environ and 'DB_PASSWORD' in os.environ and 'DB_NAME' in os.environ:
+            user = os.environ['DB_USER']
+            password = os.environ['DB_PASSWORD']
+            name = os.environ['DB_NAME']
+            host = os.environ['DB_HOST']
+            return f'postgresql+psycopg2://{user}:{password}@{host}/{name}'
+        elif 'DB_HOST' in os.environ:
             return os.environ['DB_HOST']
+
+        # CHECK app_config.ini
+        if self.get(SQLALCHEMY, 'POSTGRES_DB') not in [None, 'None', 'none']:
+            print('using postgres db')
+            user = self.get(SQLALCHEMY, 'POSTGRES_USER')
+            password = self.get(SQLALCHEMY, 'POSTGRES_PW')
+            name = self.get(SQLALCHEMY, 'POSTGRES_DB')
+            host = self.get(SQLALCHEMY, 'POSTGRES_URL')
+            return f'postgresql+psycopg2://{user}:{password}@{host}/{name}'
+
         return self.get(SQLALCHEMY, 'DB_HOST')
 
     def track_modifications(self):
@@ -59,7 +76,6 @@ class ConfigApp(object):
 
     def port(self):
         return self.get(FLASK, 'PORT')
-
 
     # def server_name(self):
     #     return self.config.get(FLASK, 'SERVER_NAME')
