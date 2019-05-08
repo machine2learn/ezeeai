@@ -28,3 +28,4 @@ scikit_learn==0.20.2
 typing==3.6.6
 gputil==1.4.0
 pandas-profiling==1.4.1
+psycopg2-binary==2.8.2
