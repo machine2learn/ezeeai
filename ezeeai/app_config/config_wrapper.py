@@ -122,6 +122,12 @@ class ConfigApp(object):
     def keep_checkpoint_max(self):
         return int(self.get(PARAMS, 'keep_checkpoint_max'))
 
+    def secret_key(self):
+        if 'SECRET_KEY' in os.environ:
+            return os.environ['SECRET_KEY']
+        return os.urandom(42)
+
+
 # if __name__ == '__main__':
 #     c = ConfigApp()
 #     print(c.get_sql_database_uri())

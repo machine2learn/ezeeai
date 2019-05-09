@@ -37,14 +37,14 @@ from .utils.upload_util import get_examples, new_config
 
 from .database.user import User
 
-WTF_CSRF_SECRET_KEY = os.urandom(42)
+# WTF_CSRF_SECRET_KEY = os.urandom(42)
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__)
 appConfig = config_wrapper.ConfigApp()
 
 Bootstrap(app)
-app.secret_key = WTF_CSRF_SECRET_KEY
+app.secret_key = appConfig.secret_key()
 app.config['SQLALCHEMY_DATABASE_URI'] = appConfig.database_uri()
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = appConfig.track_modifications()
 app.config['JSON_SORT_KEYS'] = appConfig.json_sort_keys()
