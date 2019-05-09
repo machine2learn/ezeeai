@@ -38,6 +38,7 @@ from .utils.upload_util import get_examples, new_config
 from .database.user import User
 
 WTF_CSRF_SECRET_KEY = os.urandom(42)
+
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__)
 appConfig = config_wrapper.ConfigApp()
@@ -47,6 +48,8 @@ app.secret_key = WTF_CSRF_SECRET_KEY
 app.config['SQLALCHEMY_DATABASE_URI'] = appConfig.database_uri()
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = appConfig.track_modifications()
 app.config['JSON_SORT_KEYS'] = appConfig.json_sort_keys()
+
+app.config['WTF_CSRF_ENABLED'] = False
 
 USER_ROOT = appConfig.user_root() if appConfig.user_root() is not None else os.path.join(APP_ROOT, 'user_data')
 # print(USER_ROOT)
@@ -73,7 +76,7 @@ def load_user(user_id):
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    form = LoginForm()
+    form = LoginForm(csrf_enabled=False)
     if form.validate_on_submit():
         if not checklogin(form, login_user, session, sess, USER_ROOT):
             # app.logger.warn('Login attempt to %s from IP %s', form.username.data, request.remote_addr)
@@ -86,7 +89,7 @@ def login():
 @app.route('/signup', methods=['GET', 'POST'])
 @login_required
 def signup():
-    form = RegisterForm()
+    form = RegisterForm(csrf_enabled=False)
     username = session['user']
     if form.validate_on_submit():
         if form.password.data != form.password2.data:
@@ -103,7 +106,7 @@ def signup():
 @login_required
 def user_data():
     username = session['user']
-    form = UploadUserForm()
+    form = UploadUserForm(csrf_enabled=False)
     if form.validate_on_submit():
         email = form.email.data
         update_user(username, email)
@@ -153,7 +156,7 @@ def tensorboard():
 def upload_tabular():
     username = session['user']
     examples = get_examples()
-    form = NewTabularFileForm()
+    form = NewTabularFileForm(csrf_enabled=False)
     if form.validate_on_submit():
         try:
             dataset_name = config_ops.new_config(form.data['train_file'], form.data['test_file'], USER_ROOT, username)
@@ -162,14 +165,14 @@ def upload_tabular():
             return jsonify(status='error', msg=str(e))
     return render_template('upload_tabular.html', token=get_token_user(username), form=form,
                            datasets=config_ops.get_datasets(USER_ROOT, username), examples=examples,
-                           gen_form=GenerateDataSet(), data_types=config_ops.get_datasets_type(USER_ROOT, username))
+                           gen_form=GenerateDataSet(csrf_enabled=False), data_types=config_ops.get_datasets_type(USER_ROOT, username))
 
 
 @app.route('/upload_image', methods=['GET', 'POST'])
 @login_required
 def upload_image():
     username = session['user']
-    form = UploadImageForm()
+    form = UploadImageForm(csrf_enabled=False)
     if form.validate_on_submit():
         option_selected = form.selector.data['selector']
         file = form[option_selected].data['file']
@@ -350,7 +353,7 @@ def run():
     username = session['user']
     _, model_configs = config_ops.get_configs_files(USER_ROOT, username)
     user_datasets = config_ops.get_datasets_and_types(USER_ROOT, username)
-    form = GeneralParamForm()
+    form = GeneralParamForm(csrf_enabled=False)
     running, model_name, checkpoints, metric, graphs, log_mess = run_utils.load_run_config(sess, th, username, form)
     if request.method == 'POST':
         all_params_config = run_utils.run_post(sess, request, USER_ROOT, username, th)
