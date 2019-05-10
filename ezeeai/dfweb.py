@@ -168,22 +168,22 @@ def upload_tabular():
                            gen_form=GenerateDataSet(csrf_enabled=False), data_types=config_ops.get_datasets_type(USER_ROOT, username))
 
 
-@app.route('/upload_image', methods=['GET', 'POST'])
-@login_required
-def upload_image():
-    username = session['user']
-    form = UploadImageForm(csrf_enabled=False)
-    if form.validate_on_submit():
-        option_selected = form.selector.data['selector']
-        file = form[option_selected].data['file']
-        try:
-            dataset_name = config_ops.new_image_dataset(USER_ROOT, username, option_selected, file)
-            return jsonify(status='ok', msg=dataset_name)
-        except Exception as e:
-            return jsonify(status='error', msg=str(e))
-    return render_template('upload_image.html', token=get_token_user(username),
-                           data_types=config_ops.get_datasets_type(USER_ROOT, username), form=form)
-
+# @app.route('/upload_image', methods=['GET', 'POST'])
+# @login_required
+# def upload_image():
+#     username = session['user']
+#     form = UploadImageForm(csrf_enabled=False)
+#     if form.validate_on_submit():
+#         option_selected = form.selector.data['selector']
+#         file = form[option_selected].data['file']
+#         try:
+#             dataset_name = config_ops.new_image_dataset(USER_ROOT, username, option_selected, file)
+#             return jsonify(status='ok', msg=dataset_name)
+#         except Exception as e:
+#             return jsonify(status='error', msg=str(e))
+#     return render_template('upload_image.html', token=get_token_user(username),
+#                            data_types=config_ops.get_datasets_type(USER_ROOT, username), form=form)
+#
 
 @app.route('/data_graphs', methods=['POST', 'GET'])
 @login_required
