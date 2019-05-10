@@ -66,6 +66,8 @@ class ConfigApp(object):
         return str2bool(self.get(FLASK, 'JSON_SORT_KEYS'))
 
     def debug(self):
+        if 'DEBUG' in os.environ:
+            return str2bool( os.environ['DEBUG'])
         return str2bool(self.get(FLASK, 'DEBUG'))
 
     def threaded(self):
