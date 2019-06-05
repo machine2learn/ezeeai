@@ -15,7 +15,7 @@ pip install -r requirements.txt
 
 In a terminal, execute the following command (Python 3 is the assumed python interpreter):
 ```python
-python wsgy.py
+python wsgi.py
 ```
 
 #### Docker
@@ -27,7 +27,7 @@ You can use the application by launching chrome browser and connecting to http:/
 
 To save your model after docker finishes you can mount a volume to `/tmp/data` like so:
 ```bash
-docker run -p 5000:5000 -p 55500:55600 -v $(pwd)/data:/tmp/data machine2learn/ezeeai
+docker run -p 5000:5000 -p 55500-55600:55500-55600 -v $(pwd)/data:/tmp/data machine2learn/ezeeai
 ```
 
 
