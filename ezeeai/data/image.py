@@ -1,4 +1,3 @@
-import cv2
 
 from ezeeai.data.utils.image import *
 from ..utils import args
@@ -118,10 +117,11 @@ class Image:
         _, _, self._n_channels = self.get_sample().shape
 
     def get_sample(self):
+        from scipy.misc import imread
         if self.get_mode() == 3:
             return self._images[0]
-        img = cv2.imread(self._images[0])
-        return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img = imread(self._images[0])
+        return img
 
     def get_num_outputs(self):
         num_classes = len(self.get_class_names())

@@ -281,6 +281,7 @@ def gui_input():
     new_config(dataset_name, username, local_sess, USER_ROOT, appConfig)
     hlp = local_sess.get_helper()
     hlp.set_split(get_split(request))
+    hlp.process_features_request(request)
     result = hlp.process_targets_request(request)
     return jsonify(**result)
 

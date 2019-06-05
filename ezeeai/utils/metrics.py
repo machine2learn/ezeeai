@@ -1,6 +1,5 @@
 import numpy as np
 import os
-import tensorflow as tf
 from sklearn.metrics import roc_curve, auc, precision_recall_curve, average_precision_score, accuracy_score, r2_score
 from scipy import interp
 from sklearn.preprocessing import label_binarize

@@ -3,7 +3,7 @@ import os
 import pandas as pd
 from .sys_ops import get_dataset_path
 from .visualize_util import get_norm_corr
-from tensorflow.python.feature_column.feature_column import _IndicatorColumn
+from tensorflow.python.feature_column.feature_column_v2 import IndicatorColumn
 
 SUMMARY = 'summary.json'
 DATA_GRAPH = 'data_graphs.json'
@@ -42,7 +42,7 @@ def to_int_categories(df, target=None):
 def drop_columns(df, feature_columns, targets):
     cols = []
     for x in feature_columns:
-        if type(x) == _IndicatorColumn:
+        if type(x) == IndicatorColumn:
             cols.append(x[0].key)
         else:
             cols.append(x.key)
@@ -52,7 +52,7 @@ def drop_columns(df, feature_columns, targets):
 def get_feature_names(feature_columns):
     cols = []
     for x in feature_columns:
-        if type(x) == _IndicatorColumn:
+        if type(x) == IndicatorColumn:
             cols.append(x[0].key)
         else:
             cols.append(x.key)
@@ -60,7 +60,7 @@ def get_feature_names(feature_columns):
 
 
 def get_feature_key(feature):
-    if type(feature) == _IndicatorColumn:
+    if type(feature) == IndicatorColumn:
         return feature[0].key
     return feature.key
 
@@ -122,3 +122,4 @@ def save_image_graphs(USER_ROOT, username, dataset_name, data):
     graph_json = os.path.join(main_path, DATA_GRAPH)
     with open(graph_json, 'w') as outfile:
         json.dump(data, outfile)
+

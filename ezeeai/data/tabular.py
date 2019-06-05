@@ -1,7 +1,7 @@
 from functools import reduce
 
 from sklearn.model_selection import train_test_split
-from tensorflow.python.feature_column.feature_column import _IndicatorColumn
+from tensorflow.python.feature_column.feature_column_v2 import IndicatorColumn
 
 from .dataset import make_csv_dataset
 from .feature_selection import FeatureSelection
@@ -472,7 +472,7 @@ class Tabular:
                 categorical_features.append(c)
             else:
                 for x in self.get_feature_columns():
-                    if type(x) == _IndicatorColumn and x[0].key == c:
+                    if type(x) == IndicatorColumn and x[0].key == c:
                         categorical_features.append(c)
 
         categorical_index = [list(df.columns.values).index(x) for x in categorical_features]

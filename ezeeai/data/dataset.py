@@ -17,6 +17,14 @@ def get_dataset_length(dataset):
     return get_dataset_length(dataset._input_dataset)
 
 
+def get_dataset_tensors(dataset):
+    iterator = dataset_ops.make_initializable_iterator(dataset)
+    init_op = iterator.initializer
+    tf.keras.backend.get_session().run(init_op)
+    next_element = iterator.get_next()
+    return next_element
+
+
 class Dataset:
     def __init__(self, data, size, val_size=None, shuffle=True, batch_size=32, shuffle_buffer_size=10000,
                  test_size=None):
@@ -186,4 +194,4 @@ def make_csv_dataset(
         dataset, map_fn, use_inter_op_parallelism=False)
     dataset = dataset.prefetch(prefetch_buffer_size)
 
-    return dataset
+    return dataset_ops.DatasetV1Adapter(dataset)

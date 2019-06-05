@@ -255,11 +255,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 update_split(inputs_layers[name].split.split(','));
 
                 if (inputs_layers[name].hasOwnProperty('df')) {
+                    mode = 'tabular';
                     wizard_next(3, dict_wizard);
                     table_feat_created = create_features_table(inputs_layers[name]['df'], inputs_layers[name]['category_list'], dict_wizard);
                     table_target_created = create_target_table(inputs_layers[name]['df'], inputs_layers[name]['category_list'], inputs_layers[name]['targets'], dict_wizard);
                     $('#normalize').prop('checked', inputs_layers[name]['normalize']);
                 } else {
+                    mode = 'image';
                     restore_features_images(inputs_layers[name]['height'], inputs_layers[name]['width'], inputs_layers[name]['normalization'], inputs_layers[name]['augmentation_options'], inputs_layers[name]['augmentation_params']);
                     create_images_targets(inputs_layers[name]['image_data']);
                 }
@@ -645,7 +647,7 @@ $(document).ready(function () {
                 inputs_layers[input_node.data('name')] = {'dataset': appConfig.dataset, 'is_saved': false};
                 if (data.data.hasOwnProperty('height')) {
                     create_image_feature(data.data, dict_wizard);
-                    mode = 'image'
+                    mode = 'image';
                 } else {
                     table_feat_created = create_features_table(data.data, null, dict_wizard);
                     mode = 'tabular';
@@ -1211,6 +1213,7 @@ function load_model_input() {
         update_split(appConfig.dataset_params.split.split(','));
         wizard_next(2, dict_wizard);
         if ('category_list' in appConfig.dataset_params) {
+            mode = 'tabular';
             wizard_next(3, dict_wizard);
 
             table_feat_created = create_features_table(appConfig.data_df, appConfig.dataset_params.category_list, dict_wizard);
@@ -1241,6 +1244,7 @@ function load_model_input() {
                 };
             });
         } else {
+            mode = 'image';
             create_image_feature(appConfig.data_df, dict_wizard);
             restore_features_images(appConfig.dataset_params.height, appConfig.dataset_params.width, appConfig.dataset_params.normalization, appConfig.dataset_params.augmentation_options, appConfig.dataset_params.augmentation_params);
             create_images_targets(appConfig.data_df.data);
