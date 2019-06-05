@@ -437,13 +437,16 @@ def delete():
     all_params_config = config_reader.read_config(sess.get_config_file())
     export_dir = all_params_config.export_dir()
     del_id = get_delete_id(request)
-    paths = [del_id] if del_id != 'all' else [d for d in os.listdir(export_dir) if
-                                              os.path.isdir(os.path.join(export_dir, d))]
-    sys_ops.delete_recursive(paths, export_dir)
-    if len([i for i in os.listdir(export_dir) if os.path.isdir(os.path.join(export_dir, i))]) == 0:
-        sys_ops.tree_remove(all_params_config.checkpoint_dir())
-    checkpoints = run_utils.get_eval_results(export_dir, sess.get_writer(), sess.get_config_file())
-    return jsonify(checkpoints=checkpoints)
+    try:
+        paths = [del_id] if del_id != 'all' else [d for d in os.listdir(export_dir) if
+                                                  os.path.isdir(os.path.join(export_dir, d))]
+        sys_ops.delete_recursive(paths, export_dir)
+        if len([i for i in os.listdir(export_dir) if os.path.isdir(os.path.join(export_dir, i))]) == 0:
+            sys_ops.tree_remove(all_params_config.checkpoint_dir())
+        checkpoints = run_utils.get_eval_results(export_dir, sess.get_writer(), sess.get_config_file())
+        return jsonify(checkpoints=checkpoints)
+    except FileNotFoundError:
+        return jsonify(checkpoints={})
 
 
 @app.route('/delete_model', methods=['POST'])
