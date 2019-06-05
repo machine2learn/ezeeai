@@ -25,7 +25,8 @@ from .generator.simulator import parse
 from .core.session import Session
 from .core.thread_handler import ThreadHandler
 
-from .utils import db_ops, config_ops
+from .utils import config_ops
+from .utils.db_ops import get_token_user, update_token, sign_up, checklogin, update_user, get_user_data
 from .utils.custom import save_local_model
 from .utils.feature_util import get_tabular_graphs, get_image_graphs, save_image_graphs, get_summary, save_summary
 from .utils.local_utils import *
@@ -36,19 +37,22 @@ from .utils.upload_util import get_examples, new_config
 
 from .database.user import User
 
-WTF_CSRF_SECRET_KEY = os.urandom(42)
+# WTF_CSRF_SECRET_KEY = os.urandom(42)
+
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__)
 appConfig = config_wrapper.ConfigApp()
 
 Bootstrap(app)
-app.secret_key = WTF_CSRF_SECRET_KEY
+app.secret_key = appConfig.secret_key()
 app.config['SQLALCHEMY_DATABASE_URI'] = appConfig.database_uri()
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = appConfig.track_modifications()
 app.config['JSON_SORT_KEYS'] = appConfig.json_sort_keys()
 
+app.config['WTF_CSRF_ENABLED'] = False
+
 USER_ROOT = appConfig.user_root() if appConfig.user_root() is not None else os.path.join(APP_ROOT, 'user_data')
-print(USER_ROOT)
+# print(USER_ROOT)
 
 th = ThreadHandler()
 login_manager = LoginManager()
@@ -58,11 +62,10 @@ login_manager.init_app(app)
 def check_config(func):
     @wraps(func)
     def check_session(*args, **kwargs):
-        if 'token' in request.form and 'token' in session:
-            if session['token'] != request.form['token']:
+        if 'token' in request.form:  # and 'token' in session:
+            if get_token_user(session['user']) != request.form['token']:
                 return redirect(url_for('login'))
         return func(*args, **kwargs)
-
     return check_session
 
 
@@ -73,11 +76,12 @@ def load_user(user_id):
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    form = LoginForm()
+    form = LoginForm(csrf_enabled=False)
     if form.validate_on_submit():
-        if not db_ops.checklogin(form, login_user, session, sess, USER_ROOT):
+        if not checklogin(form, login_user, session, sess, USER_ROOT):
             # app.logger.warn('Login attempt to %s from IP %s', form.username.data, request.remote_addr)
             return render_template('login.html', form=form, error='Invalid username or password')
+        # update_token(session['user'], session['token'])
         return redirect(url_for('dashboard'))
     return render_template('login.html', form=form)
 
@@ -85,31 +89,31 @@ def login():
 @app.route('/signup', methods=['GET', 'POST'])
 @login_required
 def signup():
-    form = RegisterForm()
+    form = RegisterForm(csrf_enabled=False)
     username = session['user']
     if form.validate_on_submit():
         if form.password.data != form.password2.data:
             return render_template('signup.html', form=form, error="Passwords are not equals", user=username,
-                                   token=session['token'])
-        if not db_ops.sign_up(form):
+                                   token=get_token_user(username))
+        if not sign_up(form):
             return render_template('signup.html', form=form, error="Username already exists", user=username,
-                                   token=session['token'])
-        return render_template('login.html', form=LoginForm(), token=session['token'])
-    return render_template('signup.html', form=form, user=username, token=session['token'])
+                                   token=get_token_user(username))
+        return render_template('login.html', form=LoginForm(), token=get_token_user(username))
+    return render_template('signup.html', form=form, user=username, token=get_token_user(username))
 
 
 @app.route('/user_data', methods=['GET', 'POST'])
 @login_required
 def user_data():
     username = session['user']
-    form = UploadUserForm()
+    form = UploadUserForm(csrf_enabled=False)
     if form.validate_on_submit():
         email = form.email.data
-        db_ops.update_user(username, email)
-    db_ops.get_user_data(username, form)
+        update_user(username, email)
+    get_user_data(username, form)
     _, param_configs = config_ops.get_configs_files(USER_ROOT, username)
     user_dataset = config_ops.get_datasets_type(USER_ROOT, username)
-    return render_template('upload_user.html', form=form, user=username, token=session['token'],
+    return render_template('upload_user.html', form=form, user=username, token=get_token_user(username),
                            datasets=user_dataset, parameters=param_configs)
 
 
@@ -125,7 +129,7 @@ def logout():
 def dashboard():
     username = session['user']
     return render_template('dashboard.html', title='Dashboard', user=username,
-                           user_configs=config_ops.get_datasets(USER_ROOT, username), token=session['token'])
+                           user_configs=config_ops.get_datasets(USER_ROOT, username), token=get_token_user(username))
 
 
 @app.route('/tensorboard', methods=['GET', 'POST'])
@@ -143,8 +147,8 @@ def tensorboard():
             port = th.get_port(username, sess.get_config_file())
         except:
             pass
-    return render_template('tensorboard.html', title='Tensorboard', user=username,
-                           user_configs=config_ops.get_datasets(USER_ROOT, username), token=session['token'], port=port)
+    return render_template('tensorboard.html', title='Tensorboard', user=username, token=get_token_user(username),
+                           user_configs=config_ops.get_datasets(USER_ROOT, username), port=port)
 
 
 @app.route('/upload_tabular', methods=['GET', 'POST'])
@@ -152,23 +156,23 @@ def tensorboard():
 def upload_tabular():
     username = session['user']
     examples = get_examples()
-    form = NewTabularFileForm()
+    form = NewTabularFileForm(csrf_enabled=False)
     if form.validate_on_submit():
         try:
             dataset_name = config_ops.new_config(form.data['train_file'], form.data['test_file'], USER_ROOT, username)
             return jsonify(status='ok', msg=dataset_name)
         except Exception as e:
             return jsonify(status='error', msg=str(e))
-    return render_template('upload_tabular.html', token=session['token'], form=form,
+    return render_template('upload_tabular.html', token=get_token_user(username), form=form,
                            datasets=config_ops.get_datasets(USER_ROOT, username), examples=examples,
-                           gen_form=GenerateDataSet(), data_types=config_ops.get_datasets_type(USER_ROOT, username))
+                           gen_form=GenerateDataSet(csrf_enabled=False), data_types=config_ops.get_datasets_type(USER_ROOT, username))
 
 
 @app.route('/upload_image', methods=['GET', 'POST'])
 @login_required
 def upload_image():
     username = session['user']
-    form = UploadImageForm()
+    form = UploadImageForm(csrf_enabled=False)
     if form.validate_on_submit():
         option_selected = form.selector.data['selector']
         file = form[option_selected].data['file']
@@ -177,7 +181,7 @@ def upload_image():
             return jsonify(status='ok', msg=dataset_name)
         except Exception as e:
             return jsonify(status='error', msg=str(e))
-    return render_template('upload_image.html', token=session['token'],
+    return render_template('upload_image.html', token=get_token_user(username),
                            data_types=config_ops.get_datasets_type(USER_ROOT, username), form=form)
 
 
@@ -227,7 +231,7 @@ def gui():
     username = session['user']
     _, param_configs = config_ops.get_configs_files(USER_ROOT, username)
     user_dataset = config_ops.get_datasets_and_types(USER_ROOT, username)
-    return render_template('gui.html', user=username, token=session['token'], user_dataset=user_dataset,
+    return render_template('gui.html', user=username, token=get_token_user(username), user_dataset=user_dataset,
                            dataset_params={}, data=None, parameters=param_configs, cy_model=[],
                            model_name='new_model', num_outputs=None, error=False)
 
@@ -245,11 +249,11 @@ def gui_load():
     local_sess.set_config_file(sys_ops.get_config_path(USER_ROOT, username, model_name))
     if local_sess.load_config():
         hlp = local_sess.get_helper()
-        return render_template('gui.html', token=session['token'], user=username, user_dataset=user_dataset,
+        return render_template('gui.html', token=get_token_user(username), user=username, user_dataset=user_dataset,
                                parameters=param_configs, dataset_params=hlp.get_dataset_params(), data=hlp.get_data(),
                                cy_model=sys_ops.load_cy_model(model_name, username, USER_ROOT), model_name=model_name,
                                num_outputs=hlp.get_num_outputs(), error=False)
-    return render_template('gui.html', token=session['token'], user=username, user_dataset=user_dataset,
+    return render_template('gui.html', token=get_token_user(session['user']), user=username, user_dataset=user_dataset,
                            dataset_params={}, data=None, parameters=param_configs, cy_model=[], model_name='new_model',
                            num_outputs=None, error=True)
 
@@ -350,7 +354,7 @@ def run():
     username = session['user']
     _, model_configs = config_ops.get_configs_files(USER_ROOT, username)
     user_datasets = config_ops.get_datasets_and_types(USER_ROOT, username)
-    form = GeneralParamForm()
+    form = GeneralParamForm(csrf_enabled=False)
     running, model_name, checkpoints, metric, graphs, log_mess = run_utils.load_run_config(sess, th, username, form)
     if request.method == 'POST':
         all_params_config = run_utils.run_post(sess, request, USER_ROOT, username, th)
@@ -358,7 +362,7 @@ def run():
                           sess.get_config_file())
         return jsonify(status='ok', metric=sess.get_metric())
     form.update(appConfig)
-    return render_template('run.html', user=username, token=session['token'], form=form,
+    return render_template('run.html', user=username, token=get_token_user(username), form=form,
                            user_models=model_configs, dataset_params=user_datasets, running=running,
                            model_name=model_name, checkpoints=checkpoints, metric=metric, graphs=graphs, log=log_mess)
 
@@ -378,7 +382,7 @@ def predict():
         return jsonify(error=final_pred) if not success else jsonify(
             run_utils.get_predictions(hlp.get_targets(), final_pred))
     _, param_configs = config_ops.get_configs_files(USER_ROOT, username)
-    return render_template('predict.html', user=username, token=session['token'], parameters=param_configs)
+    return render_template('predict.html', user=username, token=get_token_user(username), parameters=param_configs)
 
 
 @app.route('/explain', methods=['POST', 'GET'])
@@ -399,7 +403,7 @@ def explain():
             return jsonify(**result)
         return jsonify(error=result)
     _, param_configs = config_ops.get_configs_files(USER_ROOT, username)
-    return render_template('explain.html', user=username, token=session['token'], parameters=param_configs)
+    return render_template('explain.html', user=username, token=get_token_user(username), parameters=param_configs)
 
 
 @app.route('/upload_test_file', methods=['POST', 'GET'])
@@ -423,7 +427,7 @@ def test():
         test_output = process_test_request(local_sess, hlp, all_params_config, username, USER_ROOT, request, th)
         return jsonify(**test_output)
     _, param_configs = config_ops.get_configs_files(USER_ROOT, username)
-    return render_template('test.html', user=username, token=session['token'], parameters=param_configs)
+    return render_template('test.html', user=username, token=get_token_user(username), parameters=param_configs)
 
 
 @app.route('/delete', methods=['POST'])
@@ -574,7 +578,7 @@ def deploy():
         return send_file(file_path, mimetype='application/zip', attachment_filename=file_path.split('/')[-1],
                          as_attachment=True)
     _, param_configs = config_ops.get_configs_files(USER_ROOT, username)
-    return render_template('deploy.html', user=username, token=session['token'], parameters=param_configs)
+    return render_template('deploy.html', user=username, token=get_token_user(username), parameters=param_configs)
 
 
 @app.errorhandler(401)

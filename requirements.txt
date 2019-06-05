@@ -32,3 +32,4 @@ pandas-profiling==1.4.1
 psycopg2-binary==2.8.2
 thinc==7.0.4
 spacy==2.1.4
+
