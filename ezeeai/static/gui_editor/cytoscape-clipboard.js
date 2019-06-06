@@ -165,6 +165,7 @@
                         return id;
                     },
                     paste: function (_id, pasteAtMouseLoc) {
+
                         var id = _id ? _id : getItemId(true);
                         var res = cy.collection();
                         if (options.beforePaste) {

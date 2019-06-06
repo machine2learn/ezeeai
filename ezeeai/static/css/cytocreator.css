@@ -240,8 +240,7 @@ input:invalid + span:after {
 .inp {
     position: relative;
     margin: auto;
-    width: 100%;
-    max-width: 15vh;
+    width: 30vh;
 }
 
 .inp .label {
@@ -269,7 +268,7 @@ input:invalid + span:after {
 
 .inp input {
     -webkit-appearance: none;
-    width: 100%;
+    width: 30vh;
     border: 0;
     font-family: inherit;
     padding: 12px 0;

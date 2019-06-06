@@ -108,7 +108,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         delete inputs_layers[target.data().name];
                         reset_wizard();
                     }
-
                     target.remove();
                     $('#' + target.id()).remove();
                     disable_submit_button();
@@ -128,6 +127,20 @@ document.addEventListener('DOMContentLoaded', function () {
                     add_new_node(event);
 
                 }
+            },
+            {
+                id: 'duplicate',
+                content: 'duplicate',
+                tooltipText: 'duplicate',
+                selector: 'node',
+                onClickFunction: function (event) {
+                    let node = event.target || event.cyTarget;
+                    if (node.data().class_name !== 'InputLayer')
+                        duplicate(event);
+                },
+                disabled: false, // Whether the item will be created as disabled
+                hasTrailingDivider: true, // Whether the item will have a trailing divider
+                coreAsWell: false // Whether core instance have this item on cxttap
             },
             {
                 id: 'group-nodes',
@@ -186,16 +199,30 @@ document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener("keydown", function (e) {
         if ((e.ctrlKey || e.metaKey) && e.target.nodeName === 'BODY') {
             if (e.which === 67) // CTRL + C
-                cy.clipboard().copy(cy.$(":selected"));
-            else if (e.which === 86) // CTRL + V
+            {
+
+                let nodes = cy.$(":selected");
+                let copy = true;
+                nodes.forEach(function (node) {
+                    if (node.data().class_name === 'InputLayer') {
+                        copy = false;
+                        return;
+                    }
+                });
+                if (copy) cy.clipboard().copy(cy.$(":selected"));
+            }
+
+            else if (e.which === 86) {
                 ur.do("paste");
+
+            }// CTRL + V
+
             else if (e.which === 65) { // + A
                 cy.elements().select();
                 e.preventDefault();
             }
             disable_submit_button()
         } else if (e.which === 46 || e.which === 8) { // + Remove
-
             if ($(":focus").length === 0) {
                 let node = cy.nodes().filter((node) => (node.selected()));
                 if (node.length > 0) {
@@ -514,6 +541,14 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
     }
+
+    function duplicate(event) {
+        cy.clipboard().copy(event.target || event.cyTarget);
+        ur.do("paste");
+        disable_submit_button();
+        add_icons_nodes();
+    }
+
 
     function add_icons_nodes() {
         cy.nodeHtmlLabel(Object.keys(fa_corelayers).map(function (key) {
