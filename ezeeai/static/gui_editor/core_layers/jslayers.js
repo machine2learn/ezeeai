@@ -309,6 +309,45 @@ var corelayers = {
             },
             "class_name": "Conv2DTranspose"
         },
+        "Conv3D": {
+            "kernel_size": {"type": "integer_list", "value": null},
+            "filters": {"type": "integer", "value": 1, "min": 1},
+            "strides": {"type": "integer_list", "value": null},
+            "padding": {"type": "select", "options": ["valid", "causal", "same"], "value": "valid"},
+            "dataFormat": {"type": "select", "options": [null, "channels_last", "channels_first"], "value": null},
+            "dilationRate": {"type": "integer_list", "value": null},
+
+            "activation": {
+                "type": "select",
+                "options": ["elu", "hardSigmoid", "linear", "relu", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
+                "value": "relu"
+            },
+            "use_bias": {"type": "boolean", "value": true},
+            "kernel_initializer": {
+                "type": "select",
+                "options": ["glorotNormal", "glorotUniform", "heNormal", "identity", "leCunNormal", "ones", "orthogonal", "randomNormal", "randomUniform", "truncatedNormal", "varianceScaling", "zeros"],
+                "value": "glorotUniform"
+            },
+            "bias_initializer": {
+                "type": "select",
+                "options": ["glorotNormal", "glorotUniform", "heNormal", "identity", "leCunNormal", "ones", "orthogonal", "randomNormal", "randomUniform", "truncatedNormal", "varianceScaling", "zeros"],
+                "value": "zeros"
+            },
+            "kernel_regularizer": {"type": "select", "options": [null, "L1L2"], "value": null},
+            "bias_regularizer": {"type": "select", "options": [null, "L1L2"], "value": null},
+            //"activity_regularizer": {"type": "select", "options": [null, "L1L2"], "value": null},
+            "kernel_constraint": {
+                "type": "select",
+                "options": [null, "maxNorm", "minMaxNorm", "nonNeg", "unitNorm"],
+                "value": null
+            },
+            "bias_constraint": {
+                "type": "select",
+                "options": [null, "maxNorm", "minMaxNorm", "nonNeg", "unitNorm"],
+                "value": null
+            },
+            "class_name": "Conv3D"
+        },
 
 
         "DepthwiseConv2D": {
@@ -350,6 +389,73 @@ var corelayers = {
             },
             "class_name": "DepthwiseConv2D"
         },
+        "Cropping2D": {
+            "axes": {"type": "integer_list", "value": "[0]"},
+            "dataFormat": {"type": "select", "options": [null, "channels_last", "channels_first"], "value": null},
+
+            "class_name": "Cropping2D"
+        },
+        "SeparableConv2D": {
+            "kernel_size": {"type": "integer_list", "value": null},
+            "filters": {"type": "integer", "value": 1, "min": 1},
+            "strides": {"type": "integer_list", "value": null},
+            "padding": {"type": "select", "options": ["valid", "causal", "same"], "value": "valid"},
+            "dataFormat": {"type": "select", "options": [null, "channels_last", "channels_first"], "value": null},
+            "dilationRate": {"type": "integer_list", "value": null},
+            "depth_multiplier": {"type": "integer", "value": 1, "min": 1},
+
+            "activation": {
+                "type": "select",
+                "options": ["elu", "hardSigmoid", "linear", "relu", "selu", "sigmoid", "softmax", "softplus", "softsign", "tanh", null],
+                "value": "relu"
+            },
+            "use_bias": {"type": "boolean", "value": true},
+            "depthwise_initializer": {
+                "type": "select",
+                "options": ["glorotNormal", "glorotUniform", "heNormal", "identity", "leCunNormal", "ones", "orthogonal", "randomNormal", "randomUniform", "truncatedNormal", "varianceScaling", "zeros"],
+                "value": "glorotUniform"
+            },
+            "bias_initializer": {
+                "type": "select",
+                "options": ["glorotNormal", "glorotUniform", "heNormal", "identity", "leCunNormal", "ones", "orthogonal", "randomNormal", "randomUniform", "truncatedNormal", "varianceScaling", "zeros"],
+                "value": "zeros"
+            },
+            "depthwise_regularizer": {"type": "select", "options": [null, "L1L2"], "value": null},
+            "bias_regularizer": {"type": "select", "options": [null, "L1L2"], "value": null},
+            //"activity_regularizer": {"type": "select", "options": [null, "L1L2"], "value": null},
+            "depthwise_constraint": {
+                "type": "select",
+                "options": [null, "maxNorm", "minMaxNorm", "nonNeg", "unitNorm"],
+                "value": null
+            },
+            "bias_constraint": {
+                "type": "select",
+                "options": [null, "maxNorm", "minMaxNorm", "nonNeg", "unitNorm"],
+                "value": null
+            },
+            "pointwise_initializer": {
+                "type": "select",
+                "options": ["glorotNormal", "glorotUniform", "heNormal", "identity", "leCunNormal", "ones", "orthogonal", "randomNormal", "randomUniform", "truncatedNormal", "varianceScaling", "zeros"],
+                "value": "glorotUniform"
+            },
+
+            "pointwise_regularizer": {"type": "select", "options": [null, "L1L2"], "value": null},
+
+            "pointwise_constraint": {
+                "type": "select",
+                "options": [null, "maxNorm", "minMaxNorm", "nonNeg", "unitNorm"],
+                "value": null
+            },
+            "class_name": "SeparableConv2D"
+        },
+         "UpSampling2D": {
+            "size": {"type": "integer_list", "value": "[2,2]"},
+            "dataFormat": {"type": "select", "options": [null, "channels_last", "channels_first"], "value": null},
+             "interpolation": {"type": "select", "options": ["nearest", "bilinear"], "value": "nearest"},
+
+            "class_name": "UpSampling2D"
+        },
+
 
     },
 
@@ -419,6 +525,11 @@ var corelayers = {
             "trainable": {"type": "boolean", "value": false},
             "updatable": {"type": "boolean", "value": false},
             "class_name": "Multiply"
+        },
+        "Dot": {
+            "axes": {"type": "integer_list", "value": "[-1]"},
+            "normalize": {"type": "boolean", "value": false},
+            "class_name": "Dot"
         },
 
     },
@@ -954,7 +1065,18 @@ var corelayers = {
                 "value": null
             },
             "class_name": "ThresholdedReLU"
-        }
+        },
+        "PReLU": {
+            "alpha_initializer": {
+                "type": "select",
+                "options": ["glorotNormal", "glorotUniform", "heNormal", "identity", "leCunNormal", "ones", "orthogonal", "randomNormal", "randomUniform", "truncatedNormal", "varianceScaling", "zeros"],
+                "value": "zeros"
+            },
+            "alpha_regularizer": {"type": "select", "options": [null, "L1L2"], "value": null},
+            "shared_axes": {"type": "integer_list", "value": null},
+            "class_name": "PReLU"
+        },
+
     },
 
     "Loss Functions": {

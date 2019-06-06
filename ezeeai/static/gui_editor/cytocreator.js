@@ -1017,7 +1017,7 @@ async function tf_load_model(nodes, models, loss_function, cy_json, cy, loss_nod
     let url = URL.createObjectURL(blob);
 
     try {
-        const model = await tf.loadModel(url);
+        const model = await tf.loadLayersModel(url);
         let topology = model.toJSON(null, false);
         let model_json = {"modelTopology": topology};
         create_poppers(model.layers, nodes, cy, loss_node);
