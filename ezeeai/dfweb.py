@@ -443,6 +443,9 @@ def delete():
         sys_ops.delete_recursive(paths, export_dir)
         if len([i for i in os.listdir(export_dir) if os.path.isdir(os.path.join(export_dir, i))]) == 0:
             sys_ops.tree_remove(all_params_config.checkpoint_dir())
+            logfile = [os.path.join(all_params_config.log_dir(), f) for f in os.listdir(all_params_config.log_dir())]
+            for f in logfile:
+                os.remove(f)
         checkpoints = run_utils.get_eval_results(export_dir, sess.get_writer(), sess.get_config_file())
         return jsonify(checkpoints=checkpoints)
     except FileNotFoundError:

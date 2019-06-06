@@ -93,6 +93,9 @@ class CustomConfigParser(configparser.ConfigParser):
     def export_dir(self):
         return self.get_rel_path(PATHS, 'export_dir')
 
+    def log_dir(self):
+        return self.get_rel_path(PATHS, 'log_dir')
+
     def data_path(self):
         return self.get_rel_path(PATHS, 'data_path')
 
