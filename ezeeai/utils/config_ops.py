@@ -74,10 +74,14 @@ def define_new_model(USER_ROOT, username, config_writer, model_name):
     return model_name
 
 
-def get_configs_files(USER_ROOT, username):
+def get_configs_files(USER_ROOT, username, not_validated=False):
     parameters_configs = {}
     path_models = get_models_path(USER_ROOT, username)
     models = [a for a in os.listdir(path_models) if os.path.isdir(os.path.join(path_models, a))]
+
+    if not not_validated:
+        models = [ m for m in models if os.path.isfile(os.path.join(path_models, m, 'custom', 'model_tfjs.json'))]
+
     for model in models:
         config = configparser.ConfigParser()
         config.read(os.path.join(path_models, model, 'config.ini'))
@@ -88,6 +92,7 @@ def get_configs_files(USER_ROOT, username):
         if 'PATHS' in config.sections():
             dataset = pickle.load(open(config.get('PATHS', 'data_path'), 'rb'))
             parameters_configs[model]['dataset'] = dataset.get_name()  # TODO from data object
+
     return models, parameters_configs
 
 

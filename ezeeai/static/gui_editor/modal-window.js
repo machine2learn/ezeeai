@@ -441,6 +441,8 @@ function get_load_rows(parameters) {
                 models.push([f, parameters[f]['dataset'], parameters[f]['perf'], parameters[f]['loss']]);
             else
                 models.push([f, parameters[f]['dataset'], 'Not evaluated yet', 'Not evaluated yet']);
+        }else{
+            models.push([f, 'Not assigned yet', 'Not evaluated yet', 'Not evaluated yet']);
         }
     });
     return models;

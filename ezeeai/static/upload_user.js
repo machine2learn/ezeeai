@@ -62,13 +62,17 @@ function get_rows(datasets) {
 function get_rows_model(models) {
     let models_rows = [];
     Object.keys(models).forEach(function (key) {
-        let prf = 'No evaluated yet';
-        let loss = 'No evaluated yet';
+        let prf = 'Not evaluated yet';
+        let loss = 'Not evaluated yet';
+        let dataset = 'Not assigned yet';
         if (models[key].hasOwnProperty("perf")) {
             prf = models[key]["perf"];
             loss = models[key]["loss"];
         }
-        let row = [key, models[key]["dataset"], prf, loss,
+        if (models[key].hasOwnProperty("dataset")) {
+            dataset = models[key]["dataset"];
+        }
+        let row = [key, dataset, prf, loss,
             '<a data-id=' + key + ' onclick="ConfirmModelDelete(this, false)" ><i class="fi flaticon-trash"></i></i></a>'];
         models_rows.push(row);
     });

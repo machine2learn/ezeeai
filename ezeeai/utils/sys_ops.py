@@ -189,10 +189,10 @@ def delete_dataset(all, dataset, models, username, user_root):
     p = os.path.join(user_root, username, 'datasets')
     if all:
         paths = [os.path.join(p, d) for d in os.listdir(p)]
-        delete_models(True, models, username,user_root)
+        delete_models(True, models, username, user_root)
     else:
         paths = [os.path.join(p, dataset)]
-        delete_models(False, models, username,user_root)
+        delete_models(False, models, username, user_root)
 
     for path in paths:
         if '.DS_Store' not in path:
@@ -339,16 +339,23 @@ def gen_image_example(data, pred):
 
 def load_cy_model(model, user, user_root):
     custom_path = os.path.join(user_root, user, 'models', model, 'custom', 'model_cy.json')
-    cy_model = 'None'
+    cy_model = None
     if os.path.isfile(custom_path):
         cy_model = json.load(open(custom_path), object_pairs_hook=OrderedDict)
     return cy_model
 
 
+def load_cy_input(model, user, user_root):
+    custom_path = os.path.join(user_root, user, 'models', model, 'custom', 'input_model_cy.json')
+    if os.path.isfile(custom_path):
+        input_cy_model = json.load(open(custom_path), object_pairs_hook=OrderedDict)
+        return input_cy_model['dataset_params'], input_cy_model['data'], input_cy_model['num_outputs']
+    return {}, {}, {}
+
+
 def create_custom_path(USER_ROOT, username, model_name):
     path = os.path.join(USER_ROOT, username, 'models', model_name, 'custom')
     shutil.rmtree(path, ignore_errors=True)
-
     os.makedirs(path, exist_ok=True)
     return path
 
@@ -356,10 +363,10 @@ def create_custom_path(USER_ROOT, username, model_name):
 def create_user_path(USER_ROOT, username):
     if not os.path.exists(os.path.join(USER_ROOT, username)):
         os.mkdir(os.path.join(USER_ROOT, username))
-    if not os.path.exists(os.path.join(USER_ROOT,  username, 'datasets')):
-        os.mkdir(os.path.join(USER_ROOT,  username, 'datasets'))
-    if not os.path.exists(os.path.join(USER_ROOT,  username, 'models')):
-        os.mkdir(os.path.join(USER_ROOT,  username, 'models'))
+    if not os.path.exists(os.path.join(USER_ROOT, username, 'datasets')):
+        os.mkdir(os.path.join(USER_ROOT, username, 'datasets'))
+    if not os.path.exists(os.path.join(USER_ROOT, username, 'models')):
+        os.mkdir(os.path.join(USER_ROOT, username, 'models'))
 
 
 def get_user_path(USER_ROOT, username):
@@ -371,23 +378,23 @@ def get_config_path(USER_ROOT, username, model_name):
 
 
 def get_dataset_path(USER_ROOT, username, dataset_name):
-    return os.path.join(USER_ROOT,username, 'datasets', dataset_name)
+    return os.path.join(USER_ROOT, username, 'datasets', dataset_name)
 
 
 def get_models_path(USER_ROOT, username):
-    return os.path.join(USER_ROOT,  username, 'models')
+    return os.path.join(USER_ROOT, username, 'models')
 
 
 def get_modelname_path(USER_ROOT, username, model_name):
-    return os.path.join(USER_ROOT,  username, 'models', model_name)
+    return os.path.join(USER_ROOT, username, 'models', model_name)
 
 
 def get_canned_json(USER_ROOT, username, model_name):
-    return os.path.join(USER_ROOT,  username, 'models', model_name, 'custom', 'canned_data.json')
+    return os.path.join(USER_ROOT, username, 'models', model_name, 'custom', 'canned_data.json')
 
 
 def get_log_path(username, model_name):
-    return os.path.join( username, 'models', model_name, 'log', 'tensorflow.log')
+    return os.path.join(username, 'models', model_name, 'log', 'tensorflow.log')
 
 
 def get_log_mess(username, model_name):
@@ -396,7 +403,7 @@ def get_log_mess(username, model_name):
 
 
 def get_all_datasets(USER_ROOT, username):
-    return os.listdir(os.path.join(USER_ROOT,  username, 'datasets'))
+    return os.listdir(os.path.join(USER_ROOT, username, 'datasets'))
 
 
 def create_split_folders(main_path):

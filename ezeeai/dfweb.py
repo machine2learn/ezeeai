@@ -27,13 +27,14 @@ from .core.thread_handler import ThreadHandler
 
 from .utils import config_ops
 from .utils.db_ops import get_token_user, update_token, sign_up, checklogin, update_user, get_user_data
-from .utils.custom import save_local_model
+from .utils.custom import save_local_model, save_cy_model
 from .utils.feature_util import get_tabular_graphs, get_image_graphs, save_image_graphs, get_summary, save_summary
 from .utils.local_utils import *
 from .utils.metrics import *
 from .utils.param_utils import get_params
 from .utils.request_util import *
 from .utils.upload_util import get_examples, new_config
+from .utils.sys_ops import create_custom_path
 
 from .database.user import User
 
@@ -66,6 +67,7 @@ def check_config(func):
             if get_token_user(session['user']) != request.form['token']:
                 return redirect(url_for('login'))
         return func(*args, **kwargs)
+
     return check_session
 
 
@@ -111,7 +113,7 @@ def user_data():
         email = form.email.data
         update_user(username, email)
     get_user_data(username, form)
-    _, param_configs = config_ops.get_configs_files(USER_ROOT, username)
+    _, param_configs = config_ops.get_configs_files(USER_ROOT, username, not_validated=True)
     user_dataset = config_ops.get_datasets_type(USER_ROOT, username)
     return render_template('upload_user.html', form=form, user=username, token=get_token_user(username),
                            datasets=user_dataset, parameters=param_configs)
@@ -165,7 +167,8 @@ def upload_tabular():
             return jsonify(status='error', msg=str(e))
     return render_template('upload_tabular.html', token=get_token_user(username), form=form,
                            datasets=config_ops.get_datasets(USER_ROOT, username), examples=examples,
-                           gen_form=GenerateDataSet(csrf_enabled=False), data_types=config_ops.get_datasets_type(USER_ROOT, username))
+                           gen_form=GenerateDataSet(csrf_enabled=False),
+                           data_types=config_ops.get_datasets_type(USER_ROOT, username))
 
 
 @app.route('/upload_image', methods=['GET', 'POST'])
@@ -229,7 +232,7 @@ def image_graphs():
 @login_required
 def gui():
     username = session['user']
-    _, param_configs = config_ops.get_configs_files(USER_ROOT, username)
+    _, param_configs = config_ops.get_configs_files(USER_ROOT, username, not_validated=True)
     user_dataset = config_ops.get_datasets_and_types(USER_ROOT, username)
     return render_template('gui.html', user=username, token=get_token_user(username), user_dataset=user_dataset,
                            dataset_params={}, data=None, parameters=param_configs, cy_model=[],
@@ -243,19 +246,27 @@ def gui_load():
     local_sess = Session(app, appConfig)
     username = session['user']
     local_sess.add_user((username, session['_id']))
-    _, param_configs = config_ops.get_configs_files(USER_ROOT, username)
+    _, param_configs = config_ops.get_configs_files(USER_ROOT, username, not_validated=True)
     user_dataset = config_ops.get_datasets_and_types(USER_ROOT, username)
     model_name = get_model(request)
     local_sess.set_config_file(sys_ops.get_config_path(USER_ROOT, username, model_name))
+    error = False
+
     if local_sess.load_config():
         hlp = local_sess.get_helper()
         return render_template('gui.html', token=get_token_user(username), user=username, user_dataset=user_dataset,
                                parameters=param_configs, dataset_params=hlp.get_dataset_params(), data=hlp.get_data(),
                                cy_model=sys_ops.load_cy_model(model_name, username, USER_ROOT), model_name=model_name,
-                               num_outputs=hlp.get_num_outputs(), error=False)
+                               num_outputs=hlp.get_num_outputs(), error=error)
+
+    cy_model = sys_ops.load_cy_model(model_name, username, USER_ROOT)
+    if cy_model is None:
+        cy_model = []
+        model_name = 'new_model'
+        error = True
     return render_template('gui.html', token=get_token_user(session['user']), user=username, user_dataset=user_dataset,
-                           dataset_params={}, data=None, parameters=param_configs, cy_model=[], model_name='new_model',
-                           num_outputs=None, error=True)
+                           cy_model=cy_model, model_name=model_name, error=error, parameters=param_configs,
+                           dataset_params={}, data={},num_outputs=None)
 
 
 @app.route('/gui_select_data', methods=['POST'])
@@ -304,6 +315,17 @@ def save_model():
     local_sess = save_local_model(local_sess, request, USER_ROOT, username)
     config_ops.define_new_model(USER_ROOT, username, local_sess.get_writer(), local_sess.get_model_name())
     local_sess.write_params()
+    return jsonify(explanation='ok')
+
+
+@app.route('/save_no_val_model', methods=['GET', 'POST'])
+@login_required
+def save_no_val_model():
+    username = session['user']
+    cy_model = get_cy_model(request)
+    model_name = get_modelname(request)
+    path = create_custom_path(USER_ROOT, username, model_name)
+    save_cy_model(path, cy_model)
     return jsonify(explanation='ok')
 
 

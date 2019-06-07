@@ -20,6 +20,8 @@ document.addEventListener('DOMContentLoaded', function () {
         elements: appConfig.cy_model.elements,
         style: cyto_styles
     });
+    cy.userZoomingEnabled(false);
+
     var expandCollapse_defaults = {
         layoutBy: null,
         fisheye: false,
@@ -594,8 +596,23 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     $('#save_model').on('click', async function (event) {
-        validate_save_model(cy, event, api, true);
+        let confirm_mess = 'This model is not validated yet. ' +
+            'If you save it without validate will not possible to train it.' +
+            ' Input data will not be saved.' +
+            '\n Continue?';
+        if (cy.nodes().length > 0) {
+            if ($('#validate_model')[0].hidden) {
+                // Save validated model
+                validate_save_model(cy, event, api, true);
+            } else if (confirm(confirm_mess)) {
+                // Save without validate
+                not_validate_save_model(cy, event, api);
+            }
+        } else {
+            alert('Blank canvas can not be saved.')
+        }
     });
+
     $('#inp').on('change', function () {
         disable_submit_button();
     });
@@ -987,6 +1004,8 @@ function send_canned(cy, dnn_nodes, cy_json, loss) {
     args['mode'] = 'canned';
     args['model_name'] = $('#inp').val();
     args['data'] = dnn_nodes.data().content;
+
+
     $('#save_model').text('Saving...')
         .addClass('disabled')
     $.ajax({
@@ -1003,8 +1022,67 @@ function send_canned(cy, dnn_nodes, cy_json, loss) {
             $('#save_model').text('Save')
                 .removeClass('disabled')
 
+        },
+        error: function (result) {
+            $.notify('Model not saved', "error");
         }
     });
+}
+
+
+async function not_validate_save_model(cy, event, api) {
+    if ($('#inp').val() in appConfig.parameters)
+        if (!confirm('This model name already exists, it will be overwrite. Continue?'))
+            return false;
+
+    cy.remove(cy.nodes().filter((node) => (!('name' in node.data()))));
+
+    let args = {};
+    args['cy_model'] = cy.json();
+    args['model_name'] = $('#inp').val();
+
+    $('#save_model').text('Saving...')
+        .addClass('disabled');
+    $.ajax({
+        url: "/save_no_val_model",
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/json;charset=UTF-8',
+        accepts: {
+            json: 'application/json',
+        },
+        data: JSON.stringify(args),
+        success: function (result) {
+            $.notify("New model saved", "success");
+            $('#save_model').text('Save')
+                .removeClass('disabled')
+        }
+    });
+}
+
+
+function check_correct_loss(loss_function, activation) {
+    let loss_sug_function = 'mean_squared_error';
+    let mode = 'regression';
+
+    if ((appConfig.dataset_params.targets === undefined) ||
+        (JSON.parse(appConfig.data_df).Category[appConfig.dataset_params.targets[0]] === 'categorical')) {
+        if (appConfig.num_outputs === 1) {
+            loss_sug_function = 'sigmoid_cross_entropy';
+        } else {
+            loss_sug_function = 'softmax_cross_entropy';
+        }
+        mode = 'classification';
+    }
+    let message_warning;
+    if (activation !== 'linear') {
+        message_warning = "Use a 'Linear' activation function before your Loss Function.";
+        $.notify("SUGGESTION : " + message_warning, "warning");
+    }
+    if (loss_function !== loss_sug_function) {
+        message_warning = "Use  ' " + loss_sug_function + " ' as Loss Function for " + mode + " problems";
+        $.notify("SUGGESTION : " + message_warning, "warning");
+    }
 }
 
 async function validate_save_model(cy, event, api, save_model) {
@@ -1015,7 +1093,9 @@ async function validate_save_model(cy, event, api, save_model) {
     }
 
     cy.remove(cy.nodes().filter((node) => (!('name' in node.data()))));
+
     let mess = check_input_output(cy);
+
     if (mess !== true) {
         alert(mess);
         disable_submit_button();
@@ -1052,12 +1132,19 @@ async function validate_save_model(cy, event, api, save_model) {
             let loss_node = cy.nodes().filter((node) => (node.data('name').includes('Loss')));
             let edges = loss_node.connectedEdges();
             let loss_function = loss_node.data('content')['function'].value;
-
             cy.remove(loss_node);
+
 
             try {
                 let nodes = cy.nodes().filter((node) => (node.data().class_name !== 'block'));
-                let models = create_json_model(sort_nodes(nodes));
+                let sorted_nodes = sort_nodes(nodes);
+                let activation = ''
+                let last_node = sorted_nodes[sorted_nodes.length - 1];
+                if (last_node.data().content.hasOwnProperty('activation'))
+                    activation = last_node.data().content.activation.value;
+                check_correct_loss(loss_function, activation);
+
+                let models = create_json_model(sorted_nodes);
 
                 cy.add(loss_node);
                 cy.add(edges);
@@ -1115,6 +1202,7 @@ async function tf_load_model(nodes, models, loss_function, cy_json, cy, loss_nod
             args['cy_model'] = cy_json;
             args['mode'] = 'custom';
             args['model_name'] = $('#inp').val();
+
 
             $('#save_model').text('Saving model...')
                 .addClass('disabled')
@@ -1281,7 +1369,8 @@ function load_model_input() {
     wizard_next(1, dict_wizard);
 
     // Load model -> modal window
-    if (appConfig.data_df !== null) {
+    if (!($.isEmptyObject(appConfig.data_df))) {
+
         update_split(appConfig.dataset_params.split.split(','));
         wizard_next(2, dict_wizard);
         if ('category_list' in appConfig.dataset_params) {
