@@ -174,12 +174,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
                 }
+            },
+            {
+                id: 'add-input-data',
+                content: 'add input data',
+                tooltipText: 'add input data',
+                selector: 'node',
+                coreAsWell: true,
+                disabled: false,
+                onClickFunction: function (event) {
+                    add_input_data(event);
+                }
             }
         ]
     };
     let instances = cy.contextMenus(options);
     instances.hideMenuItem('group-nodes');
     instances.hideMenuItem('ungroup-nodes');
+    instances.hideMenuItem('add-input-data');
 
     let eh = cy.edgehandles({snap: true});
     let ur = cy.undoRedo({undoableDrag: false});
@@ -244,23 +256,36 @@ document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener("click", function (e) {
         let selected = cy.nodes().filter((node) => (node.selected()));
         instances.hideMenuItem('ungroup-nodes');
+
         if (selected.length > 1) {
             instances.showMenuItem('group-nodes');
+
         } else {
             instances.hideMenuItem('group-nodes');
             if (selected.length === 1 && selected[0].data().class_name === 'block') {
                 instances.showMenuItem('ungroup-nodes');
             }
-
         }
-
     });
+
+    cy.on('cxttapstart', 'node', function (e) {
+        e.target.select();
+        instances.hideMenuItem('add-input-data');
+        if (e.target.data().class_name === 'InputLayer') {
+            instances.showMenuItem('add-input-data');
+        }
+    });
+
     // $('#nav-state-toggle').on('click', function () {
     //     add_icons_nodes();
     // });
 
 
     cy.on('doubleTap', 'node', function (event) {
+        add_input_data(event)
+    });
+
+    function add_input_data(event) {
         if (event.target.data().class_name.includes('InputLayer')) {
 
             $('#modal').removeClass('fade');
@@ -297,7 +322,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             $('#modal').show();
         }
-    });
+    }
 
     var tappedBefore;
     var tappedTimeout;
@@ -577,6 +602,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     $('#zoom_handler').on('click', function () {
         center_layout(cy);
+    });
+    $('#zoom_horizontal_handler').on('click', function () {
+        horizontal_layout(cy);
     });
     $('#zoom_plus').on('click', function () {
         zoom(cy, 0.1);
@@ -901,6 +929,15 @@ function zoom(cy, level) {
 
 function center_layout(cy) {
     let layout = cy.layout({name: 'dagre'});
+    layout.run();
+    cy.maxZoom(1.2);
+    cy.fit();
+    cy.maxZoom(cy.maxZoom());
+    cy.center();
+}
+
+function horizontal_layout(cy) {
+    let layout = cy.layout({name: 'dagre', rankDir: 'LR'});
     layout.run();
     cy.maxZoom(1.2);
     cy.fit();
