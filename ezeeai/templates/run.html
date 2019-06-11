@@ -237,6 +237,7 @@
         handle_key.checkpoints = {{  checkpoints | tojson | safe }};
         handle_key.metric = {{  metric | tojson | safe }};
         handle_key.graphs = {{  graphs | tojson | safe }};
+        handle_key.parameters = {{  parameters | tojson | safe }};
         window.appConfig = {
             handle_key: handle_key
         };

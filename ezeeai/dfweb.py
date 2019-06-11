@@ -384,9 +384,12 @@ def run():
                           sess.get_config_file())
         return jsonify(status='ok', metric=sess.get_metric())
     form.update(appConfig)
+    config_file = sys_ops.get_config_path(USER_ROOT, username, model_name)
+    parameters = get_params(config_file, appConfig)
     return render_template('run.html', user=username, token=get_token_user(username), form=form,
                            user_models=model_configs, dataset_params=user_datasets, running=running,
-                           model_name=model_name, checkpoints=checkpoints, metric=metric, graphs=graphs, log=log_mess)
+                           model_name=model_name, checkpoints=checkpoints, metric=metric, graphs=graphs, log=log_mess,
+                           parameters=parameters)
 
 
 @app.route('/predict', methods=['POST', 'GET'])
