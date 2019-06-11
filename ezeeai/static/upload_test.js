@@ -6,35 +6,33 @@ function _(el) {
 
 
 function uploadCSVFile($input) {
-    if (validateSize()){
-        let filename = document.getElementById('tabular-upload').files[0].name.split('.')[0];
-        let f = new FormData();
-        f.append('input_file', $input.files[0], $input.files[0].name);
-        f.append('model_name', $('#model_name').val());
+    let filename = document.getElementById('tabular-upload').files[0].name.split('.')[0];
+    let f = new FormData();
+    f.append('input_file', $input.files[0], $input.files[0].name);
+    f.append('model_name', $('#model_name').val());
 
-        ajax = new XMLHttpRequest();
-        ajax.onreadystatechange = function () {
-            if (this.readyState === 4 && JSON.parse(this.response).result !== 'ok') {
-                _("status_tabular").text("Upload Failed");
-                _("loaded_n_total_tabular").text("");
-                alert('Upload failed: invalid data format');
-                document.getElementById('progressBar_tabular').style.width = 0;
-            }
-            else if (this.readyState === 4 && JSON.parse(this.response).result === 'ok') {
-                upload_test_table(document.getElementById('tabular-upload').files[0].name);
-                _("status_tabular").text("Complete! 100% uploaded.");
-                document.getElementById('progressBar_tabular').style.width = 100;
-                $.notify("New test saved : " + filename, "success");
-            }
+    ajax = new XMLHttpRequest();
+    ajax.onreadystatechange = function () {
+        if (this.readyState === 4 && JSON.parse(this.response).result !== 'ok') {
+            _("status_tabular").text("Upload Failed");
+            _("loaded_n_total_tabular").text("");
+            alert('Upload failed: invalid data format');
+            document.getElementById('progressBar_tabular').style.width = 0;
+        }
+        else if (this.readyState === 4 && JSON.parse(this.response).result === 'ok') {
+            upload_test_table(document.getElementById('tabular-upload').files[0].name);
+            _("status_tabular").text("Complete! 100% uploaded.");
+            document.getElementById('progressBar_tabular').style.width = 100;
+            $.notify("New test saved : " + filename, "success");
+        }
 
-        };
-        ajax.upload.addEventListener("progress", progressHandlerTabular, false);
-        ajax.addEventListener("error", errorHandlerTabular, false);
-        ajax.addEventListener("abort", abortHandlerTabular, false);
+    };
+    ajax.upload.addEventListener("progress", progressHandlerTabular, false);
+    ajax.addEventListener("error", errorHandlerTabular, false);
+    ajax.addEventListener("abort", abortHandlerTabular, false);
 
-        ajax.open("POST", "/upload_test_file");
-        ajax.send(f);
-    }
+    ajax.open("POST", "/upload_test_file");
+    ajax.send(f);
 }
 
 
@@ -65,37 +63,37 @@ function abortHandlerTabular(event) {
 
 
 /* ---- Image test file ---- */
-//
-// function uploadZipFile($input) {
-//     let filename = document.getElementById('image-upload').files[0].name.split('.')[0];
-//     let f = new FormData();
-//     f.append('input_file', $input.files[0], $input.files[0].name);
-//     f.append('model_name', $('#model_name').val());
-//
-//     ajax = new XMLHttpRequest();
-//     ajax.onreadystatechange = function () {
-//         if (this.readyState === 4 && JSON.parse(this.response).result !== 'ok') {
-//             _("status_image").text("Upload Failed");
-//             _("loaded_n_total_image").text("");
-//             alert('Upload failed: invalid data format');
-//             document.getElementById('progressBar_image').style.width = 0;
-//         }
-//
-//         else if (this.readyState === 4 && JSON.parse(this.response).result === 'ok') {
-//             upload_test_table(filename);
-//             _("status_image").text("Complete! 100% uploaded.");
-//             $.notify("New test saved : " + filename, "success");
-//             document.getElementById('progressBar_tabular').style.width = 100;
-//         }
-//     };
-//     ajax.upload.addEventListener("progress", progressHandlerImage, false);
-//     ajax.addEventListener("error", errorHandlerImage, false);
-//     ajax.addEventListener("abort", abortHandlerImage, false);
-//     // ajax.addEventListener("load", completeHandlerImage, false);
-//
-//     ajax.open("POST", "/upload_test_file");
-//     ajax.send(f);
-// }
+
+function uploadZipFile($input) {
+    let filename = document.getElementById('image-upload').files[0].name.split('.')[0];
+    let f = new FormData();
+    f.append('input_file', $input.files[0], $input.files[0].name);
+    f.append('model_name', $('#model_name').val());
+
+    ajax = new XMLHttpRequest();
+    ajax.onreadystatechange = function () {
+        if (this.readyState === 4 && JSON.parse(this.response).result !== 'ok') {
+            _("status_image").text("Upload Failed");
+            _("loaded_n_total_image").text("");
+            alert('Upload failed: invalid data format');
+            document.getElementById('progressBar_image').style.width = 0;
+        }
+
+        else if (this.readyState === 4 && JSON.parse(this.response).result === 'ok') {
+            upload_test_table(filename);
+            _("status_image").text("Complete! 100% uploaded.");
+            $.notify("New test saved : " + filename, "success");
+            document.getElementById('progressBar_tabular').style.width = 100;
+        }
+    };
+    ajax.upload.addEventListener("progress", progressHandlerImage, false);
+    ajax.addEventListener("error", errorHandlerImage, false);
+    ajax.addEventListener("abort", abortHandlerImage, false);
+    // ajax.addEventListener("load", completeHandlerImage, false);
+
+    ajax.open("POST", "/upload_test_file");
+    ajax.send(f);
+}
 
 
 function progressHandlerImage(event) {
@@ -158,17 +156,6 @@ function clean_upload_log() {
     document.getElementById('progressBar_image').style.width = 0;
     _("loaded_n_total_image").text("");
 }
-
-
-function validateSize() {
-    var file_size = $('#tabular-upload')[0].files[0].size / 1024 / 1024; // in MB
-    if (file_size > 2) {
-        alert('File size exceeds 2 MB');
-        return false;
-    }
-    return true;
-}
-
 
 // function completeHandlerImage(event) {
 //     _("status_image").text("100% uploaded.");
