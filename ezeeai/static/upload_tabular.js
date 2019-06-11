@@ -37,38 +37,39 @@ function clear_upload_status() {
 }
 
 function uploadFile() {
-    ajax = new XMLHttpRequest();
-    ajax.onreadystatechange = function () {
-        if (this.responseText.length === 0) {
-            return;
-        }
-        var response = JSON.parse(this.responseText);
-        if (this.readyState === 4 && response.status === 'error') {
-            alert('Upload failed: ' + response.msg);
-            clear_upload_status();
-        } else if (this.readyState === 4 && response.status === 'ok') {
-            $.notify("New dataset saved", "success");
-            _("status_" + id_file_uploading).text('File upload completed');
-            appConfig.handle_key.datasets.push(response.msg);
-            appConfig.handle_key.data_types.push([response.msg, 'Tabular']);
-            update_dataset_table();
-            // let r_d = get_rows(appConfig.handle_key.data_types);
-            // $('#table_datasets').DataTable().clear().rows.add(r_d).draw();
+    if (validateSize()) {
+        ajax = new XMLHttpRequest();
+        ajax.onreadystatechange = function () {
+            if (this.responseText.length === 0) {
+                return;
+            }
+            var response = JSON.parse(this.responseText);
+            if (this.readyState === 4 && response.status === 'error') {
+                alert('Upload failed: ' + response.msg);
+                clear_upload_status();
+            } else if (this.readyState === 4 && response.status === 'ok') {
+                $.notify("New dataset saved", "success");
+                _("status_" + id_file_uploading).text('File upload completed');
+                appConfig.handle_key.datasets.push(response.msg);
+                appConfig.handle_key.data_types.push([response.msg, 'Tabular']);
+                update_dataset_table();
+                // let r_d = get_rows(appConfig.handle_key.data_types);
+                // $('#table_datasets').DataTable().clear().rows.add(r_d).draw();
 
-        }
-    };
-    ajax.upload.addEventListener("progress", progressHandler, false);
-    ajax.addEventListener("load", completeHandler, false);
-    ajax.addEventListener("error", errorHandler, false);
-    ajax.addEventListener("abort", abortHandler, false);
+            }
+        };
+        ajax.upload.addEventListener("progress", progressHandler, false);
+        ajax.addEventListener("load", completeHandler, false);
+        ajax.addEventListener("error", errorHandler, false);
+        ajax.addEventListener("abort", abortHandler, false);
 
-    ajax.open("POST", "/upload_tabular");
+        ajax.open("POST", "/upload_tabular");
 
-    ajax.send(new FormData(_("upload_form")[0]));
-    _("progressBar_" + id_file_uploading).removeClass('invisible');
-    $('.progress').removeClass('invisible');
-    _("abort_" + id_file_uploading).removeClass('invisible');
-
+        ajax.send(new FormData(_("upload_form")[0]));
+        _("progressBar_" + id_file_uploading).removeClass('invisible');
+        $('.progress').removeClass('invisible');
+        _("abort_" + id_file_uploading).removeClass('invisible');
+    }
 }
 
 function progressHandler(event) {
@@ -102,4 +103,20 @@ function abortHandler(event) {
 function update_dataset_table() {
     let r_d = get_rows(appConfig.handle_key.data_types);
     $('#table_datasets').DataTable().clear().rows.add(r_d).draw();
+}
+
+function validateSize() {
+    var train_file_size = $('#train_file')[0].files[0].size / 1024 / 1024; // in MB
+    if (train_file_size > 2) {
+        alert('Train file size exceeds 2 MB');
+        return false;
+    }
+    if ($('#test_file')[0].files.length > 0) {
+        var test_file_size = $('#test_file')[0].files[0].size / 1024 / 1024; // in MB
+        if (test_file_size > 2) {
+            alert('Test file size exceeds 2 MB');
+            return false;
+        }
+    }
+    return true;
 }
