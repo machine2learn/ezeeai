@@ -24,7 +24,7 @@ class Image:
         self._image_size = None
         self._augmentation_options = None
         self._augmentation_params = None
-        self._n_channels = 3
+        self._n_channels = None
 
     def get_test_path(self):
         return self._test_path

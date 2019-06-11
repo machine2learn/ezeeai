@@ -314,6 +314,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     table_feat_created = create_features_table(inputs_layers[name]['df'], inputs_layers[name]['category_list'], dict_wizard);
                     table_target_created = create_target_table(inputs_layers[name]['df'], inputs_layers[name]['category_list'], inputs_layers[name]['targets'], dict_wizard);
                     $('#normalize').prop('checked', inputs_layers[name]['normalize']);
+                    //$('#range-numerical').prop('checked', inputs_layers[name]['range-numerical']);
                 } else {
                     mode = 'image';
                     restore_features_images(inputs_layers[name]['height'], inputs_layers[name]['width'], inputs_layers[name]['normalization'], inputs_layers[name]['augmentation_options'], inputs_layers[name]['augmentation_params']);
@@ -1064,9 +1065,24 @@ async function not_validate_save_model(cy, event, api) {
 function check_correct_loss(loss_function, activation) {
     let loss_sug_function = 'mean_squared_error';
     let mode = 'regression';
+    let target_type = null;
+    let dataset = appConfig.hasOwnProperty('dataset') ? appConfig.dataset : appConfig.dataset_params.name;
 
-    if ((appConfig.dataset_params.targets === undefined) ||
-        (JSON.parse(appConfig.data_df).Category[appConfig.dataset_params.targets[0]] === 'categorical')) {
+    if (appConfig['user_dataset'][dataset].includes('images')) {
+        target_type = 'categorical'
+
+    } else {
+        let targets = [];
+        $('#table_targets').DataTable().rows({selected: true}).every(function () {
+            targets.push(this.data()[0]);
+        });
+        if (targets.length === 0)
+            targets.push(appConfig.dataset_params.targets[0]);
+        target_type = Object.values(inputs_layers)[0]['category_list'][targets[0]];
+    }
+
+
+    if (target_type === 'categorical') {
         if (appConfig.num_outputs === 1) {
             loss_sug_function = 'sigmoid_cross_entropy';
         } else {
@@ -1114,6 +1130,10 @@ async function validate_save_model(cy, event, api, save_model) {
             let is_image = input_canned.data().content.input_shape.value.split(',').length === 3;
             if (!is_image) {
                 var loss = canned_nodes.successors().filter((node) => (node.data().hasOwnProperty('class_name') && node.data()['class_name'] === 'Loss')).data().content.function.value;
+
+                check_correct_loss(loss, 'linear');
+
+
                 $('#submit').removeAttr('hidden')
                     .prop('disabled', false);
                 $('#validate_model').attr('hidden', '');
@@ -1138,7 +1158,7 @@ async function validate_save_model(cy, event, api, save_model) {
             try {
                 let nodes = cy.nodes().filter((node) => (node.data().class_name !== 'block'));
                 let sorted_nodes = sort_nodes(nodes);
-                let activation = ''
+                let activation = '';
                 let last_node = sorted_nodes[sorted_nodes.length - 1];
                 if (last_node.data().content.hasOwnProperty('activation'))
                     activation = last_node.data().content.activation.value;

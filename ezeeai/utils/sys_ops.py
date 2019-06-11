@@ -57,18 +57,22 @@ def find_dataset_from_numpy(path_file, requires_y=True, only_test=False):
             data['y'] = data.pop('y_train')
 
         x = data['x']
-        assert len(x.shape) == 3 or len(x.shape) == 4
+        assert len(x.shape) > 2
         if requires_y:
             assert 'y' in data
         if 'y' in data:
             y = data['y']
             assert len(y.shape) == 1 or len(y.shape) == 2
             assert x.shape[0] == y.shape[0]
+        if len(x.shape) == 3:
+            x = x[..., np.newaxis]
 
     test_data = None
     if 'y_test' in data:
         x_test = data['x_test'] if 'x_test' in data else data['X_test']
         y_test = data['y_test']
+        if len(x_test.shape) == 3:
+            x_test = x_test[..., np.newaxis]
         test_data = (x_test, y_test)
 
     return (x, y), test_data

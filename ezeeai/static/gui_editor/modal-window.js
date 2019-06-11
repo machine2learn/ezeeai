@@ -165,7 +165,7 @@ function wizard_next(number, dict_wizard) {
 }
 
 
-function create_features_table(data, category_list, dict_wizard) {
+function create_features_table(data, category_list, dict_wizard, r2n=false) {
     $('#tabular_features').removeAttr('hidden');
     $('#image_features').attr('hidden', '');
 
@@ -174,7 +174,7 @@ function create_features_table(data, category_list, dict_wizard) {
     // $('#table_features').DataTable().clear().rows.add(get_feature_rows(data, category_list)).draw();
     // } else {
     var table_features = $('#table_features').DataTable({
-        data: get_feature_rows(data, category_list),
+        data: get_feature_rows(data, category_list, r2n),
         columns: [{title: 'Features', name: 'Features'},
             {title: 'Category', name: 'Category'},
             {title: '#Unique Values'},
@@ -368,10 +368,11 @@ let category = {
     'none-int-hash': createMenu(none, none, range, hash, categorical, numerical),
     'none-numerical': createMenu(none, none, numerical),
     'none-bool': createMenu(none, none, categorical),
-    'none-none': createMenu(none, none, numerical, range, hash, categorical)
+    'none-none': createMenu(none, none, numerical, range, hash, categorical),
+    'range-numerical': createMenu(numerical, numerical, range, hash, categorical, none),
 };
 
-function get_feature_rows(data, category_list) {
+function get_feature_rows(data, category_list, n2r=false) {
     let result = JSON.parse(data);
     let dataset = [];
     if (category_list !== null)
@@ -380,8 +381,11 @@ function get_feature_rows(data, category_list) {
         let u_val = result['#Unique Values'][f];
         if (u_val === -1)
             u_val = 'Not relevant';
+        let cat = result['Category'][f];
+        if (n2r && cat.includes('range'))
+            cat = 'range-numerical';
         let mff = result['(Most frequent, Frequency)'][f];
-        dataset.push([f, category[result['Category'][f]], u_val, mff[0], mff[1],
+        dataset.push([f, category[cat], u_val, mff[0], mff[1],
             result['Defaults'][f], result['Sample 1'][f], result['Sample 2'][f], result['Sample 3'][f],
             result['Sample 4'][f], result['Sample 5'][f]]);
     });
@@ -517,4 +521,9 @@ function reset_wizard() {
     $('#wizard2').addClass('disabled');
     $('#wizard3').addClass('disabled');
     $('#wizard4').addClass('disabled');
+}
+
+function range2numerical(){
+    create_features_table(appConfig.data_df, null, dict_wizard, true);
+    $('#range-numerical').prop('disabled',true);
 }

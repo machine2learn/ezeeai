@@ -95,7 +95,7 @@ class FeatureSelection:
 
         for key in feature_types['numerical']:
             norm_fn = None
-            if normalize:
+            if normalize and df[key].nunique() > 1:
                 mean = df[key].mean()
                 stdv = df[key].std()
                 norm_fn = lambda x: (x - mean) / stdv

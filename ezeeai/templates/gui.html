@@ -37,7 +37,8 @@
 
                     <div class="col-7 no-horizontal-padding">
                         <div id="cy_buttons" class="cy-buttons">
-                             <button id="zoom_horizontal_handler" class="right-align"><i class="fas fa-grip-horizontal"></i></button>
+                            <button id="zoom_horizontal_handler" class="right-align"><i
+                                    class="fas fa-grip-horizontal"></i></button>
                             <button id="zoom_handler" class="right-align"><i class="fas fa-grip-vertical"></i></button>
                             <button id="zoom_plus" class="right-align"><i class="fas fa-search-plus"></i></button>
                             <button id="zoom_minus" class="right-align"><i class="fas fa-search-minus"></i></button>
@@ -204,6 +205,11 @@
                                             <div class="checkbox abc-checkbox">
                                                 <input type="checkbox" id="normalize" name="normalize" checked>
                                                 <label for="normalize">Normalize</label>
+                                            </div>
+                                            <div class="checkbox abc-checkbox">
+                                                <input type="checkbox" id="range-numerical" name="range-numerical"
+                                                       onclick='range2numerical(this);'>
+                                                <label for="range-numerical">Set all Range features as Numerical</label>
                                             </div>
 
 

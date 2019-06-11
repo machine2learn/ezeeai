@@ -18,8 +18,8 @@ from ..utils.feature_util import get_feature_key, get_feature_names
 class Tabular:
     SAMPLE_DATA_SIZE = 5
     MAX_CATEGORICAL_SIZE = 2000
-    MAX_RANGE_SIZE = 100
-    MIN_RANGE_SIZE = 10
+    MAX_RANGE_SIZE = 257
+    MIN_RANGE_SIZE = 1
 
     def __init__(self, name, file):
         self._name = None

@@ -99,13 +99,16 @@ def get_tabular_graphs(USER_ROOT, username, dataset_name):
     return save_tabular_graphs(main_path, dataset_name, graph_json)
 
 
-def save_tabular_graphs(main_path,dataset_name, graph_json):
+def save_tabular_graphs(main_path, dataset_name, graph_json, nrows=10000):
     df = pd.read_csv(os.path.join(main_path, dataset_name + '.csv'))
+    if len(df) > nrows:
+        df = df.sample(n=nrows)
     num_rows, df_as_json, norm, corr = get_norm_corr(df)
     data = {'data': json.loads(df_as_json), 'num_rows': num_rows, 'norm': norm, 'corr': corr}
     with open(graph_json, 'w') as outfile:
         json.dump(data, outfile)
         return data
+
 
 def get_image_graphs(USER_ROOT, username, dataset_name):
     main_path = get_dataset_path(USER_ROOT, username, dataset_name)
@@ -122,4 +125,3 @@ def save_image_graphs(USER_ROOT, username, dataset_name, data):
     graph_json = os.path.join(main_path, DATA_GRAPH)
     with open(graph_json, 'w') as outfile:
         json.dump(data, outfile)
-
