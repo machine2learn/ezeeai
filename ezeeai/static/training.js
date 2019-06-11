@@ -14,6 +14,8 @@ $(document).ready(function () {
         if ((loss_graph.data === 'undefined') ||
             ((loss_graph.data === 'undefined') && (loss_graph.data.length === 0)))
             $('.loader-pretrain').removeClass('hide-element');
+
+
     }
 
     if (appConfig.handle_key.model_name !== '') {
@@ -21,6 +23,8 @@ $(document).ready(function () {
         enable_run();
         $('.waiting-selection').addClass('hide-element');
         $('.visualization').removeClass('hide-element');
+        if (Object.keys(appConfig.handle_key.parameters).length > 0)
+            update_parameters_form(appConfig.handle_key.parameters);
     }
     update_graphs(appConfig.handle_key.graphs, true);
 

@@ -209,6 +209,7 @@ class Session:
             return True
         return False
 
+
     def check_log_fp(self, all_params_config):
         logfile = os.path.join(all_params_config['PATHS']['log_dir'], 'tensorflow.log')
         try:

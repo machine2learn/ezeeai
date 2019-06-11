@@ -199,7 +199,9 @@
                         </header>
                         <div class="widget-body log-div">
                             <div class="log">{{ log }}</div>
-                            <small class="text-muted" id="script_help" style=""> You can expand this text area by dragging the bottom right corner.</small>
+                            <small class="text-muted" id="script_help" style=""> You can expand this text area by
+                                dragging the bottom right corner.
+                            </small>
                         </div>
                     </section>
                 </div>
@@ -219,7 +221,7 @@
     <script src="{{ url_for('.static', filename='training.js') }}"></script>
     <script src="{{ url_for('.static', filename='checkpoints.js') }}"></script>
     <script src="{{ url_for('.static', filename='data_graphs.js') }}"></script>
-     <script src="{{ url_for('.static', filename='notify.js') }}"></script>
+    <script src="{{ url_for('.static', filename='notify.js') }}"></script>
     <script type=text/javascript>
         $(document).ready(function () {
             $('#sb-train').addClass('active');
@@ -237,6 +239,7 @@
         handle_key.checkpoints = {{  checkpoints | tojson | safe }};
         handle_key.metric = {{  metric | tojson | safe }};
         handle_key.graphs = {{  graphs | tojson | safe }};
+        handle_key.parameters = {{  parameters | tojson | safe }};
         window.appConfig = {
             handle_key: handle_key
         };

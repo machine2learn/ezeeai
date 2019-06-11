@@ -80,7 +80,8 @@ def get_configs_files(USER_ROOT, username, not_validated=False):
     models = [a for a in os.listdir(path_models) if os.path.isdir(os.path.join(path_models, a))]
 
     if not not_validated:
-        models = [ m for m in models if os.path.isfile(os.path.join(path_models, m, 'custom', 'model_tfjs.json'))]
+        models = [ m for m in models if (os.path.isfile(os.path.join(path_models, m, 'custom', 'model_tfjs.json')) or
+                                         os.path.isfile(os.path.join(path_models, m, 'custom', 'canned_data.json')))]
 
     for model in models:
         config = configparser.ConfigParser()
