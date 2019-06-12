@@ -615,8 +615,15 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     $('#inp').on('change', function () {
+        if ($('#inp').val() === '') {
+            $('#save_model').prop('disabled', true);
+        } else {
+            $('#save_model').prop('disabled', false);
+        }
+
         disable_submit_button();
     });
+
 
     $('#zoom_handler').on('click', function () {
         center_layout(cy);

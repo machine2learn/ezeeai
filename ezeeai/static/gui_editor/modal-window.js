@@ -530,7 +530,7 @@ function range2numerical() {
 }
 
 $(function () {
-    $("input").keydown(function () {
+    $("input[type='number']").keydown(function () {
         let min = -9999;
         let max = 9999;
         if ($(this).prop('min') !== undefined && $(this).prop('min') !== '') {
@@ -544,7 +544,7 @@ $(function () {
         if (!$(this).val() || (parseFloat($(this).val()) <= max && parseFloat($(this).val()) >= min))
             $(this).data("old", $(this).val());
     });
-    $("input").keyup(function () {
+    $("input[type='number']").keyup(function () {
         let min = -9999;
         let max = 9999;
         if ($(this).prop('min') !== undefined && $(this).prop('min') !== '') {
