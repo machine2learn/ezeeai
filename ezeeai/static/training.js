@@ -65,6 +65,19 @@ $(document).ready(function () {
                         toggle_play();
                         enable_run_config();
                         $('.loader-pretrain').addClass('hide-element')
+                        setTimeout(function () {
+                            $.ajax({
+                                url: "/refresh",
+                                type: 'GET',
+                                success: function (data) {
+                                    if (data.log !== '' && $('.log').text() !== data.log) {
+                                        update_log(data.log);
+                                        $.notify('Error (more info in Log)', "error");
+                                    }
+                                }
+                            })
+                        }, 10000);
+
                     }
                     update_checkpoint_table(data.checkpoints, '');
                     update_graphs(data.graphs, false);
@@ -159,6 +172,7 @@ function button_play() {
                 disable_run_config();
             } else {
                 enable_run_config();
+
             }
         }
     });
@@ -243,7 +257,9 @@ function ConfirmDelete(elem, all) {
             data: JSON.stringify({'deleteID': $(elem).attr('data-id')}),
             success: function (data) {
                 update_checkpoint_table(data.checkpoints, '');
+
                 if (all) {
+                    $('.log').text('');
                     $('#loss_graph').children().remove();
                     $('#metric_graph').children().remove();
                     document.getElementById('loss_graph').data = [];

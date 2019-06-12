@@ -178,8 +178,8 @@ class Image:
                 image = tf.image.random_flip_up_down(image)
         if 'rotation' in options:
             interpolation = 'NEAREST' if params['interpolation_rotation_nearest'] else 'BILINEAR'
-            angle = tf.random_uniform([], minval=int(params['angle_from_rotation']),
-                                      maxval=int(params['angle_to_rotation']))
+            angle = tf.random_uniform([], minval=float(params['angle_from_rotation']),
+                                      maxval=float(params['angle_to_rotation']))
             image = tf.contrib.image.rotate(image, angle, interpolation=interpolation)
         if 'saturation' in options:
             image = tf.image.random_saturation(image, float(params['from_saturation']), float(params['to_saturation']))
@@ -194,7 +194,7 @@ class Image:
 
         if 'zoom' in options:
             image = random_central_crop(image, float(params['from_zoom']), float(params['to_zoom']))
-            image = tf.image.resize_images(image, self.get_image_size().copy())
+            image = tf.image.resize_images(image, self.get_image_size().copy()[:2])
 
         return image, label
 

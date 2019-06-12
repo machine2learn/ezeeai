@@ -165,7 +165,7 @@ function wizard_next(number, dict_wizard) {
 }
 
 
-function create_features_table(data, category_list, dict_wizard, r2n=false) {
+function create_features_table(data, category_list, dict_wizard, r2n = false) {
     $('#tabular_features').removeAttr('hidden');
     $('#image_features').attr('hidden', '');
 
@@ -235,33 +235,33 @@ function create_target_table(data, category_list, targets, dict_wizard) {
     var $target_table = $('#table_targets');
     if (table_target_created)
         remove_table('table_targets');
-        // $target_table.DataTable().clear().rows.add(get_target_rows(data, category_list)).draw();
+    // $target_table.DataTable().clear().rows.add(get_target_rows(data, category_list)).draw();
     // } else {
-        var target_table = $target_table.DataTable({
-            data: get_target_rows(data, category_list),
-            columns: [{title: 'Features'}, {title: 'Category', name: 'Category'}, {title: '#Unique Values'},
-                {title: 'Most frequent'},
-                {title: 'Frequency'}, {title: 'Defaults'}, {title: 'Sample 1'},
-                {title: 'Sample 2'}, {title: 'Sample 3'}, {title: 'Sample 4'}, {title: 'Sample 5'}],
-            'select': 'multiple',
-            fixedHeader: false,
-            deferRender: true,
-            scrollX: true,
-            scroller: true,
-            "lengthChange": false,
-            "drawCallback": function () {
-                if ($(this).DataTable().rows()[0].length <= 10) {
-                    let id = '#' + $(this).attr('id');
-                    $(id + '_paginate').remove();
-                    $(id + '_info').remove();
-                }
-
+    var target_table = $target_table.DataTable({
+        data: get_target_rows(data, category_list),
+        columns: [{title: 'Features'}, {title: 'Category', name: 'Category'}, {title: '#Unique Values'},
+            {title: 'Most frequent'},
+            {title: 'Frequency'}, {title: 'Defaults'}, {title: 'Sample 1'},
+            {title: 'Sample 2'}, {title: 'Sample 3'}, {title: 'Sample 4'}, {title: 'Sample 5'}],
+        'select': 'multiple',
+        fixedHeader: false,
+        deferRender: true,
+        scrollX: true,
+        scroller: true,
+        "lengthChange": false,
+        "drawCallback": function () {
+            if ($(this).DataTable().rows()[0].length <= 10) {
+                let id = '#' + $(this).attr('id');
+                $(id + '_paginate').remove();
+                $(id + '_info').remove();
             }
-        });
-        $('#target_search').keyup(function () {
-            target_table.search($(this).val()).draw();
 
-        });
+        }
+    });
+    $('#target_search').keyup(function () {
+        target_table.search($(this).val()).draw();
+
+    });
 
     $target_table.DataTable().rows().every(function () {
         let data = this.data()[0];
@@ -372,7 +372,7 @@ let category = {
     'range-numerical': createMenu(numerical, numerical, range, hash, categorical, none),
 };
 
-function get_feature_rows(data, category_list, n2r=false) {
+function get_feature_rows(data, category_list, n2r = false) {
     let result = JSON.parse(data);
     let dataset = [];
     if (category_list !== null)
@@ -445,12 +445,13 @@ function get_load_rows(parameters) {
                 models.push([f, parameters[f]['dataset'], parameters[f]['perf'], parameters[f]['loss']]);
             else
                 models.push([f, parameters[f]['dataset'], 'Not evaluated yet', 'Not evaluated yet']);
-        }else{
+        } else {
             models.push([f, 'Not assigned yet', 'Not evaluated yet', 'Not evaluated yet']);
         }
     });
     return models;
 }
+
 //TODO
 function create_images_targets(data) {
     wizard_next(4, dict_wizard);
@@ -517,13 +518,45 @@ function get_dataset_rows(datasets) {
 }
 
 function reset_wizard() {
-   clear_input_modal(dict_wizard, true);
+    clear_input_modal(dict_wizard, true);
     $('#wizard2').addClass('disabled');
     $('#wizard3').addClass('disabled');
     $('#wizard4').addClass('disabled');
 }
 
-function range2numerical(){
+function range2numerical() {
     create_features_table(appConfig.data_df, null, dict_wizard, true);
-    $('#range-numerical').prop('disabled',true);
+    $('#range-numerical').prop('disabled', true);
 }
+
+$(function () {
+    $("input").keydown(function () {
+        let min = -9999;
+        let max = 9999;
+        if ($(this).prop('min') !== undefined && $(this).prop('min') !== '') {
+            min = $(this).prop('min')
+        }
+        if ($(this).prop('max') !== undefined && $(this).prop('max') !== '') {
+            max = $(this).prop('max')
+        }
+
+        // Save old value.
+        if (!$(this).val() || (parseFloat($(this).val()) <= max && parseFloat($(this).val()) >= min))
+            $(this).data("old", $(this).val());
+    });
+    $("input").keyup(function () {
+        let min = -9999;
+        let max = 9999;
+        if ($(this).prop('min') !== undefined && $(this).prop('min') !== '') {
+            min = $(this).prop('min')
+        }
+        if ($(this).prop('max') !== undefined && $(this).prop('max') !== '') {
+            max = $(this).prop('max')
+        }
+        // Check correct, else revert back to old value.
+        if (!$(this).val() || (parseFloat($(this).val()) <= max && parseFloat($(this).val()) >= min))
+            ;
+        else
+            $(this).val($(this).data("old"));
+    });
+});

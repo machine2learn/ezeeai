@@ -34,7 +34,7 @@ from .utils.metrics import *
 from .utils.param_utils import get_params
 from .utils.request_util import *
 from .utils.upload_util import get_examples, new_config
-from .utils.sys_ops import create_custom_path
+from .utils.sys_ops import create_custom_path, remove_log, get_log_mess
 
 from .database.user import User
 
@@ -266,7 +266,7 @@ def gui_load():
         error = True
     return render_template('gui.html', token=get_token_user(session['user']), user=username, user_dataset=user_dataset,
                            cy_model=cy_model, model_name=model_name, error=error, parameters=param_configs,
-                           dataset_params={}, data={},num_outputs=None)
+                           dataset_params={}, data={}, num_outputs=None)
 
 
 @app.route('/gui_select_data', methods=['POST'])
@@ -335,7 +335,7 @@ def save_no_val_model():
 def params_run():
     model_name = get_model_name(request)
     username = session['user']
-    log_mess = sys_ops.get_log_mess(username, model_name)
+    log_mess = sys_ops.get_log_mess(USER_ROOT, username, model_name)
     try:
         config_file = sys_ops.get_config_path(USER_ROOT, username, model_name)
         parameters = get_params(config_file, appConfig)
@@ -377,9 +377,10 @@ def run():
     _, model_configs = config_ops.get_configs_files(USER_ROOT, username)
     user_datasets = config_ops.get_datasets_and_types(USER_ROOT, username)
     form = GeneralParamForm(csrf_enabled=False)
-    running, model_name, checkpoints, metric, graphs, log_mess = run_utils.load_run_config(sess, th, username, form)
+    running, model_name, checkpoints, metric, graphs, log_mess = run_utils.load_run_config(sess, th, username, form, USER_ROOT)
     if request.method == 'POST':
         all_params_config = run_utils.run_post(sess, request, USER_ROOT, username, th)
+        remove_log(all_params_config.log_dir())
         th.handle_request(get_action(request), all_params_config, username, get_resume_from(request),
                           sess.get_config_file())
         return jsonify(status='ok', metric=sess.get_metric())
@@ -463,14 +464,13 @@ def delete():
     export_dir = all_params_config.export_dir()
     del_id = get_delete_id(request)
     try:
+        remove_log(all_params_config.log_dir())
+
         paths = [del_id] if del_id != 'all' else [d for d in os.listdir(export_dir) if
                                                   os.path.isdir(os.path.join(export_dir, d))]
         sys_ops.delete_recursive(paths, export_dir)
         if len([i for i in os.listdir(export_dir) if os.path.isdir(os.path.join(export_dir, i))]) == 0:
             sys_ops.tree_remove(all_params_config.checkpoint_dir())
-            logfile = [os.path.join(all_params_config.log_dir(), f) for f in os.listdir(all_params_config.log_dir())]
-            for f in logfile:
-                os.remove(f)
         checkpoints = run_utils.get_eval_results(export_dir, sess.get_writer(), sess.get_config_file())
         return jsonify(checkpoints=checkpoints)
     except FileNotFoundError:
@@ -523,7 +523,7 @@ def refresh():
         export_dir = all_params_config.export_dir()
         checkpoints = run_utils.get_eval_results(export_dir, sess.get_writer(), sess.get_config_file())
         graphs = train_eval_graphs(all_params_config.checkpoint_dir())
-        log = sess.get('log_fp').read() if sess.check_key('log_fp') else ''
+        log= get_log_mess(USER_ROOT,  session['user'], sess.get_model_name())
         return jsonify(checkpoints=checkpoints, log=log, running=running, epochs=epochs, graphs=graphs)
     except (KeyError, NoSectionError):
         return jsonify(checkpoints='', log='', running=running, epochs=0, graphs={})

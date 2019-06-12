@@ -397,12 +397,12 @@ def get_canned_json(USER_ROOT, username, model_name):
     return os.path.join(USER_ROOT, username, 'models', model_name, 'custom', 'canned_data.json')
 
 
-def get_log_path(username, model_name):
-    return os.path.join(username, 'models', model_name, 'log', 'tensorflow.log')
+def get_log_path(USER_ROOT,username, model_name):
+    return os.path.join(USER_ROOT, username, 'models', model_name, 'log', 'tensorflow.log')
 
 
-def get_log_mess(username, model_name):
-    log_path = get_log_path(username, model_name)
+def get_log_mess(USER_ROOT, username, model_name):
+    log_path = get_log_path(USER_ROOT, username, model_name)
     return open(log_path, 'r').read() if os.path.isfile(log_path) else ''
 
 
@@ -437,3 +437,8 @@ def delete_file_test(request, param_configs, USER_ROOT, username):
     except:
         return True, 'Error server'
     return False, None
+
+def remove_log(log_dir):
+    logfile = [os.path.join(log_dir, f) for f in os.listdir(log_dir)]
+    for f in logfile:
+        os.remove(f)
