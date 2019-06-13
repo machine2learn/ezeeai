@@ -1,5 +1,6 @@
 from scipy import stats
 import matplotlib
+
 matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
@@ -32,10 +33,9 @@ def get_norm_corr(df):
         norm['line'].append(line.tolist())
         norm['bins'].append(bins.tolist())
         norm['counts'].append(counts.tolist())
+        plt.close()
 
     corr = df.drop(columns=cols_to_drop).corr().values.tolist()
-    num_rows =  df.shape[0]
-    if num_rows > 1000:
-        split = df.head(1000)
-        df_as_json = split.to_json(orient='split')
+    num_rows = df.shape[0]
+    norm['ccols'] = df.drop(columns=cols_to_drop).columns.tolist()
     return num_rows, df_as_json, norm, corr

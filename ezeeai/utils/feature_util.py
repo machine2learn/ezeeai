@@ -99,7 +99,7 @@ def get_tabular_graphs(USER_ROOT, username, dataset_name):
     return save_tabular_graphs(main_path, dataset_name, graph_json)
 
 
-def save_tabular_graphs(main_path, dataset_name, graph_json, nrows=10000):
+def save_tabular_graphs(main_path, dataset_name, graph_json, nrows=1000):
     df = pd.read_csv(os.path.join(main_path, dataset_name + '.csv'))
     if len(df) > nrows:
         df = df.sample(n=nrows)
