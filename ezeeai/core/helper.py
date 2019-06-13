@@ -458,6 +458,9 @@ class Image(Helper):
         request.files['inputFile'].seek(0)
         npimg = np.fromstring(b, np.uint8)
         img = cv2.imdecode(npimg, cv2.IMREAD_UNCHANGED)
+        if len(img.shape) == 2:
+            # img = img[..., np.newaxis]
+            return img
         img = cv2.cvtColor(img, cv2.COLOR_RGBA2RGB)
         return img.astype(np.float32)
 

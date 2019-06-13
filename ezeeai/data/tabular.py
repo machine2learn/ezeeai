@@ -3,7 +3,7 @@ from functools import reduce
 from sklearn.model_selection import train_test_split
 from tensorflow.python.feature_column.feature_column_v2 import IndicatorColumn
 
-from .dataset import make_csv_dataset
+from .utils.tabular import make_csv_dataset
 from .feature_selection import FeatureSelection
 from ..utils import args
 

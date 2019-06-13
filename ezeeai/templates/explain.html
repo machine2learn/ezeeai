@@ -205,6 +205,7 @@
     <script type=text/javascript>
         var handle_key = {};
         handle_key.models = {{  parameters | tojson | safe }};
+        handle_key.grey_scale = {{  grey_scale | tojson | safe }};
         window.appConfig = {
             handle_key: handle_key
         };
@@ -212,76 +213,3 @@
 {% endblock %}
 
 
-
-
-
-{#{% extends "base.html" %}#}
-{#{% import 'bootstrap/wtf.html' as wtf %}#}
-{##}
-{#{% block styles %}#}
-{#    {{ super() }}#}
-{#    <link rel="stylesheet" type="text/css"#}
-{#          href="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.css"/>#}
-{#{% endblock %}#}
-{##}
-{##}
-{##}
-{#{% block content %}#}
-{##}
-{#    <div align="center">#}
-{#    <th1>Explain</th1>#}
-{#    <div class="row">#}
-{#        <div class="col-md-4">#}
-{#            <div id="features_values">#}
-{#                <h4> Features values</h4>#}
-{#                <table id="table_features" class="display stripe" style="width:100%">#}
-{#                </table>#}
-{#            </div>#}
-{#            <br>#}
-{#            <div id="select_feature_explain">#}
-{#                <h4> Respective Estimated Conditional Expectation Curve</h4>#}
-{#                Select a feature to plot the respective estimated conditional expectation curve for the current instance#}
-{#                <br>#}
-{#            </div>#}
-{#            <br>#}
-{#            <div id="graph_ice_scatter" style="width: 480px; height: 400px;"></div>#}
-{#            <div id="graph_ice_prob" style="width: 480px; height: 400px;"></div>#}
-{##}
-{#        </div>#}
-{#        <div class="col-md-8">#}
-{#            <div id="prediction_probabilities_title">#}
-{#            </div>#}
-{#            <div id="prediction_probabilities">#}
-{#                <canvas id="probs"></canvas>#}
-{#            </div>#}
-{##}
-{#            <div id="explain_graps">#}
-{#                <h4> Explain graphs</h4>#}
-{#            </div>#}
-{#        </div>#}
-{#    </div>#}
-{##}
-{#{% endblock %}#}
-{##}
-{#{% block scripts %}#}
-{#    {{ super() }}#}
-{#    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>#}
-{#    <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.16/sl-1.2.5/datatables.min.js"></script>#}
-{#    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>#}
-{##}
-{#    <script src="{{ url_for('.static', filename='explain.js') }}"></script>#}
-{##}
-{#    <script type="text/javascript">#}
-{#        var handle_key = {};#}
-{#        handle_key.data_type = {{  data_type | tojson | safe }};#}
-{#        handle_key.graphs = {{  graphs | tojson | safe }};#}
-{#        handle_key.predict_table = {{  predict_table | tojson | safe }};#}
-{#        handle_key.features = {{  features | tojson | safe }};#}
-{#        handle_key.type = {{type | tojson | safe  }};#}
-{#        handle_key.model = {{ model | tojson | safe  }};#}
-{#        handle_key.exp_target = {{ exp_target | tojson | safe  }};#}
-{#        window.appConfig = {#}
-{#            handle_key: handle_key#}
-{#        }#}
-{#    </script>#}
-{#{% endblock %}#}

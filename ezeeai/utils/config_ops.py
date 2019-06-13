@@ -4,6 +4,7 @@ import numpy as np
 import os
 import pandas as pd
 
+from ezeeai.data.image import Image
 from ezeeai.data.utils.image import find_image_files_folder_per_class, find_image_files_from_file
 
 from . import upload_util, sys_ops
@@ -80,8 +81,8 @@ def get_configs_files(USER_ROOT, username, not_validated=False):
     models = [a for a in os.listdir(path_models) if os.path.isdir(os.path.join(path_models, a))]
 
     if not not_validated:
-        models = [ m for m in models if (os.path.isfile(os.path.join(path_models, m, 'custom', 'model_tfjs.json')) or
-                                         os.path.isfile(os.path.join(path_models, m, 'custom', 'canned_data.json')))]
+        models = [m for m in models if (os.path.isfile(os.path.join(path_models, m, 'custom', 'model_tfjs.json')) or
+                                        os.path.isfile(os.path.join(path_models, m, 'custom', 'canned_data.json')))]
 
     for model in models:
         config = configparser.ConfigParser()
@@ -95,6 +96,19 @@ def get_configs_files(USER_ROOT, username, not_validated=False):
             parameters_configs[model]['dataset'] = dataset.get_name()  # TODO from data object
 
     return models, parameters_configs
+
+
+def get_grey_scale(USER_ROOT, username, models):
+    grey_scale = []
+    path_models = get_models_path(USER_ROOT, username)
+    for model in models:
+        config = configparser.ConfigParser()
+        config.read(os.path.join(path_models, model, 'config.ini'))
+        if 'PATHS' in config.sections():
+            dataset = pickle.load(open(config.get('PATHS', 'data_path'), 'rb'))
+            if isinstance(dataset, Image) and dataset.get_sample().shape[-1] == 1:
+                grey_scale.append(dataset.get_name())
+    return grey_scale
 
 
 def new_config(train_form_file, test_form_file, USER_ROOT, username):

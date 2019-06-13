@@ -377,7 +377,8 @@ def run():
     _, model_configs = config_ops.get_configs_files(USER_ROOT, username)
     user_datasets = config_ops.get_datasets_and_types(USER_ROOT, username)
     form = GeneralParamForm(csrf_enabled=False)
-    running, model_name, checkpoints, metric, graphs, log_mess = run_utils.load_run_config(sess, th, username, form, USER_ROOT)
+    running, model_name, checkpoints, metric, graphs, log_mess = run_utils.load_run_config(sess, th, username, form,
+                                                                                           USER_ROOT)
     if request.method == 'POST':
         all_params_config = run_utils.run_post(sess, request, USER_ROOT, username, th)
         remove_log(all_params_config.log_dir())
@@ -428,8 +429,10 @@ def explain():
             result = hlp.explain_return(request, result)
             return jsonify(**result)
         return jsonify(error=result)
-    _, param_configs = config_ops.get_configs_files(USER_ROOT, username)
-    return render_template('explain.html', user=username, token=get_token_user(username), parameters=param_configs)
+    models, param_configs = config_ops.get_configs_files(USER_ROOT, username)
+    grey_scale = config_ops.get_grey_scale(USER_ROOT, username, models)
+    return render_template('explain.html', user=username, token=get_token_user(username), parameters=param_configs,
+                           grey_scale=grey_scale)
 
 
 @app.route('/upload_test_file', methods=['POST', 'GET'])
@@ -523,7 +526,7 @@ def refresh():
         export_dir = all_params_config.export_dir()
         checkpoints = run_utils.get_eval_results(export_dir, sess.get_writer(), sess.get_config_file())
         graphs = train_eval_graphs(all_params_config.checkpoint_dir())
-        log= get_log_mess(USER_ROOT,  session['user'], sess.get_model_name())
+        log = get_log_mess(USER_ROOT, session['user'], sess.get_model_name())
         return jsonify(checkpoints=checkpoints, log=log, running=running, epochs=epochs, graphs=graphs)
     except (KeyError, NoSectionError):
         return jsonify(checkpoints='', log='', running=running, epochs=0, graphs={})

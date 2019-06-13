@@ -1,12 +1,24 @@
 $(document).ready(function () {
     draw_models_select(appConfig.handle_key.models);
 
+
     $('#model_name').on('change', function () {
         enable_checkpoints();
         clear_graphs();
-        $('.waiting-selection-ckpt').removeClass('hide-element');
         $('#feature-div').addClass('hide-element');
         $('#prediction_div').addClass('hide-element');
+        $('#features_div').removeClass('disabled-custom');
+
+
+        if (appConfig.handle_key.grey_scale.indexOf($('#model_name').val()) >= 0) {
+             $.notify('Grayscale images are not supported', "error");
+            $('#features_div').addClass('disabled-custom');
+
+             return;
+        }
+
+
+        $('.waiting-selection-ckpt').removeClass('hide-element');
 
         let model_name = $(this).val();
         $('#perf').text(appConfig.handle_key.models[model_name]['perf']);
@@ -60,7 +72,6 @@ $(document).ready(function () {
 
                 } else {
                     $('#explain_params_div').removeClass('hide-element');
-                    $('#image_upload').addClass('hide-element');
                     $('#image_upload').addClass('hide-element');
                     $('#features_div').removeClass('hide-element');
                     $.each(data.params.features, function (key, value) {

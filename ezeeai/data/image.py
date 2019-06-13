@@ -1,4 +1,3 @@
-
 from ezeeai.data.utils.image import *
 from ..utils import args
 from sklearn.model_selection import train_test_split
@@ -121,6 +120,8 @@ class Image:
         if self.get_mode() == 3:
             return self._images[0]
         img = imread(self._images[0])
+        if len(img.shape) == 2:
+            img = img[..., np.newaxis]
         return img
 
     def get_num_outputs(self):
@@ -236,7 +237,10 @@ class Image:
         return dataset
 
     def input_predict_fn(self, image):
-        image = imresize(image, self.get_image_size(), interp='bilinear')
+        if len(image.shape) == 2:
+            image = imresize(image, self.get_image_size()[0:2], interp='bilinear').reshape(self.get_image_size())
+        else:
+            image = imresize(image, self.get_image_size(), interp='bilinear')
         image = image.astype(np.float32)
         if len(image.shape) == 3:
             image = image[np.newaxis, ...]
