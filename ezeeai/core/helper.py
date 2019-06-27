@@ -175,8 +175,9 @@ class Tabular(Helper):
     def process_targets_request(self, request):
         selected_rows = get_targets(request)
 
-        if not self._dataset.update_targets(selected_rows):
-            return {'error': 'Only numerical features are supported for multiouput.'}
+        target_check = self._dataset.update_targets(selected_rows)
+        if target_check:
+            return {'error': target_check}
 
         self._dataset.split_dataset()
         self._dataset.update_feature_columns()  # TODO maybe inside split

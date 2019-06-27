@@ -123,7 +123,7 @@ function regression_plots(y_true, y_pred) {
             title: 'True response'
         },
         yaxis: {
-            title: 'Residuals',
+            title: 'Predicted - True',
             range: [-abs, abs]
         },
         margin: {
