@@ -309,8 +309,8 @@ class Tabular:
         file = self.get_file()
         basename = os.path.basename(file)
 
-        train_file = file.replace(basename, f'train/{basename}')
-        validation_file = file.replace(basename, f'valid/{basename}')
+        train_file = os.path.join(file.rstrip(basename), 'train', basename)
+        validation_file = os.path.join(file.rstrip(basename), 'valid', basename)
 
         percent = percent.split(',')
         percent = (int(percent[0]), int(percent[1]), int(percent[2]))
@@ -328,7 +328,7 @@ class Tabular:
         train_df, val_df = train_test_split(df, test_size=val_frac, stratify=stratify, random_state=42)
 
         if percent[2] != 0:
-            pre = file.replace(basename, f'test/{basename}').split('.')
+            pre = os.path.join(file.rstrip(basename), 'test', basename).split('.')
             test_file = f'{pre[0]}_split_test.{pre[1]}'
             test_size = int(round((percent[2] / 100) * len(df)))
             if len(targets) == 1 and self.get_df()[targets[0]].dtype == 'object':

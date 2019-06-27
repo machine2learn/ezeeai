@@ -1,6 +1,6 @@
 import pandas as pd
 import pandas_profiling as pp
-
+import ntpath
 # import logging.config
 # from config.logging_config import logging_config
 
@@ -551,7 +551,7 @@ def running_check():
             all_params_config = config_reader.read_config(sess.get_config_file())
             epochs = run_utils.get_step(hlp.get_train_size(), all_params_config.train_batch_size(),
                                         all_params_config.checkpoint_dir())
-            model_name = config_file.split('/')[-2]
+            model_name = ntpath.basename(config_file.rstrip('config.ini').rstrip('/').rstrip('\\'))
         except (KeyError, NoSectionError):
             pass
     return jsonify(running=running, epochs=epochs, model_name=model_name)
@@ -609,7 +609,7 @@ def deploy():
         config_path = sys_ops.get_config_path(USER_ROOT, username, model_name)
         all_params_config = config_reader.read_config(config_path)
         file_path = sys_ops.export_models(all_params_config.export_dir(), request.form['selected_rows'], model_name)
-        return send_file(file_path, mimetype='application/zip', attachment_filename=file_path.split('/')[-1],
+        return send_file(file_path, mimetype='application/zip', attachment_filename=ntpath.basename(file_path),
                          as_attachment=True)
     _, param_configs = config_ops.get_configs_files(USER_ROOT, username)
     return render_template('deploy.html', user=username, token=get_token_user(username), parameters=param_configs)

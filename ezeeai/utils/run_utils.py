@@ -1,6 +1,7 @@
 import os
 import math
 import json
+import ntpath
 
 import numpy as np
 import pandas as pd
@@ -108,7 +109,7 @@ def get_eval_results(directory, config_writer, CONFIG_FILE):
             perf = float("{0:.3f}".format(perf))
         except ValueError:
             perf = perf
-        results[k.split('/')[-1]] = {metric: perf, 'loss': float("{0:.3f}".format(loss)), 'step': step}
+        results[ntpath.basename(k)] = {metric: perf, 'loss': float("{0:.3f}".format(loss)), 'step': step}
     json.dump(log_file, open(os.path.join(directory, 'export.log'), 'w'))
 
     if 'TRAINING' in config_writer.config.sections():
@@ -196,7 +197,7 @@ def load_run_config(sess, th, username, form, USER_ROOT):
         sess.set_config_file(config_file)
         sess.load_config()
         set_form(form, sess.get_config_file())
-        model_name = config_file.split('/')[-2]
+        model_name = ntpath.basename(config_file.rstrip('config.ini').rstrip('/').rstrip('\\'))
         sess.set_model_name(model_name)
         export_dir = config_reader.read_config(sess.get_config_file()).export_dir()
         checkpoints = get_eval_results(export_dir, sess.get_writer(), sess.get_config_file())

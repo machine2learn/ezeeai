@@ -8,6 +8,7 @@ from tensorflow.python.data.experimental.ops import optimization
 _ACCEPTABLE_CSV_TYPES = (dtypes.float32, dtypes.float64, dtypes.int32,
                          dtypes.int64, dtypes.string)
 
+
 def make_csv_dataset(
         file_pattern,
         batch_size,
