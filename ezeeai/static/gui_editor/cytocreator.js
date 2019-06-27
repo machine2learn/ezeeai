@@ -1074,7 +1074,7 @@ function check_correct_loss(loss_function, activation) {
     let mode = 'regression';
     let target_type = null;
     let dataset = appConfig.hasOwnProperty('dataset') ? appConfig.dataset : appConfig.dataset_params.name;
-
+    if (dataset === undefined) throw 'Please configure your dataset before validating';
     if (appConfig['user_dataset'][dataset].includes('images')) {
         target_type = 'categorical'
 
@@ -1183,6 +1183,7 @@ async function validate_save_model(cy, event, api, save_model) {
                 cy.add(loss_node);
                 cy.add(edges);
                 api.collapse(enodes);
+                alert(e);
             }
             event.preventDefault();
         }

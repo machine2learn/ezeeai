@@ -50,10 +50,10 @@ def get_datasets_and_types(USER_ROOT, username):
 
 
 def update_config_dir(config_writer, target):
-    config_writer.add_item('PATHS', 'checkpoint_dir', os.path.join(target, 'checkpoints/'))
+    config_writer.add_item('PATHS', 'checkpoint_dir', os.path.join(target, 'checkpoints'))
     config_writer.add_item('PATHS', 'custom_model', os.path.join(target, 'custom'))
-    config_writer.add_item('PATHS', 'export_dir', os.path.join(target, 'checkpoints/export/best_exporter'))
-    config_writer.add_item('PATHS', 'log_dir', os.path.join(target, 'log/'))
+    config_writer.add_item('PATHS', 'export_dir', os.path.join(target, 'checkpoints', 'export', 'best_exporter'))
+    config_writer.add_item('PATHS', 'log_dir', os.path.join(target, 'log'))
     config_writer.add_item('PATHS', 'tmp_dir', os.path.join(target, 'tmp'))
 
 
@@ -68,7 +68,7 @@ def define_new_model(USER_ROOT, username, config_writer, model_name):
     target = get_modelname_path(USER_ROOT, username, model_name)
     update_config_dir(config_writer, target)
     os.makedirs(target, exist_ok=True)
-    os.makedirs(os.path.join(target, 'log/'), exist_ok=True)
+    os.makedirs(os.path.join(target, 'log'), exist_ok=True)
     os.makedirs(os.path.join(target, 'tmp'), exist_ok=True)
     create_model(username, USER_ROOT, model_name)
     return model_name

@@ -1,6 +1,7 @@
 import os
 import socket
 import zipfile
+import ntpath
 
 from tensorflow.python.platform import gfile
 from contextlib import closing
@@ -154,7 +155,7 @@ def save_filename(target, dataset_form_field, dataset_name):
         try:
             preprocessing.clean_field_names(destination)
         except Exception as e:
-            if target.split('/')[-1] == 'test':
+            if ntpath.basename(target) == 'test':
                 target = os.path.dirname(target)
             shutil.rmtree(target)
             raise e

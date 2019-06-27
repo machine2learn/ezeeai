@@ -28,8 +28,6 @@ class CustomConfigParser(configparser.ConfigParser):
         raw_get = self.get(*args, **kwargs)
         if not raw_get:
             return ""
-        if raw_get.startswith('/'):
-            return raw_get
         return sys_ops.abs_path_of(raw_get)
 
     def _from_training(self, param):
