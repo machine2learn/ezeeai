@@ -25,16 +25,15 @@ def define_empty_run_params():
     log_mess = None
     return model_name, checkpoints, metric, graphs, log_mess
 
-
-def get_run_results(config_file, sess, username):
-    model_name = config_file.split('/')[-2]
-    sess.set_model_name(model_name)
-    export_dir = config_reader.read_config(sess.get_config_file()).export_dir()
-    checkpoints = get_eval_results(export_dir, sess.get_writer(), sess.get_config_file())
-    metric = sess.get_metric()
-    graphs = train_eval_graphs(config_reader.read_config(sess.get_config_file()).checkpoint_dir())
-    log_mess = get_log_mess(username, model_name)
-    return checkpoints, metric, graphs, log_mess
+# def get_run_results(config_file, sess, username, USER_ROOT):
+#     model_name = config_file.split('/')[-2]
+#     sess.set_model_name(model_name)
+#     export_dir = config_reader.read_config(sess.get_config_file()).export_dir()
+#     checkpoints = get_eval_results(export_dir, sess.get_writer(), sess.get_config_file())
+#     metric = sess.get_metric()
+#     graphs = train_eval_graphs(config_reader.read_config(sess.get_config_file()).checkpoint_dir())
+#     log_mess = get_log_mess(USER_ROOT, username, model_name)
+#     return checkpoints, metric, graphs, log_mess
 
 
 def get_html_types(dict_types):
@@ -186,7 +185,7 @@ def run_post(sess, request, USER_ROOT, username, th):
     return all_params_config
 
 
-def load_run_config(sess, th, username, form):
+def load_run_config(sess, th, username, form, USER_ROOT):
     model_name, checkpoints, metric, graphs, log_mess = define_empty_run_params()
     running, config_file = th.check_running(username)
 
@@ -204,7 +203,7 @@ def load_run_config(sess, th, username, form):
         metric = sess.get_metric()
         graphs = train_eval_graphs(config_reader.read_config(sess.get_config_file()).checkpoint_dir())
 
-        log_path = get_log_path(username, model_name)
+        log_path = get_log_path(USER_ROOT, username, model_name)
         log_mess = open(log_path, 'r').read() if os.path.isfile(log_path) else ''
 
     return running, model_name, checkpoints, metric, graphs, log_mess

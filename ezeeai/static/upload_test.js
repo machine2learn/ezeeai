@@ -64,67 +64,6 @@ function abortHandlerTabular(event) {
 }
 
 
-/* ---- Image test file ---- */
-//
-// function uploadZipFile($input) {
-//     let filename = document.getElementById('image-upload').files[0].name.split('.')[0];
-//     let f = new FormData();
-//     f.append('input_file', $input.files[0], $input.files[0].name);
-//     f.append('model_name', $('#model_name').val());
-//
-//     ajax = new XMLHttpRequest();
-//     ajax.onreadystatechange = function () {
-//         if (this.readyState === 4 && JSON.parse(this.response).result !== 'ok') {
-//             _("status_image").text("Upload Failed");
-//             _("loaded_n_total_image").text("");
-//             alert('Upload failed: invalid data format');
-//             document.getElementById('progressBar_image').style.width = 0;
-//         }
-//
-//         else if (this.readyState === 4 && JSON.parse(this.response).result === 'ok') {
-//             upload_test_table(filename);
-//             _("status_image").text("Complete! 100% uploaded.");
-//             $.notify("New test saved : " + filename, "success");
-//             document.getElementById('progressBar_tabular').style.width = 100;
-//         }
-//     };
-//     ajax.upload.addEventListener("progress", progressHandlerImage, false);
-//     ajax.addEventListener("error", errorHandlerImage, false);
-//     ajax.addEventListener("abort", abortHandlerImage, false);
-//     // ajax.addEventListener("load", completeHandlerImage, false);
-//
-//     ajax.open("POST", "/upload_test_file");
-//     ajax.send(f);
-// }
-
-
-function progressHandlerImage(event) {
-    $('#progressBar_image').removeClass('invisible');
-    _("loaded_n_total_image").text("Uploaded " + event.loaded + " bytes of " + event.total);
-    let percent = (event.loaded / event.total) * 100;
-    percent = Math.round(percent);
-    document.getElementById('progressBar_image').style.width = percent.toString() + "%";
-
-    _("status_image").text(percent + "% uploaded... please wait");
-    if (percent === 100) {
-        $('#image-upload').prev('.custom-file-label').html('Choose file')
-            .val('');
-    }
-}
-
-function errorHandlerImage(event) {
-    _("status_image").text("Upload Failed");
-    document.getElementById('progressBar_image').style.width = 0;
-    _("loaded_n_total_image").text("");
-}
-
-function abortHandlerImage(event) {
-    _("status_image").text("Upload Aborted");
-    document.getElementById('progressBar_image').style.width = 0;
-    _("loaded_n_total_image").text("");
-}
-
-
 function deleteTestFile(elem) {
     let message = "Are you sure you want to delete the selected test file? (It will not be available for other model)";
     if (confirm(message)) {

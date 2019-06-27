@@ -1,4 +1,3 @@
-
 from ezeeai.data.utils.image import *
 from ..utils import args
 from sklearn.model_selection import train_test_split
@@ -24,7 +23,7 @@ class Image:
         self._image_size = None
         self._augmentation_options = None
         self._augmentation_params = None
-        self._n_channels = 3
+        self._n_channels = None
 
     def get_test_path(self):
         return self._test_path
@@ -121,6 +120,8 @@ class Image:
         if self.get_mode() == 3:
             return self._images[0]
         img = imread(self._images[0])
+        if len(img.shape) == 2:
+            img = img[..., np.newaxis]
         return img
 
     def get_num_outputs(self):
@@ -178,8 +179,8 @@ class Image:
                 image = tf.image.random_flip_up_down(image)
         if 'rotation' in options:
             interpolation = 'NEAREST' if params['interpolation_rotation_nearest'] else 'BILINEAR'
-            angle = tf.random_uniform([], minval=int(params['angle_from_rotation']),
-                                      maxval=int(params['angle_to_rotation']))
+            angle = tf.random_uniform([], minval=float(params['angle_from_rotation']),
+                                      maxval=float(params['angle_to_rotation']))
             image = tf.contrib.image.rotate(image, angle, interpolation=interpolation)
         if 'saturation' in options:
             image = tf.image.random_saturation(image, float(params['from_saturation']), float(params['to_saturation']))
@@ -194,7 +195,7 @@ class Image:
 
         if 'zoom' in options:
             image = random_central_crop(image, float(params['from_zoom']), float(params['to_zoom']))
-            image = tf.image.resize_images(image, self.get_image_size().copy())
+            image = tf.image.resize_images(image, self.get_image_size().copy()[:2])
 
         return image, label
 
@@ -236,7 +237,10 @@ class Image:
         return dataset
 
     def input_predict_fn(self, image):
-        image = imresize(image, self.get_image_size(), interp='bilinear')
+        if len(image.shape) == 2:
+            image = imresize(image, self.get_image_size()[0:2], interp='bilinear').reshape(self.get_image_size())
+        else:
+            image = imresize(image, self.get_image_size(), interp='bilinear')
         image = image.astype(np.float32)
         if len(image.shape) == 3:
             image = image[np.newaxis, ...]

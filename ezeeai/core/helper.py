@@ -20,6 +20,10 @@ import PIL.Image
 
 def encode_image(path):
     if isinstance(path, np.ndarray):
+        if path.shape[2] == 1:
+            path = path[:, :, 0]
+        if np.max(path) <= 1.0:
+            path *= 255
         pil_img = PIL.Image.fromarray(path.astype(np.uint8))
         buff = BytesIO()
         pil_img.save(buff, format="JPEG")
@@ -311,7 +315,7 @@ class Tabular(Helper):
             graphs, predict_table = get_reg_explain(result)
             params['type'] = 'regression'
         else:
-            graphs, predict_table = get_class_explain(result,self._max_features )
+            graphs, predict_table = get_class_explain(result, self._max_features)
             params['type'] = 'class'
         params['graphs'] = graphs
         params['predict_table'] = predict_table
@@ -454,6 +458,9 @@ class Image(Helper):
         request.files['inputFile'].seek(0)
         npimg = np.fromstring(b, np.uint8)
         img = cv2.imdecode(npimg, cv2.IMREAD_UNCHANGED)
+        if len(img.shape) == 2:
+            # img = img[..., np.newaxis]
+            return img
         img = cv2.cvtColor(img, cv2.COLOR_RGBA2RGB)
         return img.astype(np.float32)
 

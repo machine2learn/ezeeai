@@ -57,18 +57,22 @@ def find_dataset_from_numpy(path_file, requires_y=True, only_test=False):
             data['y'] = data.pop('y_train')
 
         x = data['x']
-        assert len(x.shape) == 3 or len(x.shape) == 4
+        assert len(x.shape) > 2
         if requires_y:
             assert 'y' in data
         if 'y' in data:
             y = data['y']
             assert len(y.shape) == 1 or len(y.shape) == 2
             assert x.shape[0] == y.shape[0]
+        if len(x.shape) == 3:
+            x = x[..., np.newaxis]
 
     test_data = None
     if 'y_test' in data:
         x_test = data['x_test'] if 'x_test' in data else data['X_test']
         y_test = data['y_test']
+        if len(x_test.shape) == 3:
+            x_test = x_test[..., np.newaxis]
         test_data = (x_test, y_test)
 
     return (x, y), test_data
@@ -393,12 +397,12 @@ def get_canned_json(USER_ROOT, username, model_name):
     return os.path.join(USER_ROOT, username, 'models', model_name, 'custom', 'canned_data.json')
 
 
-def get_log_path(username, model_name):
-    return os.path.join(username, 'models', model_name, 'log', 'tensorflow.log')
+def get_log_path(USER_ROOT,username, model_name):
+    return os.path.join(USER_ROOT, username, 'models', model_name, 'log', 'tensorflow.log')
 
 
-def get_log_mess(username, model_name):
-    log_path = get_log_path(username, model_name)
+def get_log_mess(USER_ROOT, username, model_name):
+    log_path = get_log_path(USER_ROOT, username, model_name)
     return open(log_path, 'r').read() if os.path.isfile(log_path) else ''
 
 
@@ -433,3 +437,8 @@ def delete_file_test(request, param_configs, USER_ROOT, username):
     except:
         return True, 'Error server'
     return False, None
+
+def remove_log(log_dir):
+    logfile = [os.path.join(log_dir, f) for f in os.listdir(log_dir)]
+    for f in logfile:
+        os.remove(f)

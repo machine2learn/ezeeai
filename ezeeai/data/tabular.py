@@ -3,7 +3,7 @@ from functools import reduce
 from sklearn.model_selection import train_test_split
 from tensorflow.python.feature_column.feature_column_v2 import IndicatorColumn
 
-from .dataset import make_csv_dataset
+from .utils.tabular import make_csv_dataset
 from .feature_selection import FeatureSelection
 from ..utils import args
 
@@ -18,8 +18,8 @@ from ..utils.feature_util import get_feature_key, get_feature_names
 class Tabular:
     SAMPLE_DATA_SIZE = 5
     MAX_CATEGORICAL_SIZE = 2000
-    MAX_RANGE_SIZE = 100
-    MIN_RANGE_SIZE = 10
+    MAX_RANGE_SIZE = 257
+    MIN_RANGE_SIZE = 1
 
     def __init__(self, name, file):
         self._name = None

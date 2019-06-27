@@ -107,7 +107,7 @@ $(document).ready(function () {
                         });
                     }
                     if ($('#corr-mat').length > 0) {
-                        heatmap('corr-mat', data.data['columns'], data.corr);
+                        heatmap('corr-mat', data.norm.ccols, data.corr);
                     }
 
                     collapsed.next().click();
