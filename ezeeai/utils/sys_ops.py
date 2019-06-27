@@ -448,4 +448,4 @@ def delete_file_test(request, param_configs, USER_ROOT, username):
 def remove_log(log_dir):
     logfile = [os.path.join(log_dir, f) for f in os.listdir(log_dir)]
     for f in logfile:
-        os.remove(f)
+        open(f, 'w').close()
