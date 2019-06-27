@@ -255,11 +255,14 @@ class Tabular:
         categories = self.get_categories()
         summary_data = self.get_data_summary()
         df = self.get_df()
+        for t in targets:
+            if summary_data.Category[t] == 'hash':
+                return 'Hash features are not allowed as target.'
 
         if len(targets) > 1:
             for t in targets:
                 if summary_data.Category[t] != 'numerical':
-                    return False
+                    return 'Only numerical features are supported for multiouput.'
 
         self.set_targets(targets)
         if len(targets) == 1:
@@ -272,7 +275,7 @@ class Tabular:
                 summary_data.Category = new_categ_list
                 fs.update(categories, dict(zip(summary_data.index.tolist(), summary_data.Defaults)))
 
-        return True
+        return ''
 
     def update_feature_columns(self):
         categories = self.get_categories()
