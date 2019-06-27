@@ -22,11 +22,11 @@ def rename(path_from, path_to):
     for f in os.listdir(path_from):
         if not f.startswith('.'):
             shutil.move(os.path.join(path_from, f), path_to)
-    shutil.rmtree(path_from)
+    shutil.rmtree(path_from, ignore_errors=True)
 
 
 def tree_remove(path):
-    shutil.rmtree(path)
+    shutil.rmtree(path, ignore_errors=True)
 
 
 def zipdir(path, ziph, base):
@@ -157,7 +157,7 @@ def save_filename(target, dataset_form_field, dataset_name):
         except Exception as e:
             if ntpath.basename(target) == 'test':
                 target = os.path.dirname(target)
-            shutil.rmtree(target)
+            shutil.rmtree(target, ignore_errors=True)
             raise e
     return True
 
@@ -187,7 +187,7 @@ def delete_models(all, models, username, user_root):
     if all:
         paths = [os.path.join(path, d) for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
     for path in paths:
-        shutil.rmtree(path)
+        shutil.rmtree(path, ignore_errors=True)
 
 
 def delete_dataset(all, dataset, models, username, user_root):
@@ -201,7 +201,7 @@ def delete_dataset(all, dataset, models, username, user_root):
 
     for path in paths:
         if '.DS_Store' not in path:
-            shutil.rmtree(path)
+            shutil.rmtree(path, ignore_errors=True)
 
 
 def check_df(test_df, df, targets, filename):
@@ -287,7 +287,7 @@ def export_models(export_dir, selected_rows, model_name):
     zipf.write(os.path.join(export_dir, dep_file), dep_file)
 
     zipf.close()
-    shutil.rmtree(tmp_dir)
+    shutil.rmtree(tmp_dir, ignore_errors=True)
 
     return file_path
 
@@ -398,13 +398,18 @@ def get_canned_json(USER_ROOT, username, model_name):
     return os.path.join(USER_ROOT, username, 'models', model_name, 'custom', 'canned_data.json')
 
 
-def get_log_path(USER_ROOT,username, model_name):
+def get_log_path(USER_ROOT, username, model_name):
     return os.path.join(USER_ROOT, username, 'models', model_name, 'log', 'tensorflow.log')
 
 
 def get_log_mess(USER_ROOT, username, model_name):
     log_path = get_log_path(USER_ROOT, username, model_name)
-    return open(log_path, 'r').read() if os.path.isfile(log_path) else ''
+    if not os.path.isfile(log_path):
+        return ''
+    logfile = open(log_path, 'r')
+    msg = logfile.read()
+    logfile.close()
+    return msg
 
 
 def get_all_datasets(USER_ROOT, username):
@@ -439,7 +444,8 @@ def delete_file_test(request, param_configs, USER_ROOT, username):
         return True, 'Error server'
     return False, None
 
+
 def remove_log(log_dir):
     logfile = [os.path.join(log_dir, f) for f in os.listdir(log_dir)]
     for f in logfile:
-        os.remove(f)
+        open(f, 'w').close()

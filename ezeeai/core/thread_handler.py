@@ -46,7 +46,7 @@ class ThreadHandler:
                 self.add_port(username, config_file, port)
                 name = 'tensorboard-' + str(port)
                 tboard_thread = threading.Thread(name=name,
-                                                 target=lambda: self.tensor_board_thread(config_file, port))
+                                                 target=self.tensor_board_thread, args=(config_file, port))
                 tboard_thread.setDaemon(True)
                 tboard_thread.start()
             except ValueError:
@@ -86,13 +86,13 @@ class ThreadHandler:
 
     def run_estimator(self, all_params_config, username, config_file):
         r_thread = Process(
-            target=lambda: self.run_thread(all_params_config), name='run')
+            target=self.run_thread, args=(all_params_config,), name='run')
         r_thread.daemon = True
         r_thread.start()
         self._processes[username] = {'process': r_thread, 'config_file': config_file}
 
     def predict_estimator(self, all_params_config, features, all=False):
-        r_thread = Process(target=lambda: self.predict_thread(all_params_config, features, all), name='predict')
+        r_thread = Process(target=self.predict_thread, args=(all_params_config, features, all), name='predict')
         r_thread.daemon = True
         r_thread.start()
         final_pred = self._return_queue.get()
@@ -100,7 +100,7 @@ class ThreadHandler:
         return final_pred
 
     def predict_test_estimator(self, all_params_config, features):
-        r_thread = Process(target=lambda: self.predict_test_thread(all_params_config, features), name='test')
+        r_thread = Process(target=self.predict_test_thread, args=(all_params_config, features), name='test')
         r_thread.daemon = True
         r_thread.start()
         final_pred = self._return_queue.get()
@@ -108,7 +108,7 @@ class ThreadHandler:
         return final_pred
 
     def explain_estimator(self, all_params_config, explain_params):
-        r_thread = Process(target=lambda: self.explain_thread(all_params_config, explain_params),
+        r_thread = Process(target=self.explain_thread, args=(all_params_config, explain_params),
                            name='explain')
         r_thread.daemon = True
         r_thread.start()

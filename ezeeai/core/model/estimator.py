@@ -70,7 +70,10 @@ class AbstractEstimator(metaclass=ABCMeta):
         gpu_options = tf.GPUOptions(allow_growth=True)
         config = tf.ConfigProto(gpu_options=gpu_options)
         f = [s.function for s in inspect.stack() if
-             ntpath.basename(s.filename) == 'dfweb.py' and s.function != 'check_session'][-1]
+             ntpath.basename(s.filename) == 'thread_handler.py' and s.function in ['run_thread',
+                                                                                   'predict_thread',
+                                                                                   'explain_thread',
+                                                                                   'predict_test_thread']][-1]
 
         if f == 'predict' or (f != 'run' and len(GPUtil.getAvailable()) == 0):
             config.device_count.update({'GPU': 0})
