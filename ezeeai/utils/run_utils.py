@@ -186,7 +186,7 @@ def run_post(sess, request, USER_ROOT, username, th):
     return all_params_config
 
 
-def load_run_config(sess, th, username, form, USER_ROOT):
+def load_run_config(sess, th, username, form, USER_ROOT, models):
     model_name, checkpoints, metric, graphs, log_mess = define_empty_run_params()
     running, config_file = th.check_running(username)
 
@@ -198,6 +198,9 @@ def load_run_config(sess, th, username, form, USER_ROOT):
         sess.load_config()
         set_form(form, sess.get_config_file())
         model_name = ntpath.basename(config_file.rstrip('config.ini').rstrip('/').rstrip('\\'))
+        if model_name not in models:
+            model_name = ''
+            return running, model_name, checkpoints, metric, graphs, log_mess
         sess.set_model_name(model_name)
         export_dir = config_reader.read_config(sess.get_config_file()).export_dir()
         checkpoints = get_eval_results(export_dir, sess.get_writer(), sess.get_config_file())
