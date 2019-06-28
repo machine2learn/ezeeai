@@ -232,6 +232,10 @@ def default_model(local_sess, session, USER_ROOT, appConfig):
 
     dst_dir = os.path.join(USER_ROOT, username, 'datasets', dataset_name)
     shutil.copytree(data_dir, dst_dir)
+    os.makedirs(os.path.join(dst_dir, 'train'), exist_ok=True)
+    os.makedirs(os.path.join(dst_dir, 'valid'), exist_ok=True)
+    os.makedirs(os.path.join(dst_dir, 'test'), exist_ok=True)
+
     from .upload_util import new_config as nconfig
     nconfig(dataset_name, username, local_sess, USER_ROOT, appConfig)
     hlp = local_sess.get_helper()
@@ -239,6 +243,3 @@ def default_model(local_sess, session, USER_ROOT, appConfig):
     local_sess = save_local_model(local_sess, req, USER_ROOT, username)
     define_new_model(USER_ROOT, username, local_sess.get_writer(), local_sess.get_model_name())
     local_sess.write_params()
-    os.makedirs(os.path.join(dst_dir, dataset_name, 'train'), exist_ok=True)
-    os.makedirs(os.path.join(dst_dir, dataset_name, 'valid'), exist_ok=True)
-    os.makedirs(os.path.join(dst_dir, dataset_name, 'test'), exist_ok=True)
