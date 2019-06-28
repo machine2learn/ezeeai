@@ -361,7 +361,7 @@ def run():
     user_datasets = config_ops.get_datasets_and_types(USER_ROOT, username)
     form = GeneralParamForm(csrf_enabled=False)
     running, model_name, checkpoints, metric, graphs, log_mess = run_utils.load_run_config(sess, th, username, form,
-                                                                                           USER_ROOT)
+                                                                                           USER_ROOT, model_configs)
     if request.method == 'POST':
         all_params_config = run_utils.run_post(sess, request, USER_ROOT, username, th)
         remove_log(all_params_config.log_dir())

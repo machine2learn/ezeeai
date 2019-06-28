@@ -503,7 +503,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     }
+    $('#clear_grid').on('click', function () {
+        if (confirm('This action will clear all nodes and cannot be undone. Proceed?')){
+            cy.remove(cy.nodes());
+        }
 
+
+    });
 
     function clean_blocks() {
         let blocks = cy.nodes().filter((node) => (node.data().class_name === 'block' && node.children().length === 1));
@@ -859,6 +865,10 @@ $(document).ready(function () {
             alert('Model name can not be empty!');
             return false
         } else if (model_name in appConfig.parameters) {
+            if (model_name === $("#model-toggler").text()){
+                alert('This model is currently running. Please stop the training before saving any changes.');
+                return false;
+            }
             if (!confirm('This model name already exists do yo want to overwrite it?'))
                 return false;
         }
@@ -1040,7 +1050,11 @@ function send_canned(cy, dnn_nodes, cy_json, loss) {
 
 async function not_validate_save_model(cy, event, api) {
     if ($('#inp').val() in appConfig.parameters)
-        if (!confirm('This model name already exists, it will be overwrite. Continue?'))
+        if ($('#inp').val() === $("#model-toggler").text()) {
+            alert('This model is currently running. Please stop the training before saving any changes.');
+            return false;
+        }
+        if (!confirm('This model name already exists, it will be overridden. Continue?'))
             return false;
 
     cy.remove(cy.nodes().filter((node) => (!('name' in node.data()))));
@@ -1110,7 +1124,11 @@ function check_correct_loss(loss_function, activation) {
 
 async function validate_save_model(cy, event, api, save_model) {
     if ($('#inp').val() in appConfig.parameters && save_model) {
-        if (!confirm('This model name already exists, it will be overwrite. Continue?')) {
+        if ($('#inp').val() === $("#model-toggler").text()) {
+            alert('This model is currently running. Please stop the training before saving any changes.');
+            return false;
+        }
+        if (!confirm('This model name already exists, it will be overridden. Continue?')) {
             return false;
         }
     }
