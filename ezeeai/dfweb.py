@@ -80,10 +80,9 @@ def load_user(user_id):
 def login():
     form = LoginForm(csrf_enabled=False)
     if form.validate_on_submit():
-        if not checklogin(form, login_user, session, sess, USER_ROOT):
-            # app.logger.warn('Login attempt to %s from IP %s', form.username.data, request.remote_addr)
+        local_sess = Session(app, appConfig)
+        if not checklogin(form, login_user, session, sess, USER_ROOT, local_sess, appConfig):
             return render_template('login.html', form=form, error='Invalid username or password')
-        # update_token(session['user'], session['token'])
         return redirect(url_for('dashboard'))
     return render_template('login.html', form=form)
 

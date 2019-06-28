@@ -365,13 +365,19 @@ def create_custom_path(USER_ROOT, username, model_name):
     return path
 
 
-def create_user_path(USER_ROOT, username):
+def create_user_path(USER_ROOT, username, local_sess, session, appConfig):
+    create_default = False
     if not os.path.exists(os.path.join(USER_ROOT, username)):
+        create_default = True
         os.mkdir(os.path.join(USER_ROOT, username))
     if not os.path.exists(os.path.join(USER_ROOT, username, 'datasets')):
         os.mkdir(os.path.join(USER_ROOT, username, 'datasets'))
     if not os.path.exists(os.path.join(USER_ROOT, username, 'models')):
         os.mkdir(os.path.join(USER_ROOT, username, 'models'))
+
+    if create_default:
+        from .config_ops import default_model
+        default_model(local_sess, session, USER_ROOT, appConfig)
 
 
 def get_user_path(USER_ROOT, username):

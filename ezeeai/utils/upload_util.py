@@ -2,7 +2,7 @@ import os
 from ..data.tabular import Tabular
 from ..data.image import Image
 
-from .sys_ops import get_dataset_path, get_all_datasets,get_user_path
+from .sys_ops import get_dataset_path, get_all_datasets, get_user_path
 
 
 def get_text(file_name):
@@ -28,7 +28,7 @@ def new_config(dataset_name, username, sess, USER_ROOT, appConfig):
 
         # Create Tabular dataset
         dataset = Tabular(dataset_name, os.path.join(dataset_path, dataset_name + '.csv'))
-        path_test = os.path.join( get_dataset_path(USER_ROOT, username, dataset_name), 'test')
+        path_test = os.path.join(get_dataset_path(USER_ROOT, username, dataset_name), 'test')
         test_files = [os.path.join(path_test, f) for f in os.listdir(path_test) if
                       os.path.isfile(os.path.join(path_test, f))]
         if len(test_files) == 0:
