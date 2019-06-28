@@ -9,7 +9,8 @@ from ..database.user import User
 from ..database.usersession import UserSession
 from .sys_ops import create_user_path
 
-EXPIRE_TIME = 60 * 60 * 24 # one day
+EXPIRE_TIME = 60 * 60 * 24  # one day
+
 
 def randomStringwithDigit(stringLength=32):
     """Generate a random string of letters, digits and special characters """
@@ -30,7 +31,7 @@ def get_email_by_username(username):
     return user.email
 
 
-def checklogin(form, login_user, session, sess, user_root):
+def checklogin(form, login_user, session, sess, user_root, local_sess, appConfig):
     username = form.username.data
     password = form.password.data
     remember = form.remember.data
@@ -42,7 +43,7 @@ def checklogin(form, login_user, session, sess, user_root):
         login_user(user, remember=remember)
         session['user'] = user.username
         sess.add_user((session['user'], session['_id']))
-        create_user_path(user_root, user.username)
+        create_user_path(user_root, user.username, local_sess, session, appConfig)
         check_user_has_token(username)
         return True
     return False
@@ -82,6 +83,7 @@ def get_email(username):
 def get_usersession_by_username(username):
     return UserSession.query.filter_by(username=username).first()
 
+
 def check_user_has_token(username):
     if db.session.query(UserSession.id).filter_by(username=username).scalar() is None:
         create_user_session(username)
@@ -92,7 +94,6 @@ def check_user_has_token(username):
             token = randomStringwithDigit(32)
             update_token(username, token)
             update_timestamp(username)
-
 
 
 def create_user_session(username):
@@ -108,10 +109,12 @@ def update_token(username, token):
     user.token = token
     db.session.commit()
 
+
 def update_timestamp(username):
     user = get_usersession_by_username(username)
     user.timestamp = datetime.now()
     db.session.commit()
+
 
 def get_token_user(username):
     check_user_has_token(username)

@@ -1,10 +1,15 @@
 import configparser
+import json
+import shutil
+
 import dill as pickle
 import numpy as np
 import os
 import pandas as pd
 
 from ezeeai.data.utils.image import find_image_files_folder_per_class, find_image_files_from_file
+from ezeeai.utils.custom import save_local_model
+from ezeeai.utils.request_util import get_dataset, get_split
 
 from . import upload_util, sys_ops
 from .preprocessing import has_header
@@ -14,6 +19,14 @@ from .sys_ops import check_zip_file, unzip, tree_remove, find_dataset_from_numpy
 from werkzeug.utils import secure_filename
 
 option_map = {'option1': '.images1', 'option2': '.images2', 'option3': '.images3'}
+
+
+class SavedReq:
+    def __init__(self, data):
+        self.data = data
+
+    def get_json(self):
+        return self.data
 
 
 def get_datasets(USER_ROOT, username):
@@ -206,3 +219,26 @@ def new_image_dataset(USER_ROOT, username, option, file):
         tree_remove(dataset_path)
         raise e
     return dataset_name
+
+
+def default_model(local_sess, session, USER_ROOT, appConfig):
+    username = session['user']
+    local_sess.add_user((username, session['_id']))
+
+    data_dir = os.path.join('ezeeai', 'default', 'iris')
+    req = SavedReq(json.load(open(os.path.join(data_dir, 'req.json'))))
+
+    dataset_name = get_dataset(req)
+
+    dst_dir = os.path.join(USER_ROOT, username, 'datasets', dataset_name)
+    shutil.copytree(data_dir, dst_dir)
+    from .upload_util import new_config as nconfig
+    nconfig(dataset_name, username, local_sess, USER_ROOT, appConfig)
+    hlp = local_sess.get_helper()
+    hlp.set_split(get_split(req))
+    local_sess = save_local_model(local_sess, req, USER_ROOT, username)
+    define_new_model(USER_ROOT, username, local_sess.get_writer(), local_sess.get_model_name())
+    local_sess.write_params()
+    os.makedirs(os.path.join(dst_dir, dataset_name, 'train'), exist_ok=True)
+    os.makedirs(os.path.join(dst_dir, dataset_name, 'valid'), exist_ok=True)
+    os.makedirs(os.path.join(dst_dir, dataset_name, 'test'), exist_ok=True)
