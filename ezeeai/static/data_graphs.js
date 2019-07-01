@@ -28,12 +28,19 @@ function create_table(data, id, search_id) {
 
 
 function heatmap(id, columns, corr) {
+    var min = Math.min.apply(Math, corr.flat());
+    var max = Math.max.apply(Math, corr.flat());
+    var zval = Math.abs(0 - min / (max - min));
+
     var data = [
         {
             z: corr,
             x: columns,
             y: columns,
             type: 'heatmap',
+            colorscale: [['0.0', 'rgba(214, 39, 40, 0.85)'],
+                         [zval.toString(), 'rgba(255, 255, 255, 0.85)'],
+                         ['1.0', 'rgba(6,54,21, 0.85)']]
 
         }
     ];

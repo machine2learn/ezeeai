@@ -78,6 +78,8 @@
                     jsonFirst.data.id = id;
                     counters[jsonFirst.data.class_name] += 1;
                     jsonFirst.data.name = jsonFirst.data.class_name + '_' + counters[jsonFirst.data.class_name].toString();
+                    if (jsonFirst.data.hasOwnProperty('content'))
+                        jsonFirst.data.content.name.value = jsonFirst.data.name;
 
                 }
 
