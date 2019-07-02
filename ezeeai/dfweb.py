@@ -314,7 +314,8 @@ def save_model():
     local_sess = save_local_model(local_sess, request, USER_ROOT, username)
     config_ops.define_new_model(USER_ROOT, username, local_sess.get_writer(), local_sess.get_model_name())
     local_sess.write_params()
-    return jsonify(explanation='ok')
+    _, param_configs = config_ops.get_configs_files(USER_ROOT, username, not_validated=True)
+    return jsonify(explanation='ok', parameters=param_configs)
 
 
 @app.route('/save_no_val_model', methods=['GET', 'POST'])
@@ -325,7 +326,8 @@ def save_no_val_model():
     model_name = get_modelname(request)
     path = create_custom_path(USER_ROOT, username, model_name)
     save_cy_model(path, cy_model)
-    return jsonify(explanation='ok')
+    _, param_configs = config_ops.get_configs_files(USER_ROOT, username, not_validated=True)
+    return jsonify(explanation='ok', parameters=param_configs)
 
 
 @app.route('/params_run', methods=['POST'])

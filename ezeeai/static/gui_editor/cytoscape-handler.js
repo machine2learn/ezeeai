@@ -274,3 +274,29 @@ function add_submit_input(label_name, default_value) {
     $('#submitform').append(x);
 }
 
+function redraw_models_table(table_id, data){
+    if ($.fn.dataTable.isDataTable('#' + table_id)) {
+        $('#' + table_id).DataTable().destroy();
+    }
+    $('#' + table_id).DataTable({
+        data: get_load_rows(data),
+        columns: [
+            {title: 'Model name'},
+            {title: 'Dataset'},
+            {title: 'Perf'},
+            {title: 'Loss'}],
+        'select': 'single',
+        "lengthChange": false,
+        fixedHeader: false,
+        deferRender: false,
+        "drawCallback": function () {
+            if ($(this).DataTable().rows()[0].length <= 10) {
+                let id = '#' + $(this).attr('id');
+                $(id + '_paginate').remove();
+                $(id + '_info').remove();
+            }
+
+        }
+
+    });
+}
