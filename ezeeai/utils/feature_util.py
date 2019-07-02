@@ -67,6 +67,7 @@ def get_feature_key(feature):
 
 def prediction_from_df(file_path):
     df = pd.read_csv(file_path)
+    df = df.fillna(0)
     data = df.as_matrix().tolist()
     columns = [{'title': v} for v in df.columns.values.tolist()]
     return {'data': data, 'columns': columns}
