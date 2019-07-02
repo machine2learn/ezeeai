@@ -402,7 +402,7 @@ class Tabular:
         self._keyed_defaults = defaults
 
     def to_array(self, features):
-        df = self.get_df()[self.get_feature_names()]
+        df = self.get_df()[self.get_feature_names()].copy()
         feature_types = self.get_dtypes()
         for c in df.columns:
             if c in features.keys():
@@ -412,7 +412,7 @@ class Tabular:
                             features[c] = int(float(features[c]))
                         except:
                             pass
-                    df[c] = df[c].astype('category')
+                    df.loc[:, c] = df.loc[:, c].astype('category')
                     mapp = {y: x for x, y in dict(enumerate(df[c].cat.categories)).items()}
                     features[c] = float(mapp[features[c]])
                 else:
@@ -423,12 +423,12 @@ class Tabular:
         return input_predict
 
     def from_array(self, features):
-        df = self.get_df()[self.get_feature_names()]
+        df = self.get_df()[self.get_feature_names()].copy()
         feature_types = self.get_dtypes()
         for c in df.columns:
             if c in features.keys():
                 if df[c].dtype == 'object':
-                    df[c] = df[c].astype('category')
+                    df.loc[:, c] = df.loc[:, c].astype('category')
                     mapp = {x: y for x, y in dict(enumerate(df[c].cat.categories)).items()}
                     features[c] = np.vectorize(mapp.get)(features[c])
                     if feature_types[c] == 'hash':
@@ -446,8 +446,7 @@ class Tabular:
     def clean_values(self, df):
         df.replace([np.inf, -np.inf], np.nan, inplace=True)
         for c in df.columns.values:
-            df[c] = df[c].fillna(self._keyed_defaults[c])
-            df[c] = df[c].astype(type(self._keyed_defaults[c]))
+            df.loc[:, c] = df.loc[:, c].fillna(self._keyed_defaults[c]).astype(type(self._keyed_defaults[c]))
         return df
 
     def make_numpy_array(self, file, sel_target=None):
@@ -461,10 +460,9 @@ class Tabular:
         df = df[self.get_feature_names()]
         for c in df.columns:
             if df[c].dtype == 'object':
-                df[c] = df[c].astype('category')
+                df.loc[:, c] = df.loc[:, c].astype('category')
         cat_columns = df.select_dtypes(['category']).columns
-        df[cat_columns] = df[cat_columns].apply(lambda x: x.cat.codes)
-
+        df.loc[:, cat_columns] = df.loc[:, cat_columns].apply(lambda x: x.cat.codes)
         return df.values, y
 
     def get_categorical_features(self):
