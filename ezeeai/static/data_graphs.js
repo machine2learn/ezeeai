@@ -26,14 +26,46 @@ function create_table(data, id, search_id) {
     });
 }
 
+function gradient(colorA, colorB, steps=11) {
+    var A = colorA.split('(')[1].split(')')[0].split(',');
+    A[0] = parseInt(A[0], 10);
+    A[1] = parseInt(A[1], 10);
+    A[2] = parseInt(A[2], 10);
+    var B = colorB.split('(')[1].split(')')[0].split(',');
+    B[0] = parseInt(B[0], 10);
+    B[1] = parseInt(B[1], 10);
+    B[2] = parseInt(B[2], 10);
+    var Gradient = new Array(3);
+    var result = {};
+    for (var N = 0; N <= steps; N++) {
+        for (var c = 0; c < 3; c++) // RGB channels were calculated
+        {
+            Gradient[c] = A[c] + (B[c] - A[c]) / steps * N;
+
+        }
+        result[N/10] = Gradient.slice();
+
+    }
+    return result;
+}
 
 function heatmap(id, columns, corr) {
+    var min = Math.min.apply(Math, corr.flat());
+    var max = Math.max.apply(Math, corr.flat());
+    var zval = Math.abs(0 - min / (max - min));
+
+    var lbound = gradient('rgb(255,255,255)', 'rgb(0,0,255)')[Math.round(Math.abs(min) * 10) / 10];
+    var ubound = gradient('rgb(255,255,255)', 'rgb(255,0,0)')[Math.round(Math.abs(max) * 10) / 10];
+
     var data = [
         {
             z: corr,
             x: columns,
             y: columns,
             type: 'heatmap',
+            colorscale: [['0.0', 'rgba(' + lbound.toString() + ',0.85)'],
+                         [zval.toString(), 'rgba(255, 255, 255, 0.85)'],
+                         ['1.0', 'rgba(' + ubound.toString() + ',0.85)']]
 
         }
     ];
