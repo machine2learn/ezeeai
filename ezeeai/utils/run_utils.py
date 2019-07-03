@@ -110,7 +110,6 @@ def get_eval_results(directory, config_writer, CONFIG_FILE):
         except ValueError:
             perf = perf
         results[ntpath.basename(k)] = {metric: perf, 'loss': float("{0:.3f}".format(loss)), 'step': step}
-    json.dump(log_file, open(os.path.join(directory, 'export.log'), 'w'))
 
     if 'TRAINING' in config_writer.config.sections():
         config_writer.add_item('BEST_MODEL', 'max_perf', str(float("{0:.3f}".format(max_perf))))
