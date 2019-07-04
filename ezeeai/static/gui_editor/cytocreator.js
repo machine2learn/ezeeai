@@ -964,8 +964,11 @@ function zoom(cy, level) {
     cy.zoom({level: zoom + level});
 }
 
-function center_layout(cy) {
-    let layout = cy.layout({name: 'dagre'});
+function fit_layout(cy, rankDir=null) {
+    let opts = {name: 'dagre'};
+    if (rankDir !== null)
+        opts['rankDir'] = rankDir;
+    let layout = cy.layout(opts);
     layout.run();
     cy.maxZoom(1.2);
     cy.fit();
@@ -973,13 +976,21 @@ function center_layout(cy) {
     cy.center();
 }
 
+
+function center_layout(cy) {
+    let enodes = api.collapsibleNodes();
+    api.collapse(enodes);
+    fit_layout(cy);
+    api.expand(enodes);
+    fit_layout(cy);
+}
+
 function horizontal_layout(cy) {
-    let layout = cy.layout({name: 'dagre', rankDir: 'LR'});
-    layout.run();
-    cy.maxZoom(1.2);
-    cy.fit();
-    cy.maxZoom(cy.maxZoom());
-    cy.center();
+    let enodes = api.collapsibleNodes();
+    api.collapse(enodes);
+    fit_layout(cy, 'LR');
+    api.expand(enodes);
+    fit_layout(cy, 'LR');
 }
 
 function sort_nodes(nodes) {

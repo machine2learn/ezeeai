@@ -76,47 +76,49 @@ def get_eval_results(directory, config_writer, CONFIG_FILE):
     results = {}
     if not os.path.isfile(os.path.join(directory, 'export.log')):
         return results
+    try:
+        log_file = json.load(open(os.path.join(directory, 'export.log'), 'r'))
 
-    log_file = json.load(open(os.path.join(directory, 'export.log'), 'r'))
+        max_perf = 0
+        max_perf_index = 0
+        min_loss = math.inf
+        min_loss_index = 0
+        for k in list(log_file.keys()):
+            metric = "accuracy"
+            v = log_file[k]
+            if not os.path.isdir(k):
+                del log_file[k]
+                continue
+            step = str(int(v['global_step']))
+            if 'accuracy' in v.keys():
+                perf = v['accuracy']
+            else:
+                perf = v['r_squared']
+                metric = 'r_squared'
 
-    max_perf = 0
-    max_perf_index = 0
-    min_loss = math.inf
-    min_loss_index = 0
-    for k in list(log_file.keys()):
-        metric = "accuracy"
-        v = log_file[k]
-        if not os.path.isdir(k):
-            del log_file[k]
-            continue
-        step = str(int(v['global_step']))
-        if 'accuracy' in v.keys():
-            perf = v['accuracy']
-        else:
-            perf = v['r_squared']
-            metric = 'r_squared'
+            if max_perf < perf:
+                max_perf = perf
+                max_perf_index = step
 
-        if max_perf < perf:
-            max_perf = perf
-            max_perf_index = step
+            loss = v['average_loss'] if 'average_loss' in v else v['loss']
 
-        loss = v['average_loss'] if 'average_loss' in v else v['loss']
+            if min_loss > loss:
+                min_loss = loss
+                min_loss_index = step
+            try:
+                perf = float("{0:.3f}".format(perf))
+            except ValueError:
+                perf = perf
+            results[ntpath.basename(k)] = {metric: perf, 'loss': float("{0:.3f}".format(loss)), 'step': step}
 
-        if min_loss > loss:
-            min_loss = loss
-            min_loss_index = step
-        try:
-            perf = float("{0:.3f}".format(perf))
-        except ValueError:
-            perf = perf
-        results[ntpath.basename(k)] = {metric: perf, 'loss': float("{0:.3f}".format(loss)), 'step': step}
-
-    if 'TRAINING' in config_writer.config.sections():
-        config_writer.add_item('BEST_MODEL', 'max_perf', str(float("{0:.3f}".format(max_perf))))
-        config_writer.add_item('BEST_MODEL', 'max_perf_index', str(max_perf_index))
-        config_writer.add_item('BEST_MODEL', 'min_loss', str(float("{0:.3f}".format(min_loss))))
-        config_writer.add_item('BEST_MODEL', 'min_loss_index', str(min_loss_index))
-        config_writer.write_config(CONFIG_FILE)
+        if 'TRAINING' in config_writer.config.sections():
+            config_writer.add_item('BEST_MODEL', 'max_perf', str(float("{0:.3f}".format(max_perf))))
+            config_writer.add_item('BEST_MODEL', 'max_perf_index', str(max_perf_index))
+            config_writer.add_item('BEST_MODEL', 'min_loss', str(float("{0:.3f}".format(min_loss))))
+            config_writer.add_item('BEST_MODEL', 'min_loss_index', str(min_loss_index))
+            config_writer.write_config(CONFIG_FILE)
+    except json.JSONDecodeError:
+        pass
     return results
 
 
