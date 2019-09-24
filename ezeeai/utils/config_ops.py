@@ -119,7 +119,7 @@ def new_config(train_form_file, test_form_file, USER_ROOT, username):
 
     open(os.path.join(path, '.tabular'), 'w')
 
-    if not isinstance(test_form_file, str):
+    if not isinstance(test_form_file, str) and test_form_file.filename is not '':
         ext = test_form_file.filename.split('.')[-1]
         test_file = test_form_file.filename.split('.' + ext)[0]
         sys_ops.save_filename(os.path.join(path, 'test'), test_form_file, test_file)
