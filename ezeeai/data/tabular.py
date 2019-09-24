@@ -218,7 +218,7 @@ class Tabular:
     def _insert_data_summary(self, unique_values, default_list, frequent_values2frequency, sample_data_size):
         df = self.get_df()
         categories = self.get_categories()
-        df = df.dropna(axis=0)
+        df = df.apply(lambda x: x.fillna(x.mode()), axis=0)
         data = df.head(sample_data_size).T
         data.insert(0, 'Defaults', default_list.values())
         data.insert(0, '(most frequent, frequency)', frequent_values2frequency.values())

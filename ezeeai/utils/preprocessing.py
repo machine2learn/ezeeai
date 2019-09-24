@@ -21,6 +21,13 @@ def clean_field_names(filename):
                                          range(df.columns.get_loc(dup).sum())]
 
     df.columns = cols
+
+    for c in df.columns:
+        try:
+            df[c] = df[c].astype(str).str.replace(',', '')
+        except:
+            pass
+
     df.to_csv(filename, index=False)
     return df
 
