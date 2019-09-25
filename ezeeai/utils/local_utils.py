@@ -56,6 +56,12 @@ def process_test_request(local_sess, hlp, all_params_config, username, USER_ROOT
 
         metrics = get_mode_metrics(has_targets, hlp.get_mode(), labels, local_sess, hlp.get_targets())
         avoidNaNs(metrics)
+        
+        for j, arr in enumerate( predict_table['data'], start=0):
+            for i, ele in enumerate(arr, start=0):
+                if isinstance(ele, float) and math.isnan(ele):
+                    predict_table['data'][j][i] = ''
+
         return {'predict_table': predict_table, 'metrics': metrics, 'targets': hlp.get_targets()}
     except Exception as e:
         return {'predict_table': '', 'metrics': '', 'targets': '', 'error': str(e)}
