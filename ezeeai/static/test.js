@@ -111,7 +111,7 @@ $(document).ready(function () {
                 }
 
             },
-            error: function () {
+            error: function (e) {
                 $('.loader-test-file').addClass('hide-element');
                 $.notify('Test not successful')
 

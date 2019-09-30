@@ -16,7 +16,7 @@ import cv2
 import base64
 import numpy as np
 import PIL.Image
-
+import ntpath
 
 def encode_image(path):
     if isinstance(path, np.ndarray):
@@ -175,8 +175,9 @@ class Tabular(Helper):
     def process_targets_request(self, request):
         selected_rows = get_targets(request)
 
-        if not self._dataset.update_targets(selected_rows):
-            return {'error': 'Only numerical features are supported for multiouput.'}
+        target_check = self._dataset.update_targets(selected_rows)
+        if target_check:
+            return {'error': target_check}
 
         self._dataset.split_dataset()
         self._dataset.update_feature_columns()  # TODO maybe inside split
@@ -296,7 +297,7 @@ class Tabular(Helper):
         return has_targets, test_filename, df_test, None
 
     def process_test_predict(self, df, final_pred, test_filename):
-        return sys_ops.save_results(df, final_pred['preds'], self._dataset.get_targets(), test_filename.split('/')[-1],
+        return sys_ops.save_results(df, final_pred['preds'], self._dataset.get_targets(), ntpath.basename(test_filename),
                                     self._dataset.get_base_path())
 
     def write_dataset(self, data_path):

@@ -1,6 +1,7 @@
 import os
 import math
 import json
+import ntpath
 
 import numpy as np
 import pandas as pd
@@ -75,48 +76,49 @@ def get_eval_results(directory, config_writer, CONFIG_FILE):
     results = {}
     if not os.path.isfile(os.path.join(directory, 'export.log')):
         return results
+    try:
+        log_file = json.load(open(os.path.join(directory, 'export.log'), 'r'))
 
-    log_file = json.load(open(os.path.join(directory, 'export.log'), 'r'))
+        max_perf = 0
+        max_perf_index = 0
+        min_loss = math.inf
+        min_loss_index = 0
+        for k in list(log_file.keys()):
+            metric = "accuracy"
+            v = log_file[k]
+            if not os.path.isdir(k):
+                del log_file[k]
+                continue
+            step = str(int(v['global_step']))
+            if 'accuracy' in v.keys():
+                perf = v['accuracy']
+            else:
+                perf = v['r_squared']
+                metric = 'r_squared'
 
-    max_perf = 0
-    max_perf_index = 0
-    min_loss = math.inf
-    min_loss_index = 0
-    for k in list(log_file.keys()):
-        metric = "accuracy"
-        v = log_file[k]
-        if not os.path.isdir(k):
-            del log_file[k]
-            continue
-        step = str(int(v['global_step']))
-        if 'accuracy' in v.keys():
-            perf = v['accuracy']
-        else:
-            perf = v['r_squared']
-            metric = 'r_squared'
+            if max_perf < perf:
+                max_perf = perf
+                max_perf_index = step
 
-        if max_perf < perf:
-            max_perf = perf
-            max_perf_index = step
+            loss = v['average_loss'] if 'average_loss' in v else v['loss']
 
-        loss = v['average_loss'] if 'average_loss' in v else v['loss']
+            if min_loss > loss:
+                min_loss = loss
+                min_loss_index = step
+            try:
+                perf = float("{0:.3f}".format(perf))
+            except ValueError:
+                perf = perf
+            results[ntpath.basename(k)] = {metric: perf, 'loss': float("{0:.3f}".format(loss)), 'step': step}
 
-        if min_loss > loss:
-            min_loss = loss
-            min_loss_index = step
-        try:
-            perf = float("{0:.3f}".format(perf))
-        except ValueError:
-            perf = perf
-        results[k.split('/')[-1]] = {metric: perf, 'loss': float("{0:.3f}".format(loss)), 'step': step}
-    json.dump(log_file, open(os.path.join(directory, 'export.log'), 'w'))
-
-    if 'TRAINING' in config_writer.config.sections():
-        config_writer.add_item('BEST_MODEL', 'max_perf', str(float("{0:.3f}".format(max_perf))))
-        config_writer.add_item('BEST_MODEL', 'max_perf_index', str(max_perf_index))
-        config_writer.add_item('BEST_MODEL', 'min_loss', str(float("{0:.3f}".format(min_loss))))
-        config_writer.add_item('BEST_MODEL', 'min_loss_index', str(min_loss_index))
-        config_writer.write_config(CONFIG_FILE)
+        if 'TRAINING' in config_writer.config.sections():
+            config_writer.add_item('BEST_MODEL', 'max_perf', str(float("{0:.3f}".format(max_perf))))
+            config_writer.add_item('BEST_MODEL', 'max_perf_index', str(max_perf_index))
+            config_writer.add_item('BEST_MODEL', 'min_loss', str(float("{0:.3f}".format(min_loss))))
+            config_writer.add_item('BEST_MODEL', 'min_loss_index', str(min_loss_index))
+            config_writer.write_config(CONFIG_FILE)
+    except json.JSONDecodeError:
+        pass
     return results
 
 
@@ -185,7 +187,7 @@ def run_post(sess, request, USER_ROOT, username, th):
     return all_params_config
 
 
-def load_run_config(sess, th, username, form, USER_ROOT):
+def load_run_config(sess, th, username, form, USER_ROOT, models):
     model_name, checkpoints, metric, graphs, log_mess = define_empty_run_params()
     running, config_file = th.check_running(username)
 
@@ -196,7 +198,10 @@ def load_run_config(sess, th, username, form, USER_ROOT):
         sess.set_config_file(config_file)
         sess.load_config()
         set_form(form, sess.get_config_file())
-        model_name = config_file.split('/')[-2]
+        model_name = ntpath.basename(config_file.rstrip('config.ini').rstrip('/').rstrip('\\'))
+        if model_name not in models:
+            model_name = ''
+            return running, model_name, checkpoints, metric, graphs, log_mess
         sess.set_model_name(model_name)
         export_dir = config_reader.read_config(sess.get_config_file()).export_dir()
         checkpoints = get_eval_results(export_dir, sess.get_writer(), sess.get_config_file())

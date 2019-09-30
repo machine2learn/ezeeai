@@ -1,6 +1,6 @@
 import pandas as pd
 import pandas_profiling as pp
-
+import ntpath
 # import logging.config
 # from config.logging_config import logging_config
 
@@ -80,10 +80,9 @@ def load_user(user_id):
 def login():
     form = LoginForm(csrf_enabled=False)
     if form.validate_on_submit():
-        if not checklogin(form, login_user, session, sess, USER_ROOT):
-            # app.logger.warn('Login attempt to %s from IP %s', form.username.data, request.remote_addr)
+        local_sess = Session(app, appConfig)
+        if not checklogin(form, login_user, session, sess, USER_ROOT, local_sess, appConfig):
             return render_template('login.html', form=form, error='Invalid username or password')
-        # update_token(session['user'], session['token'])
         return redirect(url_for('dashboard'))
     return render_template('login.html', form=form)
 
@@ -315,7 +314,8 @@ def save_model():
     local_sess = save_local_model(local_sess, request, USER_ROOT, username)
     config_ops.define_new_model(USER_ROOT, username, local_sess.get_writer(), local_sess.get_model_name())
     local_sess.write_params()
-    return jsonify(explanation='ok')
+    _, param_configs = config_ops.get_configs_files(USER_ROOT, username, not_validated=True)
+    return jsonify(explanation='ok', parameters=param_configs)
 
 
 @app.route('/save_no_val_model', methods=['GET', 'POST'])
@@ -326,7 +326,8 @@ def save_no_val_model():
     model_name = get_modelname(request)
     path = create_custom_path(USER_ROOT, username, model_name)
     save_cy_model(path, cy_model)
-    return jsonify(explanation='ok')
+    _, param_configs = config_ops.get_configs_files(USER_ROOT, username, not_validated=True)
+    return jsonify(explanation='ok', parameters=param_configs)
 
 
 @app.route('/params_run', methods=['POST'])
@@ -378,7 +379,7 @@ def run():
     user_datasets = config_ops.get_datasets_and_types(USER_ROOT, username)
     form = GeneralParamForm(csrf_enabled=False)
     running, model_name, checkpoints, metric, graphs, log_mess = run_utils.load_run_config(sess, th, username, form,
-                                                                                           USER_ROOT)
+                                                                                           USER_ROOT, model_configs)
     if request.method == 'POST':
         all_params_config = run_utils.run_post(sess, request, USER_ROOT, username, th)
         remove_log(all_params_config.log_dir())
@@ -551,7 +552,7 @@ def running_check():
             all_params_config = config_reader.read_config(sess.get_config_file())
             epochs = run_utils.get_step(hlp.get_train_size(), all_params_config.train_batch_size(),
                                         all_params_config.checkpoint_dir())
-            model_name = config_file.split('/')[-2]
+            model_name = ntpath.basename(config_file.rstrip('config.ini').rstrip('/').rstrip('\\'))
         except (KeyError, NoSectionError):
             pass
     return jsonify(running=running, epochs=epochs, model_name=model_name)
@@ -609,7 +610,7 @@ def deploy():
         config_path = sys_ops.get_config_path(USER_ROOT, username, model_name)
         all_params_config = config_reader.read_config(config_path)
         file_path = sys_ops.export_models(all_params_config.export_dir(), request.form['selected_rows'], model_name)
-        return send_file(file_path, mimetype='application/zip', attachment_filename=file_path.split('/')[-1],
+        return send_file(file_path, mimetype='application/zip', attachment_filename=ntpath.basename(file_path),
                          as_attachment=True)
     _, param_configs = config_ops.get_configs_files(USER_ROOT, username)
     return render_template('deploy.html', user=username, token=get_token_user(username), parameters=param_configs)

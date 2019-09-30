@@ -504,6 +504,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     }
 
+    $('#clear_grid').on('click', function () {
+        if (confirm('This action will clear all nodes and cannot be undone. Proceed?')) {
+            cy.remove(cy.nodes());
+        }
+
+
+    });
 
     function clean_blocks() {
         let blocks = cy.nodes().filter((node) => (node.data().class_name === 'block' && node.children().length === 1));
@@ -859,8 +866,13 @@ $(document).ready(function () {
             alert('Model name can not be empty!');
             return false
         } else if (model_name in appConfig.parameters) {
+            if (model_name === $("#model-toggler").text()) {
+                alert('This model is currently running. Please stop the training before saving any changes.');
+                return false;
+            }
             if (!confirm('This model name already exists do yo want to overwrite it?'))
                 return false;
+
         }
         $('#modelname').val(model_name);
 
@@ -952,8 +964,11 @@ function zoom(cy, level) {
     cy.zoom({level: zoom + level});
 }
 
-function center_layout(cy) {
-    let layout = cy.layout({name: 'dagre'});
+function fit_layout(cy, rankDir=null) {
+    let opts = {name: 'dagre'};
+    if (rankDir !== null)
+        opts['rankDir'] = rankDir;
+    let layout = cy.layout(opts);
     layout.run();
     cy.maxZoom(1.2);
     cy.fit();
@@ -961,13 +976,21 @@ function center_layout(cy) {
     cy.center();
 }
 
+
+function center_layout(cy) {
+    let enodes = api.collapsibleNodes();
+    api.collapse(enodes);
+    fit_layout(cy);
+    api.expand(enodes);
+    fit_layout(cy);
+}
+
 function horizontal_layout(cy) {
-    let layout = cy.layout({name: 'dagre', rankDir: 'LR'});
-    layout.run();
-    cy.maxZoom(1.2);
-    cy.fit();
-    cy.maxZoom(cy.maxZoom());
-    cy.center();
+    let enodes = api.collapsibleNodes();
+    api.collapse(enodes);
+    fit_layout(cy, 'LR');
+    api.expand(enodes);
+    fit_layout(cy, 'LR');
 }
 
 function sort_nodes(nodes) {
@@ -1015,7 +1038,7 @@ function send_canned(cy, dnn_nodes, cy_json, loss) {
 
 
     $('#save_model').text('Saving...')
-        .addClass('disabled')
+        .addClass('disabled');
     $.ajax({
         url: "/save_model",
         type: 'POST',
@@ -1027,9 +1050,9 @@ function send_canned(cy, dnn_nodes, cy_json, loss) {
         data: JSON.stringify(args),
         success: function (result) {
             $.notify("New model saved", "success");
-            $('#save_model').text('Save')
-                .removeClass('disabled')
-
+            $('#save_model').text('Save').removeClass('disabled');
+            appConfig.parameters = result.parameters;
+            redraw_models_table('table_models', appConfig.parameters);
         },
         error: function (result) {
             $.notify('Model not saved', "error");
@@ -1039,9 +1062,16 @@ function send_canned(cy, dnn_nodes, cy_json, loss) {
 
 
 async function not_validate_save_model(cy, event, api) {
-    if ($('#inp').val() in appConfig.parameters)
-        if (!confirm('This model name already exists, it will be overwrite. Continue?'))
+    if ($('#inp').val() in appConfig.parameters){
+         if ($('#inp').val() === $("#model-toggler").text()) {
+            alert('This model is currently running. Please stop the training before saving any changes.');
             return false;
+
+        }
+         if (!confirm('This model name already exists, it will be overridden. Continue?'))
+        return false;
+
+    }
 
     cy.remove(cy.nodes().filter((node) => (!('name' in node.data()))));
 
@@ -1062,8 +1092,9 @@ async function not_validate_save_model(cy, event, api) {
         data: JSON.stringify(args),
         success: function (result) {
             $.notify("New model saved", "success");
-            $('#save_model').text('Save')
-                .removeClass('disabled')
+            $('#save_model').text('Save').removeClass('disabled');
+            appConfig.parameters = result.parameters;
+            redraw_models_table('table_models', appConfig.parameters);
         }
     });
 }
@@ -1074,7 +1105,7 @@ function check_correct_loss(loss_function, activation) {
     let mode = 'regression';
     let target_type = null;
     let dataset = appConfig.hasOwnProperty('dataset') ? appConfig.dataset : appConfig.dataset_params.name;
-
+    if (dataset === undefined) throw 'Please configure your dataset before validating';
     if (appConfig['user_dataset'][dataset].includes('images')) {
         target_type = 'categorical'
 
@@ -1110,7 +1141,11 @@ function check_correct_loss(loss_function, activation) {
 
 async function validate_save_model(cy, event, api, save_model) {
     if ($('#inp').val() in appConfig.parameters && save_model) {
-        if (!confirm('This model name already exists, it will be overwrite. Continue?')) {
+        if ($('#inp').val() === $("#model-toggler").text()) {
+            alert('This model is currently running. Please stop the training before saving any changes.');
+            return false;
+        }
+        if (!confirm('This model name already exists, it will be overridden. Continue?')) {
             return false;
         }
     }
@@ -1183,6 +1218,7 @@ async function validate_save_model(cy, event, api, save_model) {
                 cy.add(loss_node);
                 cy.add(edges);
                 api.collapse(enodes);
+                alert(e);
             }
             event.preventDefault();
         }
@@ -1251,8 +1287,8 @@ async function tf_load_model(nodes, models, loss_function, cy_json, cy, loss_nod
                         return false;
                     }
                     $.notify("New model saved", "success");
-
-
+                    appConfig.parameters = result.parameters;
+                    redraw_models_table('table_models', appConfig.parameters);
                 }
 
             });

@@ -255,11 +255,14 @@ class Tabular:
         categories = self.get_categories()
         summary_data = self.get_data_summary()
         df = self.get_df()
+        for t in targets:
+            if summary_data.Category[t] == 'hash':
+                return 'Hash features are not allowed as target.'
 
         if len(targets) > 1:
             for t in targets:
                 if summary_data.Category[t] != 'numerical':
-                    return False
+                    return 'Only numerical features are supported for multiouput.'
 
         self.set_targets(targets)
         if len(targets) == 1:
@@ -272,7 +275,7 @@ class Tabular:
                 summary_data.Category = new_categ_list
                 fs.update(categories, dict(zip(summary_data.index.tolist(), summary_data.Defaults)))
 
-        return True
+        return ''
 
     def update_feature_columns(self):
         categories = self.get_categories()
@@ -309,8 +312,8 @@ class Tabular:
         file = self.get_file()
         basename = os.path.basename(file)
 
-        train_file = file.replace(basename, f'train/{basename}')
-        validation_file = file.replace(basename, f'valid/{basename}')
+        train_file = os.path.join(file.rstrip(basename), 'train', basename)
+        validation_file = os.path.join(file.rstrip(basename), 'valid', basename)
 
         percent = percent.split(',')
         percent = (int(percent[0]), int(percent[1]), int(percent[2]))
@@ -328,7 +331,7 @@ class Tabular:
         train_df, val_df = train_test_split(df, test_size=val_frac, stratify=stratify, random_state=42)
 
         if percent[2] != 0:
-            pre = file.replace(basename, f'test/{basename}').split('.')
+            pre = os.path.join(file.rstrip(basename), 'test', basename).split('.')
             test_file = f'{pre[0]}_split_test.{pre[1]}'
             test_size = int(round((percent[2] / 100) * len(df)))
             if len(targets) == 1 and self.get_df()[targets[0]].dtype == 'object':
@@ -399,7 +402,7 @@ class Tabular:
         self._keyed_defaults = defaults
 
     def to_array(self, features):
-        df = self.get_df()[self.get_feature_names()]
+        df = self.get_df()[self.get_feature_names()].copy()
         feature_types = self.get_dtypes()
         for c in df.columns:
             if c in features.keys():
@@ -409,7 +412,7 @@ class Tabular:
                             features[c] = int(float(features[c]))
                         except:
                             pass
-                    df[c] = df[c].astype('category')
+                    df.loc[:, c] = df.loc[:, c].astype('category')
                     mapp = {y: x for x, y in dict(enumerate(df[c].cat.categories)).items()}
                     features[c] = float(mapp[features[c]])
                 else:
@@ -420,12 +423,12 @@ class Tabular:
         return input_predict
 
     def from_array(self, features):
-        df = self.get_df()[self.get_feature_names()]
+        df = self.get_df()[self.get_feature_names()].copy()
         feature_types = self.get_dtypes()
         for c in df.columns:
             if c in features.keys():
                 if df[c].dtype == 'object':
-                    df[c] = df[c].astype('category')
+                    df.loc[:, c] = df.loc[:, c].astype('category')
                     mapp = {x: y for x, y in dict(enumerate(df[c].cat.categories)).items()}
                     features[c] = np.vectorize(mapp.get)(features[c])
                     if feature_types[c] == 'hash':
@@ -443,8 +446,7 @@ class Tabular:
     def clean_values(self, df):
         df.replace([np.inf, -np.inf], np.nan, inplace=True)
         for c in df.columns.values:
-            df[c] = df[c].fillna(self._keyed_defaults[c])
-            df[c] = df[c].astype(type(self._keyed_defaults[c]))
+            df.loc[:, c] = df.loc[:, c].fillna(self._keyed_defaults[c]).astype(type(self._keyed_defaults[c]))
         return df
 
     def make_numpy_array(self, file, sel_target=None):
@@ -458,10 +460,9 @@ class Tabular:
         df = df[self.get_feature_names()]
         for c in df.columns:
             if df[c].dtype == 'object':
-                df[c] = df[c].astype('category')
+                df.loc[:, c] = df.loc[:, c].astype('category')
         cat_columns = df.select_dtypes(['category']).columns
-        df[cat_columns] = df[cat_columns].apply(lambda x: x.cat.codes)
-
+        df.loc[:, cat_columns] = df.loc[:, cat_columns].apply(lambda x: x.cat.codes)
         return df.values, y
 
     def get_categorical_features(self):

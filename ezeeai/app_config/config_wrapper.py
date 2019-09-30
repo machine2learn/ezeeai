@@ -67,7 +67,7 @@ class ConfigApp(object):
 
     def debug(self):
         if 'DEBUG' in os.environ:
-            return str2bool( os.environ['DEBUG'])
+            return str2bool(os.environ['DEBUG'])
         return str2bool(self.get(FLASK, 'DEBUG'))
 
     def threaded(self):
@@ -128,7 +128,6 @@ class ConfigApp(object):
         if 'SECRET_KEY' in os.environ:
             return os.environ['SECRET_KEY']
         return os.urandom(42)
-
 
 # if __name__ == '__main__':
 #     c = ConfigApp()

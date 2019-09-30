@@ -171,7 +171,11 @@ class BestExporter(Exporter):
             self._best_eval_result = self._get_best_eval_result(
                 full_event_file_pattern)
         if os.path.isfile(os.path.join(export_path, 'export.log')):
-            self._log = json.load(open(os.path.join(export_path, 'export.log'), 'r'))
+            self._log = {}
+            try:
+                self._log = json.load(open(os.path.join(export_path, 'export.log'), 'r'))
+            except json.JSONDecodeError:
+                pass
             if len(self._log) == 0:
                 self._best_eval_result = None
 

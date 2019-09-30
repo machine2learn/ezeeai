@@ -22,7 +22,8 @@ def roc_auc(y_test, y_score, classes):
     if len(classes) == 2:
         if np.max(y_score) > 1:
             y_score = sigmoid(y_score)
-        fpr['bin'], tpr['bin'], _ = roc_curve(y_test.reshape(-1), y_score.reshape(-1), pos_label=classes[1])
+        fpr['bin'], tpr['bin'], _ = roc_curve(y_test.reshape(-1), y_score.reshape(-1),
+                                              pos_label=np.array(classes).astype(y_test.dtype)[1])
         roc_auc['bin'] = auc(fpr['bin'], tpr['bin'])
         fpr['bin'] = fpr['bin'].tolist()
         tpr['bin'] = tpr['bin'].tolist()
@@ -70,10 +71,12 @@ def precision_recall(y_test, y_score, classes):
     if len(classes) == 2:
         if np.max(y_score) > 1:
             y_score = sigmoid(y_score)
+        pos_label = np.array(classes).astype(y_test.dtype)[1]
         precision['bin'], recall['bin'], _ = precision_recall_curve(y_test.reshape(-1),
-                                                                    y_score.reshape(-1), pos_label=classes[1])
+                                                                    y_score.reshape(-1),
+                                                                    pos_label=pos_label)
         average_precision['bin'] = average_precision_score(y_test.reshape(-1),
-                                                           y_score.reshape(-1), pos_label=classes[1])
+                                                           y_score.reshape(-1), pos_label=pos_label)
         precision['bin'] = precision['bin'].tolist()
         recall['bin'] = recall['bin'].tolist()
         dict_results = {'precision': precision, 'recall': recall, 'average_precision': average_precision}
