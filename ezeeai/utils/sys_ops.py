@@ -219,6 +219,14 @@ def check_df(test_df, df, targets, filename):
             test_df = test_df.reindex(columns=df.columns.values)
             test_df.to_csv(filename, index=False)
             return False
+
+    for c in df.columns:
+        if df[c].dtypes != test_df[c].dtypes:
+            test_df[c] = test_df[c].astype(df[c].dtypes)
+            if isinstance(test_df[c][0], float):
+                test_df[c].fillna('')
+    test_df.to_csv(filename, index=False)
+
     return True
 
 

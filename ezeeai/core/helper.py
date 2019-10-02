@@ -321,6 +321,7 @@ class Tabular(Helper):
         params['graphs'] = graphs
         params['predict_table'] = predict_table
 
+
         return params
 
     def get_df_test(self, df_test, has_targets):
