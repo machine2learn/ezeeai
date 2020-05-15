@@ -2,7 +2,7 @@
 # EZEE AI
 
 ## Description
-A GUI-baesd platform for deep learning. This tool is based on tensorflow and tensorflow.js. 
+A GUI-based platform for deep learning. This tool is based on tensorflow and tensorflow.js. 
 
 ## Installation
 
