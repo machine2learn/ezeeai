@@ -312,14 +312,14 @@ def gen_example(targets, data, df, model_name, pred):
             example[feat_keys[i]] = np.array([data['Defaults'][feat_keys[i]]]).astype(dtypes[i]).tolist()
 
     d = {
-        "signature_name": "predict",
+        "signature_name": "serving_default",
         "instances": [example]
     }
     call = 'DOCKER_HOST=\"...\"\n'
     call += 'MODEL_NAME=\"...\"\n'
     call += 'curl -X POST http://${DOCKER_HOST}:8501/v1/models/${MODEL_NAME}/versions/1' ':predict -d '
 
-    call += '\'' + str(d) + '\''
+    call += '\'' + json.dumps(d) + '\''
 
     pred[0] = {k: v.tolist() for k, v in pred[0].items()}
     if 'classes' in pred[0]:
@@ -333,14 +333,14 @@ def gen_image_example(data, pred):
     example = {'input': data.tolist()}
 
     d = {
-        "signature_name": "predict",
+        "signature_name": "serving_default",
         "instances": [example]
     }
     call = 'DOCKER_HOST=\"...\"\n'
     call += 'MODEL_NAME=\"...\"\n'
     call += 'curl -X POST http://${DOCKER_HOST}:8501/v1/models/${MODEL_NAME}/versions/1' ':predict -d '
 
-    call += '\'' + str(d) + '\''
+    call += '\'' + json.dumps(d) + '\''
 
     pred[0] = {k: v.tolist() for k, v in pred[0].items()}
     if 'classes' in pred[0]:
