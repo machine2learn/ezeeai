@@ -41,7 +41,7 @@ class AbstractEstimator(metaclass=ABCMeta):
         self.max_steps = np.ceil(self.dataset.get_train_size() / int(params["batch_size"])) * int(params["num_epochs"])
         self.test_file = ''
 
-        tf.logging.set_verbosity(tf.logging.DEBUG)
+        tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.DEBUG)
         log = logging.getLogger('tensorflow')
         log.setLevel(logging.ERROR)
 
