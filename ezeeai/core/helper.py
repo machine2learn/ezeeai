@@ -361,7 +361,16 @@ class Image(Helper):
         pass
 
     def generate_rest_call(self, pred):
-        call, d, epred = sys_ops.gen_image_example(self._dataset._val_images[0], pred)
+        data = None
+        filename = self._dataset._val_images[0]
+        img = cv2.imread(filename, cv2.IMREAD_UNCHANGED)
+        if len(img.shape) == 2:
+            data = img.astype(np.float32)
+        else:
+            img = cv2.cvtColor(img, cv2.COLOR_RGBA2RGB)
+            data = img.astype(np.float32)
+
+        call, d, epred = sys_ops.gen_image_example(data, pred)
         example = {'curl': call, 'd': d, 'output': epred}
         return example
 
@@ -455,7 +464,12 @@ class Image(Helper):
 
     def get_new_features(self, request, default_features=False):
         if default_features:
-            return self._dataset._val_images[0]
+            filename = self._dataset._val_images[0]
+            img = cv2.imread(filename, cv2.IMREAD_UNCHANGED)
+            if len(img.shape) == 2:
+                return img.astype(np.float32)
+            img = cv2.cvtColor(img, cv2.COLOR_RGBA2RGB)
+            return img.astype(np.float32)
         b = request.files['inputFile'].read()
         request.files['inputFile'].seek(0)
         npimg = np.fromstring(b, np.uint8)

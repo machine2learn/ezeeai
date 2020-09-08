@@ -4,6 +4,7 @@ from tensorflow.python.data.experimental.ops.readers import _infer_column_defaul
 import tensorflow as tf
 import collections
 from tensorflow.python.data.experimental.ops import optimization
+from tensorflow_core.python.lib.io import file_io
 
 _ACCEPTABLE_CSV_TYPES = (dtypes.float32, dtypes.float64, dtypes.int32,
                          dtypes.int64, dtypes.string)
@@ -24,12 +25,14 @@ def make_csv_dataset(
         shuffle=True,
         shuffle_buffer_size=10000,
         shuffle_seed=None,
-        prefetch_buffer_size=optimization.AUTOTUNE,
+        prefetch_buffer_size=tf.data.experimental.AUTOTUNE,
         num_parallel_reads=1,
         sloppy=False,
         num_rows_for_inference=100,
         compression_type=None):
     # Create dataset of all matching filenames
+    file_io_fn = lambda filename: file_io.FileIO(filename, 'r')
+
     filenames = _get_file_names(file_pattern, False)
     dataset = dataset_ops.Dataset.from_tensor_slices(filenames)
 
@@ -39,7 +42,7 @@ def make_csv_dataset(
         if not header:
             raise ValueError("Cannot infer column names without a header line.")
         # If column names are not provided, infer from the header lines
-        column_names = _infer_column_names(filenames, field_delim, use_quote_delim)
+        column_names = _infer_column_names(filenames, field_delim, use_quote_delim, file_io_fn)
     if len(column_names) != len(set(column_names)):
         raise ValueError("Cannot have duplicate column names.")
 
@@ -56,7 +59,7 @@ def make_csv_dataset(
         # construction time
         column_defaults = _infer_column_defaults(
             filenames, len(column_names), field_delim, use_quote_delim, na_value,
-            header, num_rows_for_inference, select_columns)
+            header, num_rows_for_inference, select_columns, file_io_fn)
 
     if select_columns is not None and len(column_defaults) != len(select_columns):
         raise ValueError(
