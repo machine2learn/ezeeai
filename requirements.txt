@@ -15,7 +15,7 @@ Werkzeug==0.14.1
 matplotlib==2.2.2
 Flask_Uploads==0.2.1
 Flask==1.0.2
-psutil==5.4.6
+psutil==5.6.6
 lime==0.1.1.31
 WTForms==2.2.1
 opencv_python>=3.4.0.12,<4
