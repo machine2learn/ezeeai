@@ -1,5 +1,5 @@
 tensorflowjs==0.8.6
-tensorflow==1.13.1
+tensorflow==2.5.0
 scipy==1.1.0
 Flask_Login==0.4.1
 scikit_image==0.15.0
