@@ -508,12 +508,13 @@ class Tabular:
         for k, v in features.items():
             features[k] = np.array([v]).astype(df[k].dtype) if df[k].dtype == 'object' else np.array(
                 [float(v)]).astype(df[k].dtype)
-        return tf.estimator.inputs.numpy_input_fn(x=features, y=None, num_epochs=1, shuffle=False)
+        tmp = tf.compat.v1.estimator.inputs.numpy_input_fn(x=features, y=None, num_epochs=1, shuffle=False)
+        return tmp
 
     def serving_input_receiver_fn(self):
         feature_spec = tf.feature_column.make_parse_example_spec(self.get_feature_columns())
-        receiver_tensors = {k: tf.placeholder(v.dtype, [None, 1]) for k, v in feature_spec.items()}
-        return tf.estimator.export.ServingInputReceiver(receiver_tensors=receiver_tensors,
+        receiver_tensors = {k: tf.compat.v1.placeholder(v.dtype, [None, 1]) for k, v in feature_spec.items()}
+        return tf.compat.v1.estimator.export.ServingInputReceiver(receiver_tensors=receiver_tensors,
                                                         features=receiver_tensors)
 
     def get_all_test_files(self):

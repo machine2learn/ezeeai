@@ -41,6 +41,9 @@ class AbstractEstimator(metaclass=ABCMeta):
         self.max_steps = np.ceil(self.dataset.get_train_size() / int(params["batch_size"])) * int(params["num_epochs"])
         self.test_file = ''
 
+        #tf.compat.v1.enable_eager_execution()
+        #tf.compat.v1.disable_v2_behavior()
+
         tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.DEBUG)
         log = logging.getLogger('tensorflow')
         log.setLevel(logging.ERROR)
@@ -54,7 +57,7 @@ class AbstractEstimator(metaclass=ABCMeta):
         fh.setFormatter(formatter)
         log.addHandler(fh)
 
-        tf.reset_default_graph()
+        tf.compat.v1.reset_default_graph()
         if len(check_exports(params['export_dir'])) == 0:
             self.clear_checkpoint()
 
@@ -67,8 +70,8 @@ class AbstractEstimator(metaclass=ABCMeta):
         save_summary_steps = self.params[SAVE_SUMMARY_STEPS]
         keep_checkpoint_max = self.params[KEEP_CHECKPOINT_MAX]
 
-        gpu_options = tf.GPUOptions(allow_growth=True)
-        config = tf.ConfigProto(gpu_options=gpu_options)
+        gpu_options = tf.compat.v1.GPUOptions(allow_growth=True)
+        config = tf.compat.v1.ConfigProto(gpu_options=gpu_options)
         f = [s.function for s in inspect.stack() if
              ntpath.basename(s.filename) == 'thread_handler.py' and s.function in ['run_thread',
                                                                                    'predict_thread',
@@ -78,7 +81,7 @@ class AbstractEstimator(metaclass=ABCMeta):
         if f == 'predict' or (f != 'run' and len(GPUtil.getAvailable()) == 0):
             config.device_count.update({'GPU': 0})
 
-        self.runConfig = tf.estimator.RunConfig(model_dir=self.checkpoint_dir,
+        self.runConfig = tf.compat.v1.estimator.RunConfig(model_dir=self.checkpoint_dir,
                                                 save_checkpoints_steps=save_checkpoints_steps,
                                                 save_summary_steps=save_summary_steps,
                                                 keep_checkpoint_max=keep_checkpoint_max,
@@ -96,10 +99,10 @@ class AbstractEstimator(metaclass=ABCMeta):
 
     def _create_specs(self):
 
-        self.train_spec = tf.estimator.TrainSpec(
+        self.train_spec = tf.compat.v1.estimator.TrainSpec(
             input_fn=self._train_input_fn, max_steps=self.max_steps)
 
-        self.eval_spec = tf.estimator.EvalSpec(
+        self.eval_spec = tf.compat.v1.estimator.EvalSpec(
             input_fn=self._validation_input_fn,
             steps=None,  # How many batches of test data
             exporters=BestExporter(serving_input_receiver_fn=self.dataset.serving_input_receiver_fn,
@@ -144,7 +147,7 @@ class AbstractEstimator(metaclass=ABCMeta):
 
     def run(self):
         try:
-            tf.estimator.train_and_evaluate(self.model, self.train_spec, self.eval_spec)
+            tf.compat.v1.estimator.train_and_evaluate(self.model, self.train_spec, self.eval_spec)
             # self.email = self.params['email']
             # server_info = {"login": "",
             #                "password": "",
@@ -152,7 +155,7 @@ class AbstractEstimator(metaclass=ABCMeta):
             #
             # send_email({"email_address": self.email}, server_info)
         except ValueError as e:
-            tf.logging.error(e)
+            tf.compat.v1.logging.error(e)
 
     def _create_explainer(self):
         return TabularExplainer(self.dataset) if isinstance(self.dataset, Tabular) else ImageExplainer(self.dataset)

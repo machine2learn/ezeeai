@@ -205,7 +205,7 @@ def tabular_profile():
     if not os.path.isfile(os.path.join(main_path, 'profile.html')):
         df = pd.read_csv(os.path.join(main_path, dataset_name + '.csv'))
         profile = pp.ProfileReport(df)
-        profile.to_file(outputfile=os.path.join(main_path, 'profile.html'))
+        profile.to_file(output_file=os.path.join(main_path, 'profile.html'))
     with open(os.path.join(main_path, 'profile.html'), 'r') as prof:
         profile = prof.read()
     return jsonify(data=profile)
@@ -610,7 +610,7 @@ def deploy():
         config_path = sys_ops.get_config_path(USER_ROOT, username, model_name)
         all_params_config = config_reader.read_config(config_path)
         file_path = sys_ops.export_models(all_params_config.export_dir(), request.form['selected_rows'], model_name)
-        return send_file(file_path, mimetype='application/zip', attachment_filename=ntpath.basename(file_path),
+        return send_file(file_path, mimetype='application/zip', download_name=ntpath.basename(file_path),
                          as_attachment=True)
     _, param_configs = config_ops.get_configs_files(USER_ROOT, username)
     return render_template('deploy.html', user=username, token=get_token_user(username), parameters=param_configs)

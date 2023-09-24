@@ -1,10 +1,10 @@
-from tensorflow.python.data.experimental.ops.readers import dataset_ops, dtypes, constant_op, interleave_ops, \
+from tensorflow.python.data.experimental.ops.readers import dataset_ops, dtypes, constant_op, \
     _get_sorted_col_indices, CsvDataset, _maybe_shuffle_and_repeat
 from tensorflow.python.data.experimental.ops.readers import _infer_column_defaults, _infer_column_names, _get_file_names
 import tensorflow as tf
 import collections
-from tensorflow.python.data.experimental.ops import optimization
-from tensorflow_core.python.lib.io import file_io
+#from tensorflow.python.data.experimental.ops import optimization
+from tensorflow.python.lib.io import file_io
 
 _ACCEPTABLE_CSV_TYPES = (dtypes.float32, dtypes.float64, dtypes.int32,
                          dtypes.int64, dtypes.string)
@@ -115,9 +115,10 @@ def make_csv_dataset(
         return features
 
     # Read files sequentially (if num_parallel_reads=1) or in parallel
-    dataset = dataset.apply(
-        interleave_ops.parallel_interleave(
-            filename_to_dataset, cycle_length=num_parallel_reads, sloppy=sloppy))
+    #dataset = dataset.apply(interleave_ops.parallel_interleave(filename_to_dataset, cycle_length=num_parallel_reads, sloppy=sloppy))
+    options = tf.data.Options()
+    options.experimental_deterministic = not sloppy
+    dataset = dataset.interleave(map_func=filename_to_dataset, cycle_length=num_parallel_reads, num_parallel_calls=tf.data.experimental.AUTOTUNE).with_options(options)
     dataset = _maybe_shuffle_and_repeat(dataset, num_epochs, shuffle, shuffle_buffer_size, shuffle_seed)
     dataset = dataset.batch(batch_size=batch_size,
                             drop_remainder=num_epochs is None)

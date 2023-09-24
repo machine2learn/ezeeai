@@ -1,5 +1,5 @@
 from lime import lime_tabular, lime_image
-from scipy.misc import imresize
+from skimage.transform import resize
 import numpy as np
 import tensorflow as tf
 
@@ -37,7 +37,7 @@ class TabularExplainer:
             local_features = {k: x[:, i] for i, k in enumerate(features.keys())}
             local_features = self.dataset.from_array(local_features)
 
-            predict_input_fn = tf.estimator.inputs.numpy_input_fn(x=local_features,
+            predict_input_fn = tf.compat.v1.estimator.inputs.numpy_input_fn(x=local_features,
                                                                   y=None, num_epochs=1, shuffle=False)
             with tf.device('/cpu:0'):  # TODO maybe check if gpu is free
                 predictions = list(model.predict(input_fn=predict_input_fn))
@@ -68,12 +68,12 @@ class ImageExplainer:
         def predict_fn(x):
             x = x.astype(np.float32)
             x = np.apply_along_axis(self._dataset.normalize, 0, x)
-            predict_input_fn = tf.estimator.inputs.numpy_input_fn(x=x, y=None, num_epochs=1, shuffle=False)
+            predict_input_fn = tf.compat.v1.estimator.inputs.numpy_input_fn(x=x, y=None, num_epochs=1, shuffle=False)
             with tf.device('/cpu:0'):  # TODO maybe check if gpu is free
                 probabilities = list(model.predict(input_fn=predict_input_fn))
             return np.array([x['probabilities'] for x in probabilities])
 
-        features = imresize(features, self._dataset.get_image_size(), interp='bilinear')
+        features = resize(features, self._dataset.get_image_size(), interp='bilinear')
 
         explain_result = self._explainer.explain_instance(features, predict_fn, batch_size=100,
                                                           num_features=num_features,
@@ -84,7 +84,7 @@ class ImageExplainer:
 
         features = self._dataset.normalize(features)
 
-        predict_input_fn = tf.estimator.inputs.numpy_input_fn(x=features[np.newaxis, ...], y=None, num_epochs=1,
+        predict_input_fn = tf.compat.v1.estimator.inputs.numpy_input_fn(x=features[np.newaxis, ...], y=None, num_epochs=1,
                                                               shuffle=False)
         with tf.device('/cpu:0'):  # TODO maybe check if gpu is free
             predictions = list(model.predict(input_fn=predict_input_fn))

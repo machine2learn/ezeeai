@@ -16,12 +16,12 @@ class ModelBuilder:
         params['mode'] = 'canned_dnn' if 'hidden_units' in params else 'canned_linear'
         params['loss_function'] = params['loss_function_canned']
         model_fn = self.get_model(params)
-        return tf.estimator.Estimator(model_fn=model_fn, params=params, config=params['config'],
+        return tf.compat.v1.estimator.Estimator(model_fn=model_fn, params=params, config=params['config'],
                                       model_dir=params['checkpoint_dir'])
 
     def create_from_keras(self, params):
         params['mode'] = 'custom'
 
         model_fn = self.get_model(params)
-        return tf.estimator.Estimator(model_fn=model_fn, params=params, config=params['config'],
+        return tf.compat.v1.estimator.Estimator(model_fn=model_fn, params=params, config=params['config'],
                                       model_dir=params['checkpoint_dir'])
