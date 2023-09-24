@@ -53,7 +53,6 @@ app.config['JSON_SORT_KEYS'] = appConfig.json_sort_keys()
 app.config['WTF_CSRF_ENABLED'] = False
 
 USER_ROOT = appConfig.user_root() if appConfig.user_root() is not None else os.path.join(APP_ROOT, 'user_data')
-# print(USER_ROOT)
 
 th = ThreadHandler()
 login_manager = LoginManager()

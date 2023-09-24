@@ -1,12 +1,13 @@
 import sys
-import tensorflow as tf
+#import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import tensorflow.compat.v1.losses
 from tensorflow.python.feature_column import feature_column
 from tensorflow.python.ops import lookup_ops
 from tensorflowjs.converters import keras_tfjs_loader
 from tensorflow.python.framework import ops
 import tensorflow.keras.backend as K
-from keras.utils.generic_utils import has_arg, to_list
+from keras.src.utils.generic_utils import has_arg, to_list
 
 import dill as pickle
 
@@ -84,8 +85,9 @@ def get_label_classes(label_ids, label_vocabulary):
         labels = label_ids
     else:
         #table = tf.contrib.lookup.index_to_string_table_from_tensor(label_vocabulary, default_value="UNKNOWN")
-        init = tf.lookup.KeyValueTensorInitializer(keys=label_vocabulary, values=tf.constant(range(len(label_vocabulary)), dtype=tf.int64))
-        table = tf.lookup.StaticVocabularyTable(init, num_oov_buckets=5)
+        table = lookup_ops.index_to_string_table_from_tensor(label_vocabulary, default_value="UNKNOWN", name=None)
+        #init = tf.lookup.KeyValueTensorInitializer(keys=label_vocabulary, values=tf.constant(list(range(len(label_vocabulary))), dtype=tf.int64))
+        #table = tf.lookup.StaticVocabularyTable(init, num_oov_buckets=5)
         labels = table.lookup(label_ids)
     return labels
 
@@ -101,6 +103,8 @@ def create_train_op(loss, params, mode):
 
 
 def create_output(features, params, mode):
+    tf.compat.v1.disable_v2_behavior()
+
     if 'mode' not in params:
         raise ValueError('missing mode in params')
 
@@ -108,7 +112,6 @@ def create_output(features, params, mode):
     dataset = pickle.load(open(params['data_path'], 'rb'))
 
     if params['mode'] == 'custom':
-        t = tf.constant([2.0, 3.0, 4.0])
         if hasattr(dataset, 'get_feature_columns'):
             features = tf.compat.v1.feature_column.input_layer(features, dataset.get_feature_columns())
         if isinstance(features, dict):
@@ -175,7 +178,7 @@ def classifier(features, labels, mode, params):
         tf.reshape(label_ids, [-1]),
         params['n_classes'])
 
-    loss = getattr(tensorflow.losses, params['loss_function'])(reshaped_labels, output)
+    loss = getattr(tensorflow.compat.v1.losses, params['loss_function'])(reshaped_labels, output)
 
     probs = tf.nn.softmax(output) if 'softmax' not in output.name.lower() else output
     accuracy = tf.compat.v1.metrics.accuracy(labels=label_ids,
@@ -216,7 +219,7 @@ def binary_classifier(features, labels, mode, params):
         return tf.compat.v1.estimator.EstimatorSpec(mode, predictions=predictions)
 
     label_ids = get_label_ids(labels, label_vocabulary)
-    loss = getattr(tensorflow.losses, params['loss_function'])(tf.reshape(label_ids, tf.shape(input=output)), output)
+    loss = getattr(tensorflow.compat.v1.losses, params['loss_function'])(tf.reshape(label_ids, tf.shape(input=output)), output)
 
     accuracy = tf.compat.v1.metrics.accuracy(labels=label_ids,
                                    predictions=predicted_classes,
@@ -434,7 +437,6 @@ def run_internal_graph(model, inputs, mode, mask=None):
     # TODO: raise exception when a `.compute_mask()` call
     # does not return a list the same size as `call`
     tensor_map = {}
-    #tf.print(inputs[0],  output_stream=sys.stdout)
     for x, y, mask in zip(model.inputs, inputs, masks):
         tensor_map[str(id(x))] = (y, mask)
 
@@ -523,10 +525,6 @@ def run_internal_graph(model, inputs, mode, mask=None):
                 # Update model updates and losses:
                 # Keep track of updates that depend on the inputs
                 # (e.g. BN updates).
-                print("Model class:",model)
-                print("layer.get_updates_for:", layer.get_updates_for(computed_tensors))
-                print("inputs:",inputs)
-                print("model.add_update: arguments count=", model.add_update.__code__.co_argcount)
                 #model.add_update(layer.get_updates_for(computed_tensors), inputs)
                 model.add_update(layer.get_updates_for(computed_tensors))
                 # Keep track of unconditional updates (e.g. a counter).

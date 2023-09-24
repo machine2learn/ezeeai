@@ -365,9 +365,11 @@ class Image(Helper):
         filename = self._dataset._val_images[0]
         img = cv2.imread(filename, cv2.IMREAD_UNCHANGED)
         if len(img.shape) == 2:
-            data = img.astype(np.float32)
+            img = self._dataset.normalize(img)
+            data = img.astype(np.float32).reshape((img.shape[0],img.shape[1],1))
         else:
             img = cv2.cvtColor(img, cv2.COLOR_RGBA2RGB)
+            img = self._dataset.normalize(img)
             data = img.astype(np.float32)
 
         call, d, epred = sys_ops.gen_image_example(data, pred)
@@ -476,6 +478,7 @@ class Image(Helper):
         img = cv2.imdecode(npimg, cv2.IMREAD_UNCHANGED)
         if len(img.shape) == 2:
             # img = img[..., np.newaxis]
+            img = cv2.cvtColor(img,cv2.COLOR_GRAY2RGB)
             return img
         img = cv2.cvtColor(img, cv2.COLOR_RGBA2RGB)
         return img.astype(np.float32)
@@ -546,7 +549,6 @@ class Image(Helper):
 
                 elif option == '.option3':
                     labels_file = [os.path.join(test_path, t) for t in os.listdir(test_path) if t.startswith('labels.')]
-                    # print(labels_file)
                     test_filename, labels, _ = find_image_files_from_file(test_path, labels_file[0], require_all=False)
                 df_test[self._dataset.get_targets()[0]] = labels
             return has_targets, test_filename, df_test, None

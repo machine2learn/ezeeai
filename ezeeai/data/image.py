@@ -2,6 +2,7 @@ from ezeeai.data.utils.image import *
 from ..utils import args
 from sklearn.model_selection import train_test_split
 from skimage.transform import resize
+from skimage.transform import resize_local_mean
 
 
 class Image:
@@ -116,7 +117,7 @@ class Image:
         _, _, self._n_channels = self.get_sample().shape
 
     def get_sample(self):
-        from scipy.misc import imread
+        from imageio import imread
         if self.get_mode() == 3:
             return self._images[0]
         img = imread(self._images[0])
@@ -238,9 +239,11 @@ class Image:
 
     def input_predict_fn(self, image):
         if len(image.shape) == 2:
-            image = resize(image, self.get_image_size()[0:2], interp='bilinear').reshape(self.get_image_size())
+            #image = resize(image, self.get_image_size()[0:2], interp='bilinear').reshape(self.get_image_size())
+            image = resize_local_mean(image, self.get_image_size(), preserve_range=True)
         else:
-            image = resize(image, self.get_image_size(), interp='bilinear')
+            #image = resize(image, self.get_image_size(), interp='bilinear')
+            image = resize_local_mean(image, self.get_image_size(), preserve_range=True)
         image = image.astype(np.float32)
         if len(image.shape) == 3:
             image = image[np.newaxis, ...]

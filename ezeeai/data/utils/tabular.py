@@ -130,8 +130,8 @@ def make_csv_dataset(
     # It is safe to do this because in that case we are repeating the input
     # indefinitely, and all batches will be full-sized.
 
-    dataset = dataset_ops.MapDataset(
-        dataset, map_fn, use_inter_op_parallelism=False)
+    #dataset = dataset_ops.MapDataset(dataset, map_fn, use_inter_op_parallelism=False)
+    dataset = dataset.map(map_fn, num_parallel_calls=None)
     dataset = dataset.prefetch(prefetch_buffer_size)
 
     return dataset_ops.DatasetV1Adapter(dataset)

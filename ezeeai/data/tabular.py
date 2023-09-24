@@ -427,6 +427,7 @@ class Tabular:
         feature_types = self.get_dtypes()
         for c in df.columns:
             if c in features.keys():
+                col = self._feature_columns[self._feature_names.index(c)]
                 if df[c].dtype == 'object':
                     df.loc[:, c] = df.loc[:, c].astype('category')
                     mapp = {x: y for x, y in dict(enumerate(df[c].cat.categories)).items()}
@@ -434,7 +435,7 @@ class Tabular:
                     if feature_types[c] == 'hash':
                         features[c] = features[c].astype(str)
                 else:
-                    features[c] = features[c].astype(df[c].dtype)
+                    features[c] = features[c].astype(col.dtype.name)
         return features
 
     def create_feat_array(self, features):
@@ -506,8 +507,11 @@ class Tabular:
             del features[t]
         features = {k: features[k] for k in get_feature_names(self.get_feature_columns())}
         for k, v in features.items():
+            col = self._feature_columns[self._feature_names.index(k)]
+            #features[k] = np.array([v]).astype(df[k].dtype) if df[k].dtype == 'object' else np.array(
+            #    [float(v)]).astype(df[k].dtype)
             features[k] = np.array([v]).astype(df[k].dtype) if df[k].dtype == 'object' else np.array(
-                [float(v)]).astype(df[k].dtype)
+                [float(v)]).astype(col.dtype.name)
         tmp = tf.compat.v1.estimator.inputs.numpy_input_fn(x=features, y=None, num_epochs=1, shuffle=False)
         return tmp
 

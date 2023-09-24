@@ -1,5 +1,6 @@
 from lime import lime_tabular, lime_image
 from skimage.transform import resize
+from skimage.transform import resize_local_mean
 import numpy as np
 import tensorflow as tf
 
@@ -67,20 +68,43 @@ class ImageExplainer:
     def explain_instance(self, model, features, num_features=5, top_labels=3, sel_target=None):
         def predict_fn(x):
             x = x.astype(np.float32)
+            if len(x.shape) == 3:
+                x = x[np.newaxis, ...]
             x = np.apply_along_axis(self._dataset.normalize, 0, x)
             predict_input_fn = tf.compat.v1.estimator.inputs.numpy_input_fn(x=x, y=None, num_epochs=1, shuffle=False)
             with tf.device('/cpu:0'):  # TODO maybe check if gpu is free
                 probabilities = list(model.predict(input_fn=predict_input_fn))
             return np.array([x['probabilities'] for x in probabilities])
 
-        features = resize(features, self._dataset.get_image_size(), interp='bilinear')
+        def predict_fn_greyscale(x):
+            x = x.astype(np.float32)
+            x = x.mean(axis=3).reshape(x.shape[0],x.shape[1],x.shape[2],-1)
+            x = np.apply_along_axis(self._dataset.normalize, 0, x)
+            predict_input_fn = tf.compat.v1.estimator.inputs.numpy_input_fn(x=x, y=None, num_epochs=1, shuffle=False)
+            with tf.device('/cpu:0'):  # TODO maybe check if gpu is free
+                probabilities = list(model.predict(input_fn=predict_input_fn))
+            return np.array([x['probabilities'] for x in probabilities])
 
-        explain_result = self._explainer.explain_instance(features, predict_fn, batch_size=100,
+        #OLD:features = resize(features, self._dataset.get_image_size(), interp='bilinear')
+        explainer_size = self._dataset.get_image_size().copy()
+        explainer_size[2] = features.shape[2]
+        features = resize_local_mean(features, explainer_size, preserve_range=True)
+
+        if self._dataset.get_image_size()[2] == 1:  # 1 greyscale channel 
+            predictor = predict_fn_greyscale
+        else:
+            predictor = predict_fn
+      
+
+        explain_result = self._explainer.explain_instance(features, predictor, batch_size=100,
                                                           num_features=num_features,
                                                           labels=self._dataset.get_class_names(),
                                                           top_labels=len(self._dataset.get_class_names()))
 
         features = features.astype(np.float32)
+
+        if self._dataset.get_image_size()[2] == 1:  # 1 greyscale channel 
+            features = features.mean(axis=2).reshape(features.shape[0],features.shape[1],-1)
 
         features = self._dataset.normalize(features)
 
