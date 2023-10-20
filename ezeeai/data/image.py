@@ -247,15 +247,47 @@ class Image:
         image = image.astype(np.float32)
         if len(image.shape) == 3:
             image = image[np.newaxis, ...]
-        # TODO normalization
+        
         image = norm_options[self.get_normalization_method()](image)
 
         return tf.compat.v1.estimator.inputs.numpy_input_fn(x=image, y=None, num_epochs=1, shuffle=False)
 
     def serving_input_receiver_fn(self):
         receiver_tensors = tf.compat.v1.placeholder(tf.float32, [None, None, None, self._n_channels])
+
+        # TODO reshape
+        # split = tf.split(images, [1, 1])
+        # shape = [1 for _ in range(split[0].get_shape()[1])]
+        # for i in range(len(split)):
+        #   split[i] = tf.reshape(split[i], [BATCH_SIZE, IMAGE_HEIGHT, IMAGE_WIDTH, 3])
+        #   split[i] = tf.image.resize_images(split[i], [IMAGE_HEIGHT + 8, IMAGE_WIDTH + 3])
+        #   split[i] = tf.split(split[i], shape)
+        #   for j in range(len(split[i])):
+        #     split[i][j] = tf.reshape(split[i][j], [IMAGE_HEIGHT + 8, IMAGE_WIDTH + 3, 3])
+        #     split[i][j] = tf.random_crop(split[i][j], [IMAGE_HEIGHT, IMAGE_WIDTH, 3])
+        #     split[i][j] = tf.image.random_flip_left_right(split[i][j])
+        #     split[i][j] = tf.image.random_brightness(split[i][j], max_delta=32. / 255.)
+        #     split[i][j] = tf.image.random_saturation(split[i][j], lower=0.5, upper=1.5)
+        #     split[i][j] = tf.image.random_hue(split[i][j], max_delta=0.2)
+        #     split[i][j] = tf.image.random_contrast(split[i][j], lower=0.5, upper=1.5)
+        #     split[i][j] = tf.image.per_image_standardization(split[i][j])
+        # return [tf.reshape(tf.concat(split[0], axis=0), [BATCH_SIZE, IMAGE_HEIGHT, IMAGE_WIDTH, 3]),
+
+        # normalization
+        features = receiver_tensors
+        n = self.get_normalization_method()
+        if(n == 'unit_length'):
+            features = tf.divide(receiver_tensors, 255.0)
+        elif (n == 'per_image'):
+            features = tf.image.per_image_standardization(receiver_tensors)
+        elif (n == 'zero_center'):
+            features = tf.multiply(tf.add(tf.divide(receiver_tensors, 255.0), -0.5), 2.0)
+        elif (n == 'imagenet_mean_subtraction'):
+            MEANS = tf.constant([123.68, 116.779, 103.939])
+            features = tf.subtract(receiver_tensors, MEANS)
+
         return tf.estimator.export.ServingInputReceiver(receiver_tensors=receiver_tensors,
-                                                        features=receiver_tensors)
+                                                        features=features)
 
     def normalize(self, image):
         return norm_options[self.get_normalization_method()](image)

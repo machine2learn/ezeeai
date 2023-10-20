@@ -365,11 +365,11 @@ class Image(Helper):
         filename = self._dataset._val_images[0]
         img = cv2.imread(filename, cv2.IMREAD_UNCHANGED)
         if len(img.shape) == 2:
-            img = self._dataset.normalize(img)
+            #img = self._dataset.normalize(img)
             data = img.astype(np.float32).reshape((img.shape[0],img.shape[1],1))
         else:
             img = cv2.cvtColor(img, cv2.COLOR_RGBA2RGB)
-            img = self._dataset.normalize(img)
+            #img = self._dataset.normalize(img)
             data = img.astype(np.float32)
 
         call, d, epred = sys_ops.gen_image_example(data, pred)
