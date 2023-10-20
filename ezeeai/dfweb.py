@@ -1,5 +1,5 @@
 import pandas as pd
-import pandas_profiling as pp
+import ydata_profiling as pp
 import ntpath
 # import logging.config
 # from config.logging_config import logging_config

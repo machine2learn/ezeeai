@@ -23,7 +23,7 @@
     </script>
 </head>
 
-<body class="">
+<body class="" style="padding-top: 0px">
 <!--
       Main sidebar seen on the left. may be static or collapsing depending on selected state.
 
@@ -149,7 +149,7 @@
 <!-- This is the white navigation bar seen on the top. A bit enhanced BS navbar. See .page-controls in _base.scss. -->
 <nav class="page-controls navbar navbar-dashboard">
 
-    <div class="container-fluid navbar-header ">
+    <div class="container-fluid navbar-header " style="display: block">
         <!-- .navbar-header contains links seen on xs & sm screens -->
         <div class="navbar-header mr-md-3">
             <ul class="nav navbar-nav">
@@ -258,6 +258,11 @@
 
     </main>
 </div>
+
+
+{% block modals %}
+{% endblock %}
+
 <!-- The Loader. Is shown when pjax happens -->
 <div class="loader-wrap hiding hide">
     <i class="fa fa-circle-o-notch fa-spin-fast"></i>
