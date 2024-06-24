@@ -3,15 +3,16 @@ from flask_wtf.file import FileRequired, FileAllowed, FileField
 from wtforms import SubmitField, SelectField, FormField, SelectMultipleField, BooleanField, TextAreaField
 from flask_uploads import UploadSet, DATA
 from wtforms import StringField
-from wtforms.widgets import HTMLString, html_params, TextArea
+from wtforms.widgets import html_params, TextArea
+from markupsafe import Markup
 from wtforms.validators import InputRequired
 
 
 class FileInputWithAccept:
     def __call__(self, field, **kwargs):
         kwargs.setdefault('id', field.id)
-        return HTMLString(
-            '<input %s>' % html_params(label=field.label, name=field.name, type='file', accept='text/csv', **kwargs))
+        return Markup(
+            '<input %s>' % html_params(label="CVS", name=field.name, type='file', accept='text/csv', **kwargs))
 
 
 class FileFieldWithAccept(StringField):
@@ -21,8 +22,8 @@ class FileFieldWithAccept(StringField):
 class ZipFileInputWithAccept:
     def __call__(self, field, **kwargs):
         kwargs.setdefault('id', field.id)
-        return HTMLString(
-            '<input %s>' % html_params(label=field.label, name=field.name, type='file', accept='.zip', **kwargs))
+        return Markup(
+            '<input %s>' % html_params(label="ZIP", name=field.name, type='file', accept='.zip', **kwargs))
 
 
 class ZipFileFieldWithAccept(StringField):
@@ -32,8 +33,8 @@ class ZipFileFieldWithAccept(StringField):
 class NumpyFileInputWithAccept:
     def __call__(self, field, **kwargs):
         kwargs.setdefault('id', field.id)
-        return HTMLString(
-            '<input %s>' % html_params(label=field.label, name=field.name, type='file', accept='.npz', **kwargs))
+        return Markup(
+            '<input %s>' % html_params(label="NPZ", name=field.name, type='file', accept='.npz', **kwargs))
 
 
 class NumpyFileFieldWithAccept(StringField):

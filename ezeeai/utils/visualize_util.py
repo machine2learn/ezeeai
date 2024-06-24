@@ -4,7 +4,8 @@ import matplotlib
 matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
-import matplotlib.mlab as mlab
+#import matplotlib.mlab as mlab
+import scipy
 import numpy as np
 
 
@@ -25,7 +26,7 @@ def get_norm_corr(df):
         new_df = df[col].dropna()
         mu, sigma = stats.norm.fit(new_df)
         counts, bins, _ = plt.hist(new_df, 30, density=True)
-        line = mlab.normpdf(bins, mu, sigma)
+        line = scipy.stats.norm.pdf(bins, mu, sigma)
         if np.isnan(line).any():
             cols_to_drop.append(col)
             continue

@@ -1,5 +1,5 @@
 import pandas as pd
-import pandas_profiling as pp
+import ydata_profiling as pp
 import ntpath
 # import logging.config
 # from config.logging_config import logging_config
@@ -53,7 +53,6 @@ app.config['JSON_SORT_KEYS'] = appConfig.json_sort_keys()
 app.config['WTF_CSRF_ENABLED'] = False
 
 USER_ROOT = appConfig.user_root() if appConfig.user_root() is not None else os.path.join(APP_ROOT, 'user_data')
-# print(USER_ROOT)
 
 th = ThreadHandler()
 login_manager = LoginManager()
@@ -205,7 +204,7 @@ def tabular_profile():
     if not os.path.isfile(os.path.join(main_path, 'profile.html')):
         df = pd.read_csv(os.path.join(main_path, dataset_name + '.csv'))
         profile = pp.ProfileReport(df)
-        profile.to_file(outputfile=os.path.join(main_path, 'profile.html'))
+        profile.to_file(output_file=os.path.join(main_path, 'profile.html'))
     with open(os.path.join(main_path, 'profile.html'), 'r') as prof:
         profile = prof.read()
     return jsonify(data=profile)
@@ -610,7 +609,7 @@ def deploy():
         config_path = sys_ops.get_config_path(USER_ROOT, username, model_name)
         all_params_config = config_reader.read_config(config_path)
         file_path = sys_ops.export_models(all_params_config.export_dir(), request.form['selected_rows'], model_name)
-        return send_file(file_path, mimetype='application/zip', attachment_filename=ntpath.basename(file_path),
+        return send_file(file_path, mimetype='application/zip', download_name=ntpath.basename(file_path),
                          as_attachment=True)
     _, param_configs = config_ops.get_configs_files(USER_ROOT, username)
     return render_template('deploy.html', user=username, token=get_token_user(username), parameters=param_configs)

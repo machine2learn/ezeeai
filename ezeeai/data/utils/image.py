@@ -2,7 +2,8 @@ import os
 
 import numpy as np
 import pandas as pd
-from tensorflow.python import ops, array_ops, math_ops
+from tensorflow.python import ops
+from tensorflow.python.ops import array_ops, math_ops
 from tensorflow.python.ops.image_ops_impl import _AssertAtLeast3DImage
 from ezeeai.utils.preprocessing import has_header
 import tensorflow as tf
@@ -42,7 +43,7 @@ def random_central_crop(image, minval, maxval):
             img_w, dynamic_w = _get_dim(image, 2)
             img_d = image.get_shape()[3]
 
-        central_fraction = tf.random_uniform([], minval=minval, maxval=maxval, dtype=tf.float64)
+        central_fraction = tf.random.uniform([], minval=minval, maxval=maxval, dtype=tf.float64)
 
         # Compute the bounding boxes for the crop. The type and value of the
         # bounding boxes depend on the `image` tensor's rank and whether / not the
@@ -155,7 +156,7 @@ def find_image_files_folder_per_class(data_dir, require_all=True):
     for f in folders:
         matching_files = []
         for ext in ['jpg', 'jpeg', 'png', 'PNG', 'JPG', 'JPEG']:
-            matching_files += tf.gfile.Glob('%s/%s/*.%s' % (data_dir, f, ext))
+            matching_files += tf.io.gfile.glob('%s/%s/*.%s' % (data_dir, f, ext))
         n_images = len(matching_files)
         if n_images > 0:
             labels.extend([f] * n_images)

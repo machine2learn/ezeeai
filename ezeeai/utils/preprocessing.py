@@ -16,7 +16,9 @@ def clean_field_names(filename):
 
     # if columns duplicated change
     cols = pd.Series(df.columns)
-    for dup in df.columns.get_duplicates():
+    #dups = df.columns.get_duplicates()
+    dups = df.columns[df.columns.duplicated()].unique() 
+    for dup in dups:
         cols[df.columns.get_loc(dup)] = [dup + '_' + str(d_idx) if d_idx != 0 else dup for d_idx in
                                          range(df.columns.get_loc(dup).sum())]
 
@@ -51,7 +53,9 @@ def has_header(csvfile, close=True):
     try:
         has_header = sniffer.has_header(csvfile.read(sample_bytes))
     except:
-        has_header = sniffer.has_header(csvfile.read(sample_bytes + 50))  # TODO it does not work!!
+        #csvfile.seek(0)
+        #has_header = sniffer.has_header(csvfile.read(sample_bytes + 50))  # TODO it does not work!!
+        has_header = True
 
     if close:
         csvfile.close()

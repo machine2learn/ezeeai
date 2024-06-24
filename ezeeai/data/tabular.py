@@ -427,6 +427,7 @@ class Tabular:
         feature_types = self.get_dtypes()
         for c in df.columns:
             if c in features.keys():
+                col = self._feature_columns[self._feature_names.index(c)]
                 if df[c].dtype == 'object':
                     df.loc[:, c] = df.loc[:, c].astype('category')
                     mapp = {x: y for x, y in dict(enumerate(df[c].cat.categories)).items()}
@@ -434,7 +435,7 @@ class Tabular:
                     if feature_types[c] == 'hash':
                         features[c] = features[c].astype(str)
                 else:
-                    features[c] = features[c].astype(df[c].dtype)
+                    features[c] = features[c].astype(col.dtype.name)
         return features
 
     def create_feat_array(self, features):
@@ -506,14 +507,18 @@ class Tabular:
             del features[t]
         features = {k: features[k] for k in get_feature_names(self.get_feature_columns())}
         for k, v in features.items():
+            col = self._feature_columns[self._feature_names.index(k)]
+            #features[k] = np.array([v]).astype(df[k].dtype) if df[k].dtype == 'object' else np.array(
+            #    [float(v)]).astype(df[k].dtype)
             features[k] = np.array([v]).astype(df[k].dtype) if df[k].dtype == 'object' else np.array(
-                [float(v)]).astype(df[k].dtype)
-        return tf.estimator.inputs.numpy_input_fn(x=features, y=None, num_epochs=1, shuffle=False)
+                [float(v)]).astype(col.dtype.name)
+        tmp = tf.compat.v1.estimator.inputs.numpy_input_fn(x=features, y=None, num_epochs=1, shuffle=False)
+        return tmp
 
     def serving_input_receiver_fn(self):
         feature_spec = tf.feature_column.make_parse_example_spec(self.get_feature_columns())
-        receiver_tensors = {k: tf.placeholder(v.dtype, [None, 1]) for k, v in feature_spec.items()}
-        return tf.estimator.export.ServingInputReceiver(receiver_tensors=receiver_tensors,
+        receiver_tensors = {k: tf.compat.v1.placeholder(v.dtype, [None, 1]) for k, v in feature_spec.items()}
+        return tf.compat.v1.estimator.export.ServingInputReceiver(receiver_tensors=receiver_tensors,
                                                         features=receiver_tensors)
 
     def get_all_test_files(self):

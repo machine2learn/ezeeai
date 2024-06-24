@@ -26575,3 +26575,24 @@ input.text-error {
     height: 5px;
 }
 
+/* YData profiling */
+#profile_modal_dialog .navbar-fixed-top {
+    position: sticky !important;
+    margin: 0 !important;
+}
+
+#profile_modal_dialog .modal-body {
+    padding: 0 !important;
+}
+
+#profile_modal_dialog div.container-fluid {
+    margin-bottom: 0 !important;
+}
+
+#profile_modal_dialog .nav {
+    flex-direction: row !important;
+}
+
+#profile_modal_dialog .tab-content > .active > .row {
+    display: block !important;
+}

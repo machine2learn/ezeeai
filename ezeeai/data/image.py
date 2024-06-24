@@ -1,7 +1,8 @@
 from ezeeai.data.utils.image import *
 from ..utils import args
 from sklearn.model_selection import train_test_split
-from scipy.misc import imresize
+from skimage.transform import resize
+from skimage.transform import resize_local_mean
 
 
 class Image:
@@ -116,7 +117,7 @@ class Image:
         _, _, self._n_channels = self.get_sample().shape
 
     def get_sample(self):
-        from scipy.misc import imread
+        from imageio import imread
         if self.get_mode() == 3:
             return self._images[0]
         img = imread(self._images[0])
@@ -151,7 +152,7 @@ class Image:
 
     def _parse_function(self, image, label=None):
         if self.get_mode() != 3:
-            image_string = tf.read_file(image)
+            image_string = tf.io.read_file(image)
             image = tf.image.decode_jpeg(image_string)
         image_decoded = tf.cast(image, tf.float32)
         size = self.get_image_size().copy()
@@ -159,8 +160,8 @@ class Image:
             size = size[0:2]
 
         if label is not None:
-            return tf.image.resize_images(image_decoded, size), label
-        return tf.image.resize_images(image_decoded, size)
+            return tf.image.resize(image_decoded, size), label
+        return tf.image.resize(image_decoded, size)
 
     def _norm_function(self, image, label=None):
         image = norm_tf_options[self.get_normalization_method()](image)
@@ -179,9 +180,9 @@ class Image:
                 image = tf.image.random_flip_up_down(image)
         if 'rotation' in options:
             interpolation = 'NEAREST' if params['interpolation_rotation_nearest'] else 'BILINEAR'
-            angle = tf.random_uniform([], minval=float(params['angle_from_rotation']),
+            angle = tf.random.uniform([], minval=float(params['angle_from_rotation']),
                                       maxval=float(params['angle_to_rotation']))
-            image = tf.contrib.image.rotate(image, angle, interpolation=interpolation)
+            image = tfa.image.rotate(image, angle, interpolation=interpolation)
         if 'saturation' in options:
             image = tf.image.random_saturation(image, float(params['from_saturation']), float(params['to_saturation']))
         if 'contrast' in options:
@@ -195,7 +196,7 @@ class Image:
 
         if 'zoom' in options:
             image = random_central_crop(image, float(params['from_zoom']), float(params['to_zoom']))
-            image = tf.image.resize_images(image, self.get_image_size().copy()[:2])
+            image = tf.image.resize(image, self.get_image_size().copy()[:2])
 
         return image, label
 
@@ -238,21 +239,55 @@ class Image:
 
     def input_predict_fn(self, image):
         if len(image.shape) == 2:
-            image = imresize(image, self.get_image_size()[0:2], interp='bilinear').reshape(self.get_image_size())
+            #image = resize(image, self.get_image_size()[0:2], interp='bilinear').reshape(self.get_image_size())
+            image = resize_local_mean(image, self.get_image_size(), preserve_range=True)
         else:
-            image = imresize(image, self.get_image_size(), interp='bilinear')
+            #image = resize(image, self.get_image_size(), interp='bilinear')
+            image = resize_local_mean(image, self.get_image_size(), preserve_range=True)
         image = image.astype(np.float32)
         if len(image.shape) == 3:
             image = image[np.newaxis, ...]
-        # TODO normalization
+        
         image = norm_options[self.get_normalization_method()](image)
 
-        return tf.estimator.inputs.numpy_input_fn(x=image, y=None, num_epochs=1, shuffle=False)
+        return tf.compat.v1.estimator.inputs.numpy_input_fn(x=image, y=None, num_epochs=1, shuffle=False)
 
     def serving_input_receiver_fn(self):
-        receiver_tensors = tf.placeholder(tf.float32, [None, None, None, self._n_channels])
+        receiver_tensors = tf.compat.v1.placeholder(tf.float32, [None, None, None, self._n_channels])
+
+        # TODO reshape
+        # split = tf.split(images, [1, 1])
+        # shape = [1 for _ in range(split[0].get_shape()[1])]
+        # for i in range(len(split)):
+        #   split[i] = tf.reshape(split[i], [BATCH_SIZE, IMAGE_HEIGHT, IMAGE_WIDTH, 3])
+        #   split[i] = tf.image.resize_images(split[i], [IMAGE_HEIGHT + 8, IMAGE_WIDTH + 3])
+        #   split[i] = tf.split(split[i], shape)
+        #   for j in range(len(split[i])):
+        #     split[i][j] = tf.reshape(split[i][j], [IMAGE_HEIGHT + 8, IMAGE_WIDTH + 3, 3])
+        #     split[i][j] = tf.random_crop(split[i][j], [IMAGE_HEIGHT, IMAGE_WIDTH, 3])
+        #     split[i][j] = tf.image.random_flip_left_right(split[i][j])
+        #     split[i][j] = tf.image.random_brightness(split[i][j], max_delta=32. / 255.)
+        #     split[i][j] = tf.image.random_saturation(split[i][j], lower=0.5, upper=1.5)
+        #     split[i][j] = tf.image.random_hue(split[i][j], max_delta=0.2)
+        #     split[i][j] = tf.image.random_contrast(split[i][j], lower=0.5, upper=1.5)
+        #     split[i][j] = tf.image.per_image_standardization(split[i][j])
+        # return [tf.reshape(tf.concat(split[0], axis=0), [BATCH_SIZE, IMAGE_HEIGHT, IMAGE_WIDTH, 3]),
+
+        # normalization
+        features = receiver_tensors
+        n = self.get_normalization_method()
+        if(n == 'unit_length'):
+            features = tf.divide(receiver_tensors, 255.0)
+        elif (n == 'per_image'):
+            features = tf.image.per_image_standardization(receiver_tensors)
+        elif (n == 'zero_center'):
+            features = tf.multiply(tf.add(tf.divide(receiver_tensors, 255.0), -0.5), 2.0)
+        elif (n == 'imagenet_mean_subtraction'):
+            MEANS = tf.constant([123.68, 116.779, 103.939])
+            features = tf.subtract(receiver_tensors, MEANS)
+
         return tf.estimator.export.ServingInputReceiver(receiver_tensors=receiver_tensors,
-                                                        features=receiver_tensors)
+                                                        features=features)
 
     def normalize(self, image):
         return norm_options[self.get_normalization_method()](image)
